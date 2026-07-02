@@ -1,0 +1,31 @@
+# Деплой на Render одним кликом (Blueprint).
+# 1. Залейте проект в GitHub. 2. На render.com -> New -> Blueprint -> выберите репозиторий.
+# 3. Render прочитает этот файл и развернёт сервис. Диск сохраняет данные между деплоями.
+services:
+  - type: web
+    name: grot-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter            # ~$7/мес; для теста можно free (без диска)
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_FILE
+        value: /data/store.json
+      - key: DATA_DIR          # где хранить секрет подписи токенов (на диске)
+        value: /data
+      - key: AUTH_SECRET       # генерируется один раз, стабилен между деплоями
+        generateValue: true
+      # --- Интеграции: задайте значения в дашборде Render (Secret) ---
+      # - key: VAPID_PUBLIC      (Web Push)
+      # - key: VAPID_PRIVATE
+      # - key: VAPID_SUBJECT     value: mailto:you@example.com
+      # - key: TWILIO_SID        (SMS)
+      # - key: TWILIO_TOKEN
+      # - key: TWILIO_FROM
+      # - key: GOOGLE_MAPS_KEY   (карты/доставка)
+    disk:
+      name: grot-data
+      mountPath: /data
+      sizeGB: 1

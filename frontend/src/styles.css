@@ -1,0 +1,317 @@
+/* ===================================================================
+   GROT Bar & Grill — Premium Dark Luxury UI
+   =================================================================== */
+:root {
+  --black: #0a0a0b;
+  --graphite: #16161a;
+  --graphite-2: #1f1f25;
+  --line: #2a2a31;
+  --gold: #d4af37;
+  --gold-soft: #e8cf83;
+  --orange: #ff7a18;
+  --red: #e23b3b;
+  --green: #3ec46d;
+  --yellow: #f4c430;
+  --text: #f6f3ec;
+  --muted: #bdb8ac;
+  --radius: 18px;
+  --shadow: 0 18px 50px rgba(0,0,0,.55);
+  --grad-gold: linear-gradient(135deg, #d4af37, #e8cf83 55%, #b8860b);
+  --grad-fire: linear-gradient(135deg, #ff7a18, #e23b3b);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  font-size: 16px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Телефонная рамка для десктопа, full-bleed на мобиле */
+.app-shell {
+  max-width: 480px; margin: 0 auto; min-height: 100vh;
+  background: var(--black); position: relative;
+  display: flex; flex-direction: column;
+  box-shadow: 0 0 80px rgba(0,0,0,.6);
+}
+/* Спокойная нейтральная тёмная основа в стиле Apple (near-black, мягкая глубина) */
+.app-shell { background: linear-gradient(180deg, #141416 0%, #0c0c0e 55%, #0a0a0b 100%); }
+
+/* Геро-блок с фирменной фоновой картинкой и плавным затуханием в основу */
+.hero {
+  position: relative; margin: -18px -18px 4px; padding: 22px 18px 26px;
+  background: linear-gradient(180deg, rgba(10,9,12,.30), rgba(10,9,12,.78) 70%, #0d0c0f 100%),
+              url('/bg.jpg') center top / cover no-repeat;
+}
+@media (min-width: 900px) { .app-shell { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
+
+.screen { flex: 1; padding: 18px 18px 96px; animation: fade .35s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+
+h1, h2, h3 { margin: 0 0 8px; letter-spacing: .3px; }
+h1 { font-size: 26px; font-weight: 800; }
+h2 { font-size: 19px; font-weight: 700; }
+.muted { color: var(--muted); font-size: 14px; }
+.gold { color: var(--gold); }
+.center { text-align: center; }
+.row { display: flex; gap: 12px; align-items: center; }
+.between { display: flex; justify-content: space-between; align-items: center; }
+.wrap { flex-wrap: wrap; }
+.spacer { flex: 1; }
+
+/* Заголовок секции */
+.section-title { display: flex; align-items: center; gap: 8px; margin: 26px 0 12px; }
+.section-title h2 { margin: 0; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+/* Карточки */
+.card {
+  background: #161618;
+  border: 1px solid rgba(255,255,255,.07); border-radius: var(--radius);
+  padding: 16px; box-shadow: 0 8px 26px rgba(0,0,0,.32); animation: pop .3s ease;
+}
+.card.tight { padding: 12px; }
+
+/* Кнопки — «живые»: пружинистый отклик + периодический блик по золоту */
+.btn {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: none; cursor: pointer; font-weight: 700; font-size: 16px;
+  min-height: 52px; padding: 14px 20px; border-radius: 15px; color: #1a1206;
+  background: var(--grad-gold);
+  transition: transform .22s cubic-bezier(.22,.61,.36,1), filter .2s, box-shadow .25s;
+  box-shadow: 0 10px 24px rgba(212,175,55,.25);
+}
+/* Блик, пробегающий по кнопке раз в несколько секунд */
+.btn::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -80%; width: 55%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,.38) 50%, transparent);
+  transform: skewX(-20deg); pointer-events: none;
+  animation: shine 4.5s ease-in-out infinite;
+}
+@keyframes shine {
+  0%, 72% { left: -80%; }
+  88%, 100% { left: 130%; }
+}
+.btn:active { transform: scale(.95); box-shadow: 0 5px 14px rgba(212,175,55,.35); }
+.btn.block { width: 100%; }
+.btn.fire {
+  background: var(--grad-fire); color: #fff;
+  box-shadow: 0 10px 24px rgba(226,59,59,.3);
+  animation: breathe 3.2s ease-in-out infinite;
+}
+.btn.fire::after { animation-duration: 5.5s; }
+/* Мягкое «дыхание» акцентных кнопок */
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 10px 24px rgba(226,59,59,.30); }
+  50% { box-shadow: 0 12px 34px rgba(255,122,24,.48); }
+}
+/* Ghost-кнопки — без блика, только рамка оживает при нажатии */
+.btn.ghost::after { display: none; }
+.btn.ghost { animation: none; }
+.btn:disabled::after { display: none; }
+.btn:disabled { animation: none; }
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+.btn.sm { min-height: 44px; padding: 10px 16px; font-size: 14px; border-radius: 12px; }
+.btn:disabled { opacity: .5; }
+
+/* ===== Единый «живой» блик для остальных активных кнопок ===== */
+/* Плитки действий, активные чипсы и активный сегмент-переключатель */
+.tile, .chip.active, .seg button.on {
+  position: relative; overflow: hidden;
+}
+.tile::after, .chip.active::after, .seg button.on::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -85%; width: 55%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,.30) 50%, transparent);
+  transform: skewX(-20deg); pointer-events: none;
+  animation: shine 5s ease-in-out infinite;
+}
+.chip.active::after, .seg button.on::after { animation-duration: 6s; background: linear-gradient(105deg, transparent, rgba(255,255,255,.22) 50%, transparent); }
+.tile.gold::after { background: linear-gradient(105deg, transparent, rgba(255,255,255,.4) 50%, transparent); }
+.tile.accent { animation: breathe 3.4s ease-in-out infinite; }
+
+.chip {
+  padding: 11px 17px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--graphite); color: var(--muted); font-size: 14px; font-weight: 600;
+  white-space: nowrap; cursor: pointer; transition: .2s;
+}
+.chip.active { background: var(--grad-gold); color: #1a1206; border-color: transparent; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+
+/* Поля ввода */
+input, select, textarea {
+  width: 100%; padding: 14px 16px; border-radius: 13px; font-size: 15px;
+  background: var(--graphite); border: 1px solid var(--line); color: var(--text);
+  outline: none; transition: border .2s; font-family: inherit;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--gold); }
+label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+
+/* Бейджи */
+.badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .4px; }
+.badge.gold { background: rgba(212,175,55,.15); color: var(--gold); border: 1px solid rgba(212,175,55,.4); }
+.badge.fire { background: rgba(226,59,59,.15); color: #ff8a8a; border: 1px solid rgba(226,59,59,.4); }
+.badge.green { background: rgba(62,196,109,.15); color: var(--green); }
+.badge.new { background: var(--grad-fire); color: #fff; }
+
+.tier-Bronze { color: #cd7f32; } .tier-Silver { color: #c0c0c0; }
+.tier-Gold { color: var(--gold); } .tier-Black { background: var(--grad-gold); -webkit-background-clip: text; color: transparent; }
+
+/* Меню-карточка */
+.dish { display: flex; gap: 14px; align-items: center; }
+.dish img { width: 78px; height: 78px; border-radius: 14px; object-fit: cover; background: var(--graphite-2); flex-shrink: 0; }
+.dish .name { font-weight: 700; font-size: 15px; }
+.dish .price { color: var(--gold); font-weight: 800; }
+.unavailable { opacity: .45; }
+
+/* Нижняя навигация */
+.tabbar {
+  position: sticky; bottom: 0; left: 0; right: 0; z-index: 30;
+  display: flex; justify-content: space-around; padding: 10px 6px 14px;
+  background: rgba(12,12,14,.9); backdrop-filter: blur(18px);
+  border-top: 1px solid var(--line);
+}
+.tabbar a { color: var(--muted); text-decoration: none; font-size: 12px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 56px; padding: 2px 0; transition: .2s; }
+.tabbar a.active { color: var(--gold); }
+.tabbar .ic { font-size: 24px; }
+
+/* Крупные плитки-действия (главная клиента) */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile {
+  display: flex; flex-direction: column; gap: 6px; justify-content: center;
+  min-height: 104px; padding: 18px; border-radius: 18px; cursor: pointer;
+  background: linear-gradient(160deg, var(--graphite), var(--graphite-2));
+  border: 1px solid var(--line); transition: transform .15s, border-color .2s;
+}
+.tile:active { transform: scale(.97); }
+.tile .ic { font-size: 30px; }
+.tile .t { font-weight: 700; font-size: 16px; }
+.tile .s { color: var(--muted); font-size: 13px; }
+.tile.accent { background: var(--grad-fire); border-color: transparent; color: #fff; }
+.tile.accent .s { color: rgba(255,255,255,.85); }
+.tile.gold { background: var(--grad-gold); border-color: transparent; color: #1a1206; }
+.tile.gold .s { color: rgba(26,18,6,.75); }
+
+/* Топбар */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; position: sticky; top: 0; z-index: 20; background: rgba(10,10,11,.85); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+/* Неоновая надпись GROT — под стиль вывески в меню (оранжево-красный glow) */
+.logo {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700; letter-spacing: 4px; font-size: 22px;
+  color: #ffb070;
+  text-shadow: 0 0 4px rgba(255,160,80,.9), 0 0 10px rgba(255,122,24,.8),
+               0 0 22px rgba(226,59,59,.55);
+}
+.logo span { color: #ffb070; }
+
+/* Сегмент-переключатель Еда / Напитки */
+.seg { display: flex; gap: 6px; padding: 5px; background: var(--graphite); border: 1px solid var(--line); border-radius: 14px; }
+.seg button { flex: 1; padding: 11px; border: none; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 700; font-size: 14px; cursor: pointer; transition: .2s; }
+.seg button.on { background: var(--grad-fire); color: #fff; box-shadow: 0 6px 16px rgba(226,59,59,.3); }
+
+/* Логотип-картинка GROT */
+.brand-logo { display: block; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px rgba(212,175,55,.35), 0 0 28px rgba(255,122,24,.28); }
+.brand-logo.glow-lg { box-shadow: 0 0 0 1px rgba(212,175,55,.4), 0 0 60px rgba(255,122,24,.4); animation: float 3.4s ease-in-out infinite; }
+.topbar .brand-logo { width: 38px; height: 38px; }
+.bell { position: relative; font-size: 20px; cursor: pointer; }
+.bell .dot { position: absolute; top: -4px; right: -4px; background: var(--red); color: #fff; font-size: 9px; min-width: 15px; height: 15px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+
+/* Интро */
+.intro { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(80% 60% at 50% 30%, #241405, var(--black)); text-align: center; padding: 30px; animation: fade .5s; }
+.intro .flame { font-size: 60px; animation: float 2.4s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+.intro h1 { font-size: 38px; background: var(--grad-gold); -webkit-background-clip: text; color: transparent; }
+.intro-bar { width: 180px; height: 4px; background: var(--line); border-radius: 9px; overflow: hidden; margin-top: 24px; }
+.intro-bar i { display: block; height: 100%; background: var(--grad-gold); animation: load 3s linear forwards; }
+@keyframes load { from { width: 0 } to { width: 100% } }
+
+/* Карта зала */
+.floor { position: relative; height: 320px; background: var(--graphite); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.tbl { position: absolute; width: 54px; height: 54px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-direction: column; font-weight: 800; font-size: 14px; cursor: pointer; border: 2px solid; transition: transform .2s; }
+.tbl:active { transform: scale(.92); }
+.tbl small { font-weight: 500; font-size: 9px; opacity: .8; }
+.st-free { background: rgba(62,196,109,.12); border-color: var(--green); color: var(--green); }
+.st-reserved { background: rgba(244,196,48,.12); border-color: var(--yellow); color: var(--yellow); }
+.st-occupied { background: rgba(226,59,59,.12); border-color: var(--red); color: #ff8a8a; }
+
+/* Список / разделители */
+.list > * + * { margin-top: 12px; }
+.divider { height: 1px; background: var(--line); margin: 14px 0; }
+
+/* Степпер количества */
+.stepper { display: inline-flex; align-items: center; gap: 12px; background: var(--graphite); border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; }
+.stepper button { width: 28px; height: 28px; border-radius: 999px; border: none; background: var(--graphite-2); color: var(--text); font-size: 18px; cursor: pointer; }
+
+/* Модалка */
+.sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); z-index: 60; display: flex; align-items: flex-end; justify-content: center; animation: fade .25s; }
+.sheet { width: 100%; max-width: 480px; background: var(--graphite); border-top-left-radius: 26px; border-top-right-radius: 26px; border: 1px solid var(--line); padding: 22px 18px 30px; max-height: 86vh; overflow-y: auto; animation: up .3s ease; }
+@keyframes up { from { transform: translateY(100%) } to { transform: none } }
+.grab { width: 44px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 16px; }
+
+/* Прогресс заказа */
+.steps { display: flex; gap: 6px; margin: 10px 0; }
+.steps i { flex: 1; height: 6px; border-radius: 9px; background: var(--line); }
+.steps i.on { background: var(--grad-gold); }
+
+/* KPI */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kpi { background: linear-gradient(160deg, var(--graphite), var(--graphite-2)); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.kpi .v { font-size: 24px; font-weight: 800; color: var(--gold); }
+.kpi .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* Бар-график */
+.bar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.bar-row .lab { width: 120px; font-size: 13px; }
+.bar-track { flex: 1; height: 10px; background: var(--graphite-2); border-radius: 9px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--grad-gold); }
+
+/* Уведомления-тосты */
+.toast-wrap { position: fixed; top: 16px; left: 0; right: 0; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+.toast { background: var(--graphite-2); border: 1px solid var(--gold); color: var(--text); padding: 12px 18px; border-radius: 13px; font-size: 14px; box-shadow: var(--shadow); animation: pop .25s; max-width: 90%; }
+
+/* Лоадер */
+.loader { display: flex; justify-content: center; padding: 60px 0; }
+.loader i { width: 36px; height: 36px; border: 3px solid var(--line); border-top-color: var(--gold); border-radius: 999px; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg) } }
+
+.empty { text-align: center; color: var(--muted); padding: 50px 20px; }
+.empty .big { font-size: 44px; margin-bottom: 10px; }
+
+/* ===== Тактильные анимации нажатия (тап на телефоне) ===== */
+/* Убираем задержку 300мс и системную подсветку на тапе */
+button, a, .chip, .tile, .tbl, .bell, .dish, .seg button, .stepper button, .kpi, [role="button"] {
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+/* Базовая отдача для всех активных кнопок — пружинистая кривая */
+button:not(:disabled) { transition: transform .22s cubic-bezier(.22,.61,.36,1), filter .15s ease, box-shadow .2s ease; }
+button:not(:disabled):active { transform: scale(.94); filter: brightness(.96); }
+
+/* Точечная настройка под конкретные элементы */
+.btn:not(:disabled):active { transform: scale(.96); filter: brightness(1.04); }
+.chip { transition: transform .12s ease, background .2s, color .2s; }
+.chip:active { transform: scale(.92); }
+.seg button:active { transform: scale(.96); }
+.stepper button { transition: transform .1s ease, background .2s; }
+.stepper button:active { transform: scale(.85); background: var(--graphite-2); }
+.bell { transition: transform .12s ease; }
+.bell:active { transform: scale(.82); }
+.tile { transition: transform .14s ease, border-color .2s, box-shadow .2s; }
+.tile:active { transform: scale(.96); }
+.tbl { transition: transform .14s ease; }
+.tbl:active { transform: scale(.9); }
+.dish { transition: transform .14s ease; }
+.card.dish:active { transform: scale(.985); }
+/* Нижняя навигация — лёгкое утопление иконки */
+.tabbar a { transition: transform .12s ease, color .2s; }
+.tabbar a:active { transform: scale(.88); }
+
+/* Уважение к настройке «уменьшить движение» */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
