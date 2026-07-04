@@ -275,11 +275,12 @@ const ORDER_STATUSES = ['new', 'accepted', 'cooking', 'ready', 'delivering', 'de
 app.patch('/api/orders/:id/status', auth, requireRole(...STAFF), (req, res) => {
   const o = db.orders.find((x) => x.id === Number(req.params.id));
   if (!o) return res.status(404).json({ error: 'Нет заказа' });
-  const { status, waiterId, courierId } = req.body;
+  const { status } = req.body;
   if (!ORDER_STATUSES.includes(status)) return res.status(400).json({ error: 'Недопустимый статус' });
   o.status = status;
-  if (waiterId) o.waiterId = waiterId;
-  if (courierId) o.courierId = courierId;
+  // Привязка к конкретному сотруднику по его роли (для личной статистики).
+  if (req.user.role === 'waiter' && !o.waiterId) o.waiterId = req.user.id;
+  if (req.user.role === 'courier') o.courierId = req.user.id;
   if (status === 'ready') db.pushNotify({ role: 'waiter', text: `✅ Заказ #${o.id} готов` });
   if (['delivered', 'handed'].includes(status)) writeOffStock(o);
   if (STATUS_MSG[status]) db.pushNotify({ userId: o.userId, text: `Заказ #${o.id} ${STATUS_MSG[status]}` });
@@ -344,11 +345,35 @@ app.get('/api/crm/clients', auth, (req, res) => {
 const STAFF_ROLES = ['waiter', 'cook', 'courier', 'admin'];
 const ROLE_LABEL = { owner: 'Владелец', admin: 'Администратор', waiter: 'Официант', cook: 'Кухня', courier: 'Курьер' };
 
+const handledBy = (u) => u.role === 'courier'
+  ? db.orders.filter((o) => o.courierId === u.id)
+  : db.orders.filter((o) => o.waiterId === u.id);
+
 app.get('/api/staff', auth, requireRole('owner', 'admin'), (req, res) => {
   res.json(db.users.filter((u) => u.role !== 'client').map((u) => ({
     id: u.id, name: u.name, phone: u.phone, role: u.role, roleLabel: ROLE_LABEL[u.role] || u.role,
     active: u.active !== false, isOwner: u.role === 'owner', isSelf: u.id === req.user.id,
+    ordersHandled: (u.role === 'waiter' || u.role === 'courier') ? handledBy(u).length : null,
   })));
+});
+
+// Личная статистика сотрудника (какие заказы вёл, сколько, на какую сумму)
+app.get('/api/staff/:id/stats', auth, requireRole('owner', 'admin'), (req, res) => {
+  const u = db.users.find((x) => x.id === Number(req.params.id));
+  if (!u || u.role === 'client') return res.status(404).json({ error: 'Не найден' });
+  const orders = handledBy(u);
+  const delivered = orders.filter((o) => ['delivered', 'handed'].includes(o.status));
+  const revenue = orders.reduce((s, o) => s + o.total, 0);
+  res.json({
+    id: u.id, name: u.name, role: u.role, roleLabel: ROLE_LABEL[u.role] || u.role,
+    ordersHandled: orders.length,
+    completed: delivered.length,
+    revenue,
+    orders: orders.slice().reverse().slice(0, 40).map((o) => ({
+      id: o.id, status: o.status, total: o.total, type: o.type, createdAt: o.createdAt,
+      items: o.items.map((i) => `${i.name} ×${i.qty}`).join(', '),
+    })),
+  });
 });
 
 app.post('/api/staff', auth, requireRole('owner', 'admin'), (req, res) => {

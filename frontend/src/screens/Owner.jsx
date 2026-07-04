@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
-import { Loader, useFetch, money, Empty } from '../components/ui.jsx';
+import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
 
 const TABS = ['Аналитика', 'CRM', 'Персонал', 'Склад', 'Рассылки', 'Контент'];
 
@@ -31,8 +31,13 @@ function Staff() {
   const [form, setForm] = useState({ name: '', phone: '', role: 'waiter', password: '' });
   const [myPass, setMyPass] = useState('');
   const [myPhone, setMyPhone] = useState('');
+  const [stat, setStat] = useState(null);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
   if (loading || !data) return <Loader />;
+
+  const openStats = async (s) => {
+    try { setStat(await api.get(`/staff/${s.id}/stats`)); } catch (e) { toast(e.message); }
+  };
 
   const add = async () => {
     if (!form.name || !form.phone || !form.password) return toast('Заполните имя, телефон и пароль');
@@ -88,17 +93,43 @@ function Staff() {
               <div><b>{s.name}</b> <span className="badge gold">{s.roleLabel}</span>{s.isOwner && <span className="badge green" style={{ marginLeft: 6 }}>вы / владелец</span>}</div>
               {!s.active && <span className="badge fire">отключён</span>}
             </div>
-            <div className="muted" style={{ margin: '4px 0' }}>{s.phone}</div>
-            {!s.isOwner && (
-              <div className="row wrap" style={{ gap: 8, marginTop: 6 }}>
-                <button className="chip" onClick={() => toggle(s)}>{s.active ? 'Отключить' : 'Включить'}</button>
-                <button className="chip" onClick={() => resetPass(s)}>Сменить пароль</button>
-                <button className="chip" onClick={() => remove(s)}>Удалить</button>
-              </div>
-            )}
+            <div className="between" style={{ margin: '4px 0' }}>
+              <span className="muted">{s.phone}</span>
+              {s.ordersHandled != null && <span className="badge gold">{s.role === 'courier' ? 'доставок' : 'заказов'}: {s.ordersHandled}</span>}
+            </div>
+            <div className="row wrap" style={{ gap: 8, marginTop: 6 }}>
+              {(s.role === 'waiter' || s.role === 'courier') && <button className="chip active" onClick={() => openStats(s)}>Статистика</button>}
+              {!s.isOwner && <button className="chip" onClick={() => toggle(s)}>{s.active ? 'Отключить' : 'Включить'}</button>}
+              {!s.isOwner && <button className="chip" onClick={() => resetPass(s)}>Сменить пароль</button>}
+              {!s.isOwner && <button className="chip" onClick={() => remove(s)}>Удалить</button>}
+            </div>
           </div>
         ))}
       </div>
+
+      <Sheet open={!!stat} onClose={() => setStat(null)}>
+        {stat && (<>
+          <h2>{stat.name}</h2>
+          <div className="muted">{stat.roleLabel}</div>
+          <div className="kpi-grid" style={{ marginTop: 14 }}>
+            <div className="kpi"><div className="v">{stat.ordersHandled}</div><div className="l">{stat.role === 'courier' ? 'Доставок взято' : 'Заказов принято'}</div></div>
+            <div className="kpi"><div className="v">{stat.completed}</div><div className="l">Завершено</div></div>
+            <div className="kpi"><div className="v">{money(stat.revenue)}</div><div className="l">Сумма заказов</div></div>
+            <div className="kpi"><div className="v">{stat.orders.length}</div><div className="l">Показано</div></div>
+          </div>
+          <div className="section-title"><h2>Заказы сотрудника</h2></div>
+          <div className="list">
+            {stat.orders.map((o) => (
+              <div key={o.id} className="card tight">
+                <div className="between"><b>#{o.id}</b><span className="badge gold">{money(o.total)}</span></div>
+                <div className="muted">{new Date(o.createdAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} · {o.status}</div>
+                <div style={{ marginTop: 2 }}>{o.items}</div>
+              </div>
+            ))}
+            {stat.orders.length === 0 && <Empty icon="📋" text="Пока нет заказов" />}
+          </div>
+        </>)}
+      </Sheet>
 
       <div className="section-title"><h2>Мой вход</h2></div>
       <div className="card">
