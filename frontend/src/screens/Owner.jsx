@@ -30,6 +30,7 @@ function Staff() {
   const { data, loading, reload } = useFetch(() => api.get('/staff'));
   const [form, setForm] = useState({ name: '', phone: '', role: 'waiter', password: '' });
   const [myPass, setMyPass] = useState('');
+  const [myPhone, setMyPhone] = useState('');
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
   if (loading || !data) return <Loader />;
 
@@ -56,6 +57,10 @@ function Staff() {
   const changeMyPassword = async () => {
     if (myPass.length < 4) return toast('Пароль минимум 4 символа');
     try { await api.post('/me/password', { password: myPass }); toast('Ваш пароль изменён'); setMyPass(''); } catch (e) { toast(e.message); }
+  };
+  const changeMyPhone = async () => {
+    if (!myPhone.trim()) return toast('Введите номер');
+    try { await api.post('/me/phone', { phone: myPhone.trim() }); toast('Ваш номер изменён — используйте его для входа'); setMyPhone(''); } catch (e) { toast(e.message); }
   };
 
   return (
@@ -95,12 +100,17 @@ function Staff() {
         ))}
       </div>
 
-      <div className="section-title"><h2>Мой пароль</h2></div>
+      <div className="section-title"><h2>Мой вход</h2></div>
       <div className="card">
-        <div className="muted" style={{ marginBottom: 8 }}>Смените стандартный пароль владельца на свой секретный.</div>
+        <div className="muted" style={{ marginBottom: 8 }}>Номер (логин) — вводите в международном формате, например +66994407765.</div>
+        <div className="row" style={{ gap: 8 }}>
+          <input value={myPhone} onChange={(e) => setMyPhone(e.target.value)} placeholder="+66..." inputMode="tel" style={{ flex: 1 }} />
+          <button className="btn sm" onClick={changeMyPhone}>Сменить номер</button>
+        </div>
+        <div className="muted" style={{ margin: '12px 0 8px' }}>Пароль — задайте свой секретный.</div>
         <div className="row" style={{ gap: 8 }}>
           <input value={myPass} onChange={(e) => setMyPass(e.target.value)} placeholder="Новый пароль" style={{ flex: 1 }} />
-          <button className="btn sm" onClick={changeMyPassword}>Сменить</button>
+          <button className="btn sm" onClick={changeMyPassword}>Сменить пароль</button>
         </div>
       </div>
     </>

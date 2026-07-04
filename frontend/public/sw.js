@@ -1,7 +1,7 @@
 // =====================================================================
 // GROT Service Worker — офлайн-оболочка PWA + приём Web Push.
 // =====================================================================
-const CACHE = 'grot-v2';
+const CACHE = 'grot-v3';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/logo.png'];
 
 self.addEventListener('install', (e) => {
@@ -15,18 +15,36 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// API — всегда сеть (свежие данные). Статика — cache-first с фолбэком в сеть.
+// API — всегда сеть. HTML/навигация — СЕТЬ-ПЕРВОЙ (чтобы обновления приходили сразу),
+// кэш только как офлайн-фолбэк. Прочая статика (хешированные js/css) — cache-first.
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
-  if (url.pathname.startsWith('/api/')) return; // не кэшируем API
+  if (url.pathname.startsWith('/api/')) return; // API не кэшируем
+
+  const isHTML = e.request.mode === 'navigate' ||
+    (e.request.headers.get('accept') || '').includes('text/html');
+
+  if (isHTML) {
+    // network-first: всегда пытаемся взять свежую страницу
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match(e.request).then((c) => c || caches.match('/index.html')))
+    );
+    return;
+  }
+
+  // статика — cache-first с фоновым обновлением
   e.respondWith(
     caches.match(e.request).then((cached) =>
       cached || fetch(e.request).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
         return res;
-      }).catch(() => caches.match('/index.html'))
+      }).catch(() => cached)
     )
   );
 });

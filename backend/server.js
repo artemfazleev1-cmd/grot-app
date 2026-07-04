@@ -104,6 +104,15 @@ app.post('/api/me/password', auth, (req, res) => {
   res.json({ ok: true });
 });
 
+// Смена собственного номера телефона (логина)
+app.post('/api/me/phone', auth, (req, res) => {
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: 'Укажите номер' });
+  if (db.users.find((u) => u.phone === String(phone) && u.id !== req.user.id)) return res.status(409).json({ error: 'Этот номер уже используется' });
+  req.user.phone = String(phone);
+  res.json({ ok: true, phone: req.user.phone });
+});
+
 // SMS / OTP. В демо-режиме (без Twilio) код возвращается в ответе — для теста.
 // devCode отдаётся только вне продакшена.
 app.post('/api/auth/request-otp', authLimiter, async (req, res) => {
