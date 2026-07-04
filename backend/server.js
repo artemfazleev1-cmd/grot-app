@@ -120,7 +120,9 @@ app.post('/api/auth/request-otp', authLimiter, async (req, res) => {
   if (!phone) return res.status(400).json({ error: 'Укажите телефон' });
   const code = sms.issueOtp(phone);
   try { await sms.sendSms(phone, `GROT: код подтверждения ${code}`); } catch { return res.status(502).json({ error: 'Не удалось отправить SMS' }); }
-  const exposeCode = !sms.smsEnabled && process.env.NODE_ENV !== 'production';
+  // Пока не подключён SMS-провайдер (Twilio) — код показываем на экране (демо/тест).
+  // Как только Twilio настроен (smsEnabled) — код уходит реальной SMS и не отдаётся.
+  const exposeCode = !sms.smsEnabled;
   res.json({ ok: true, demo: !sms.smsEnabled, ...(exposeCode ? { devCode: code } : {}) });
 });
 
