@@ -65,6 +65,7 @@ const auth = (req, res, next) => {
   const uid = userIdFromToken(t);
   const u = uid && db.users.find((x) => x.id === uid);
   if (!u) return res.status(401).json({ error: 'Не авторизован' });
+  if (u.active === false) return res.status(403).json({ error: 'Доступ отключён' });
   req.user = u;
   next();
 };
@@ -91,7 +92,16 @@ app.post('/api/auth/login', authLimiter, (req, res) => {
   const { phone, password } = req.body;
   const u = db.users.find((x) => x.phone === phone);
   if (!u || !verifyPassword(password, u.password)) return res.status(401).json({ error: 'Неверный телефон или пароль' });
+  if (u.active === false) return res.status(403).json({ error: 'Доступ отключён владельцем' });
   res.json({ token: tokenFor(u), user: sanitize(u) });
+});
+
+// Смена собственного пароля (любой авторизованный)
+app.post('/api/me/password', auth, (req, res) => {
+  const { password } = req.body;
+  if (!password || String(password).length < 4) return res.status(400).json({ error: 'Пароль слишком короткий' });
+  req.user.password = hashPassword(password);
+  res.json({ ok: true });
 });
 
 // SMS / OTP. В демо-режиме (без Twilio) код возвращается в ответе — для теста.
@@ -317,6 +327,49 @@ app.get('/api/crm/clients', auth, (req, res) => {
     id: u.id, name: u.name, phone: u.phone,
     createdAt: u.createdAt, ...u.stats, favDishes: u.favDishes, favDrinks: u.favDrinks,
   })));
+});
+
+// ================= ПЕРСОНАЛ (аккаунты сотрудников) =================
+const STAFF_ROLES = ['waiter', 'cook', 'courier', 'admin'];
+const ROLE_LABEL = { owner: 'Владелец', admin: 'Администратор', waiter: 'Официант', cook: 'Кухня', courier: 'Курьер' };
+
+app.get('/api/staff', auth, requireRole('owner', 'admin'), (req, res) => {
+  res.json(db.users.filter((u) => u.role !== 'client').map((u) => ({
+    id: u.id, name: u.name, phone: u.phone, role: u.role, roleLabel: ROLE_LABEL[u.role] || u.role,
+    active: u.active !== false, isOwner: u.role === 'owner', isSelf: u.id === req.user.id,
+  })));
+});
+
+app.post('/api/staff', auth, requireRole('owner', 'admin'), (req, res) => {
+  const { name, phone, role, password } = req.body;
+  if (!name || !phone || !password) return res.status(400).json({ error: 'Заполните имя, телефон и пароль' });
+  if (!STAFF_ROLES.includes(role)) return res.status(400).json({ error: 'Выберите роль' });
+  if (String(password).length < 4) return res.status(400).json({ error: 'Пароль минимум 4 символа' });
+  if (db.users.find((u) => u.phone === phone)) return res.status(409).json({ error: 'Этот телефон уже используется' });
+  const u = { id: db.id(), phone: String(phone), password: hashPassword(password), name: String(name).slice(0, 60),
+    role, active: true, createdAt: db.now() };
+  db.users.push(u);
+  res.json({ id: u.id, name: u.name, phone: u.phone, role: u.role, active: true });
+});
+
+app.patch('/api/staff/:id', auth, requireRole('owner', 'admin'), (req, res) => {
+  const u = db.users.find((x) => x.id === Number(req.params.id));
+  if (!u || u.role === 'client') return res.status(404).json({ error: 'Сотрудник не найден' });
+  const { name, role, password, active } = req.body;
+  if (name) u.name = String(name).slice(0, 60);
+  if (role && STAFF_ROLES.includes(role) && u.role !== 'owner') u.role = role;
+  if (typeof active === 'boolean' && u.role !== 'owner' && u.id !== req.user.id) u.active = active;
+  if (password && String(password).length >= 4) u.password = hashPassword(password);
+  res.json({ ok: true });
+});
+
+app.delete('/api/staff/:id', auth, requireRole('owner', 'admin'), (req, res) => {
+  const i = db.users.findIndex((x) => x.id === Number(req.params.id));
+  if (i === -1) return res.status(404).json({ error: 'Не найден' });
+  if (db.users[i].role === 'client' || db.users[i].role === 'owner') return res.status(400).json({ error: 'Нельзя удалить' });
+  if (db.users[i].id === req.user.id) return res.status(400).json({ error: 'Нельзя удалить себя' });
+  db.users.splice(i, 1);
+  res.json({ ok: true });
 });
 
 // ================= РАССЫЛКИ =================

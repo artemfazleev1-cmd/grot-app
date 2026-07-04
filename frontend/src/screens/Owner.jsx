@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty } from '../components/ui.jsx';
 
-const TABS = ['Аналитика', 'CRM', 'Склад', 'Рассылки', 'Контент'];
+const TABS = ['Аналитика', 'CRM', 'Персонал', 'Склад', 'Рассылки', 'Контент'];
 
 export default function Owner() {
   const [tab, setTab] = useState('Аналитика');
@@ -16,11 +16,94 @@ export default function Owner() {
       <div style={{ marginTop: 16 }}>
         {tab === 'Аналитика' && <Analytics />}
         {tab === 'CRM' && <CRM />}
+        {tab === 'Персонал' && <Staff />}
         {tab === 'Склад' && <Inventory />}
         {tab === 'Рассылки' && <Broadcasts />}
         {tab === 'Контент' && <Content />}
       </div>
     </div>
+  );
+}
+
+function Staff() {
+  const { toast } = useStore();
+  const { data, loading, reload } = useFetch(() => api.get('/staff'));
+  const [form, setForm] = useState({ name: '', phone: '', role: 'waiter', password: '' });
+  const [myPass, setMyPass] = useState('');
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  if (loading || !data) return <Loader />;
+
+  const add = async () => {
+    if (!form.name || !form.phone || !form.password) return toast('Заполните имя, телефон и пароль');
+    try {
+      await api.post('/staff', form);
+      toast(`Сотрудник ${form.name} добавлен`);
+      setForm({ name: '', phone: '', role: 'waiter', password: '' });
+      reload();
+    } catch (e) { toast(e.message); }
+  };
+  const toggle = async (s) => { await api.patch(`/staff/${s.id}`, { active: !s.active }); toast(s.active ? 'Доступ отключён' : 'Доступ включён'); reload(); };
+  const resetPass = async (s) => {
+    const p = prompt(`Новый пароль для ${s.name}:`);
+    if (!p) return;
+    try { await api.patch(`/staff/${s.id}`, { password: p }); toast('Пароль изменён'); } catch (e) { toast(e.message); }
+  };
+  const remove = async (s) => {
+    if (!confirm(`Удалить сотрудника ${s.name}?`)) return;
+    try { await api.del(`/staff/${s.id}`); toast('Сотрудник удалён'); reload(); }
+    catch (e) { toast(e.message); }
+  };
+  const changeMyPassword = async () => {
+    if (myPass.length < 4) return toast('Пароль минимум 4 символа');
+    try { await api.post('/me/password', { password: myPass }); toast('Ваш пароль изменён'); setMyPass(''); } catch (e) { toast(e.message); }
+  };
+
+  return (
+    <>
+      <div className="card">
+        <b>Добавить сотрудника</b>
+        <label>Имя</label><input value={form.name} onChange={set('name')} placeholder="Имя сотрудника" />
+        <label>Телефон (логин)</label><input value={form.phone} onChange={set('phone')} placeholder="+66..." inputMode="tel" />
+        <label>Роль</label>
+        <select value={form.role} onChange={set('role')}>
+          <option value="waiter">Официант</option>
+          <option value="cook">Кухня</option>
+          <option value="courier">Курьер</option>
+          <option value="admin">Администратор</option>
+        </select>
+        <label>Пароль</label><input value={form.password} onChange={set('password')} placeholder="Пароль для входа" />
+        <button className="btn block" style={{ marginTop: 14 }} onClick={add}>Добавить</button>
+      </div>
+
+      <div className="section-title"><h2>Сотрудники</h2></div>
+      <div className="list">
+        {data.map((s) => (
+          <div key={s.id} className={`card tight ${s.active ? '' : 'unavailable'}`}>
+            <div className="between">
+              <div><b>{s.name}</b> <span className="badge gold">{s.roleLabel}</span>{s.isOwner && <span className="badge green" style={{ marginLeft: 6 }}>вы / владелец</span>}</div>
+              {!s.active && <span className="badge fire">отключён</span>}
+            </div>
+            <div className="muted" style={{ margin: '4px 0' }}>{s.phone}</div>
+            {!s.isOwner && (
+              <div className="row wrap" style={{ gap: 8, marginTop: 6 }}>
+                <button className="chip" onClick={() => toggle(s)}>{s.active ? 'Отключить' : 'Включить'}</button>
+                <button className="chip" onClick={() => resetPass(s)}>Сменить пароль</button>
+                <button className="chip" onClick={() => remove(s)}>Удалить</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="section-title"><h2>Мой пароль</h2></div>
+      <div className="card">
+        <div className="muted" style={{ marginBottom: 8 }}>Смените стандартный пароль владельца на свой секретный.</div>
+        <div className="row" style={{ gap: 8 }}>
+          <input value={myPass} onChange={(e) => setMyPass(e.target.value)} placeholder="Новый пароль" style={{ flex: 1 }} />
+          <button className="btn sm" onClick={changeMyPassword}>Сменить</button>
+        </div>
+      </div>
+    </>
   );
 }
 

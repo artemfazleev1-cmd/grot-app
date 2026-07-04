@@ -2,14 +2,6 @@ import { useState } from 'react';
 import { useStore } from '../context/store.jsx';
 import { api } from '../api.js';
 
-const DEMO = [
-  ['Клиент', '5555555555', 'client'],
-  ['Официант', '2222222222', 'waiter'],
-  ['Кухня', '3333333333', 'cook'],
-  ['Курьер', '4444444444', 'courier'],
-  ['Владелец', '0000000000', 'owner'],
-];
-
 // Коды стран для международных номеров (Таиланд + основные туристы Паттайи)
 const COUNTRIES = [
   ['🇹🇭 +66', '66'], ['🇷🇺 +7', '7'], ['🇬🇧 +44', '44'], ['🇺🇸 +1', '1'],
@@ -63,8 +55,6 @@ export default function Auth() {
     try { setBusy(true); await login(fullPhone(), f.password); }
     catch (e) { toast(e.message); } finally { setBusy(false); }
   };
-
-  const quick = async (phone, pw) => { try { setBusy(true); await login(phone, pw); } catch (e) { toast(e.message); } finally { setBusy(false); } };
 
   return (
     <div className="screen" style={{ paddingTop: 40 }}>
@@ -128,13 +118,6 @@ export default function Auth() {
             </>
           )
         )}
-      </div>
-
-      <div className="section-title"><h2>Демо-вход по ролям</h2></div>
-      <div className="chips wrap" style={{ flexWrap: 'wrap' }}>
-        {DEMO.map(([label, phone, pw]) => (
-          <button key={phone} className="chip" onClick={() => quick(phone, pw)}>{label}</button>
-        ))}
       </div>
     </div>
   );
