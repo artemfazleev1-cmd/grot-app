@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../context/store.jsx';
-import { api, setToken } from '../api.js';
+import { api } from '../api.js';
 
 const DEMO = [
   ['Клиент', '5555555555', 'client'],
@@ -11,40 +11,40 @@ const DEMO = [
 ];
 
 export default function Auth() {
-  const { login, register, toast, refreshMe, config } = useStore();
-  const [mode, setMode] = useState('login');
-  const [f, setF] = useState({ phone: '', password: '', password2: '', name: '' });
+  const { login, register, toast, config } = useStore();
+  const [mode, setMode] = useState('login');           // login | register
+  const [f, setF] = useState({ phone: '', password: '', password2: '', name: '', code: '' });
   const [busy, setBusy] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
+  const [codeSent, setCodeSent] = useState(false);     // шаг регистрации: код отправлен
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
-  const requestOtp = async () => {
+  const switchMode = (m) => { setMode(m); setCodeSent(false); };
+
+  // Регистрация, шаг 1 — отправить код на номер
+  const sendCode = async () => {
+    if (!f.phone) return toast('Введите номер телефона');
     try {
       setBusy(true);
       const r = await api.post('/auth/request-otp', { phone: f.phone });
-      setOtpSent(true);
+      setCodeSent(true);
       toast(r.devCode ? `Демо-код: ${r.devCode}` : 'Код отправлен по SMS');
     } catch (e) { toast(e.message); } finally { setBusy(false); }
   };
-  const verifyOtp = async () => {
+
+  // Регистрация, шаг 2 — подтвердить код и создать аккаунт
+  const doRegister = async () => {
     try {
+      if (!f.code) return toast('Введите код из SMS');
+      if (f.password.length < 4) return toast('Пароль минимум 4 символа');
+      if (f.password !== f.password2) return toast('Пароли не совпадают');
       setBusy(true);
-      const { token, user } = await api.post('/auth/verify-otp', { phone: f.phone, code: otp, name: f.name });
-      setToken(token); await refreshMe();
+      await register({ phone: f.phone, code: f.code, password: f.password, name: f.name });
     } catch (e) { toast(e.message); } finally { setBusy(false); }
   };
 
-  const submit = async () => {
-    try {
-      setBusy(true);
-      if (mode === 'register') {
-        if (f.password !== f.password2) throw new Error('Пароли не совпадают');
-        await register({ phone: f.phone, password: f.password, name: f.name });
-      } else {
-        await login(f.phone, f.password);
-      }
-    } catch (e) { toast(e.message); } finally { setBusy(false); }
+  const doLogin = async () => {
+    try { setBusy(true); await login(f.phone, f.password); }
+    catch (e) { toast(e.message); } finally { setBusy(false); }
   };
 
   const quick = async (phone, pw) => { try { setBusy(true); await login(phone, pw); } catch (e) { toast(e.message); } finally { setBusy(false); } };
@@ -58,43 +58,48 @@ export default function Auth() {
 
       <div className="card">
         <div className="chips" style={{ marginBottom: 14 }}>
-          <button className={`chip ${mode === 'login' ? 'active' : ''}`} onClick={() => setMode('login')}>Вход</button>
-          <button className={`chip ${mode === 'register' ? 'active' : ''}`} onClick={() => setMode('register')}>Регистрация</button>
-          <button className={`chip ${mode === 'sms' ? 'active' : ''}`} onClick={() => { setMode('sms'); setOtpSent(false); }}>По SMS-коду</button>
+          <button className={`chip ${mode === 'login' ? 'active' : ''}`} onClick={() => switchMode('login')}>Вход</button>
+          <button className={`chip ${mode === 'register' ? 'active' : ''}`} onClick={() => switchMode('register')}>Регистрация</button>
         </div>
 
-        {mode === 'sms' ? (
+        {/* ---------- ВХОД: номер + пароль ---------- */}
+        {mode === 'login' && (
           <>
             <label>Номер телефона</label>
             <input value={f.phone} onChange={set('phone')} placeholder="0XXXXXXXXX" inputMode="tel" />
-            {!otpSent ? (
-              <button className="btn block" style={{ marginTop: 16 }} disabled={busy || !f.phone} onClick={requestOtp}>Получить код</button>
-            ) : (
-              <>
-                <label>Код из SMS</label>
-                <input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="000000" inputMode="numeric" />
-                <button className="btn block" style={{ marginTop: 16 }} disabled={busy || !otp} onClick={verifyOtp}>Войти</button>
-                <div className="muted center" style={{ marginTop: 8 }} onClick={requestOtp}>Отправить код повторно</div>
-              </>
-            )}
-            <div className="muted center" style={{ marginTop: 8, fontSize: 11 }}>
-              {config.smsEnabled ? 'Код придёт по SMS' : 'Демо-режим: код показывается на экране'}
-            </div>
+            <label>Пароль</label>
+            <input type="password" value={f.password} onChange={set('password')} placeholder="••••••" />
+            <button className="btn block" style={{ marginTop: 18 }} disabled={busy} onClick={doLogin}>Войти</button>
+            <div className="muted center" style={{ marginTop: 12 }} onClick={() => toast('Восстановление пароля скоро будет — по коду из SMS')}>Забыли пароль?</div>
           </>
-        ) : (
-        <>
-        {mode === 'register' && (<><label>Имя</label><input value={f.name} onChange={set('name')} placeholder="Как вас зовут" /></>)}
-        <label>Номер телефона</label>
-        <input value={f.phone} onChange={set('phone')} placeholder="0XXXXXXXXX" inputMode="tel" />
-        <label>Пароль</label>
-        <input type="password" value={f.password} onChange={set('password')} placeholder="••••••" />
-        {mode === 'register' && (<><label>Повтор пароля</label><input type="password" value={f.password2} onChange={set('password2')} /></>)}
+        )}
 
-        <button className="btn block" style={{ marginTop: 18 }} disabled={busy} onClick={submit}>
-          {mode === 'login' ? 'Войти' : 'Создать аккаунт'}
-        </button>
-        {mode === 'login' && <div className="muted center" style={{ marginTop: 12 }} onClick={() => toast('Восстановление: введите телефон администратору (демо)')}>Забыли пароль?</div>}
-        </>
+        {/* ---------- РЕГИСТРАЦИЯ: номер → SMS-код → пароль ---------- */}
+        {mode === 'register' && (
+          !codeSent ? (
+            <>
+              <label>Имя</label>
+              <input value={f.name} onChange={set('name')} placeholder="Как вас зовут" />
+              <label>Номер телефона</label>
+              <input value={f.phone} onChange={set('phone')} placeholder="0XXXXXXXXX" inputMode="tel" />
+              <button className="btn block" style={{ marginTop: 18 }} disabled={busy || !f.phone} onClick={sendCode}>Получить код по SMS</button>
+              <div className="muted center" style={{ marginTop: 8, fontSize: 11 }}>
+                {config.smsEnabled ? 'Код придёт SMS-сообщением' : 'Демо-режим: код покажется на экране'}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="muted" style={{ marginBottom: 4 }}>Код отправлен на {f.phone}</div>
+              <label>Код из SMS</label>
+              <input value={f.code} onChange={set('code')} placeholder="000000" inputMode="numeric" />
+              <label>Придумайте пароль</label>
+              <input type="password" value={f.password} onChange={set('password')} placeholder="••••••" />
+              <label>Повторите пароль</label>
+              <input type="password" value={f.password2} onChange={set('password2')} placeholder="••••••" />
+              <button className="btn block" style={{ marginTop: 18 }} disabled={busy} onClick={doRegister}>Создать аккаунт</button>
+              <div className="muted center" style={{ marginTop: 10 }} onClick={sendCode}>Отправить код повторно</div>
+            </>
+          )
         )}
       </div>
 

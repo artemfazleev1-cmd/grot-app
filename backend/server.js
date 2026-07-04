@@ -74,11 +74,13 @@ const STAFF = ['waiter', 'cook', 'courier', 'admin', 'owner'];
 // ================= AUTH =================
 const authLimiter = rateLimit({ max: 10, windowMs: 60_000 });
 
+// Регистрация: телефон подтверждается кодом из SMS + задаётся пароль.
 app.post('/api/auth/register', authLimiter, (req, res) => {
-  const { phone, password, name } = req.body;
+  const { phone, code, password, name } = req.body;
   if (!phone || !password) return res.status(400).json({ error: 'Телефон и пароль обязательны' });
   if (String(password).length < 4) return res.status(400).json({ error: 'Пароль слишком короткий' });
-  if (db.users.find((u) => u.phone === phone)) return res.status(409).json({ error: 'Пользователь уже существует' });
+  if (db.users.find((u) => u.phone === phone)) return res.status(409).json({ error: 'Пользователь с этим номером уже есть' });
+  if (!sms.verifyOtp(phone, code)) return res.status(401).json({ error: 'Неверный или просроченный код из SMS' });
   const u = { id: db.id(), phone: String(phone), password: hashPassword(password), name: String(name || 'Гость').slice(0, 60), role: 'client',
     createdAt: db.now(), stats: { totalSpent: 0, ordersCount: 0, visits: 0, lastVisit: null }, favDishes: [], favDrinks: [] };
   db.users.push(u);
@@ -98,21 +100,9 @@ app.post('/api/auth/request-otp', authLimiter, async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'Укажите телефон' });
   const code = sms.issueOtp(phone);
-  try { await sms.sendSms(phone, `GROT: ваш код входа ${code}`); } catch { return res.status(502).json({ error: 'Не удалось отправить SMS' }); }
+  try { await sms.sendSms(phone, `GROT: код подтверждения ${code}`); } catch { return res.status(502).json({ error: 'Не удалось отправить SMS' }); }
   const exposeCode = !sms.smsEnabled && process.env.NODE_ENV !== 'production';
   res.json({ ok: true, demo: !sms.smsEnabled, ...(exposeCode ? { devCode: code } : {}) });
-});
-
-app.post('/api/auth/verify-otp', authLimiter, (req, res) => {
-  const { phone, code, name } = req.body;
-  if (!sms.verifyOtp(phone, code)) return res.status(401).json({ error: 'Неверный или просроченный код' });
-  let u = db.users.find((x) => x.phone === phone);
-  if (!u) {
-    u = { id: db.id(), phone: String(phone), password: null, name: String(name || 'Гость').slice(0, 60), role: 'client',
-      createdAt: db.now(), stats: { totalSpent: 0, ordersCount: 0, visits: 0, lastVisit: null }, favDishes: [], favDrinks: [] };
-    db.users.push(u);
-  }
-  res.json({ token: tokenFor(u), user: sanitize(u) });
 });
 
 // Сброс пароля только с подтверждением кодом из SMS (OTP).
