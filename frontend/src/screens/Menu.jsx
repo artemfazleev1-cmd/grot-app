@@ -46,7 +46,7 @@ export function Menu() {
       </div>
 
       {cartCount > 0 && (
-        <div style={{ position: 'fixed', bottom: 86, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 25 }}>
+        <div style={{ position: 'fixed', bottom: 'calc(96px + env(safe-area-inset-bottom))', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 35 }}>
           <button className="btn fire" style={{ maxWidth: 440, width: '90%' }} onClick={() => nav('/cart')}>
             Корзина · {cartCount} · {money(cartTotal)}
           </button>
