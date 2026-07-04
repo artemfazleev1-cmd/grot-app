@@ -1,4 +1,7 @@
-// Тонкий клиент REST API. Базовый URL через Vite-прокси на /api.
+// Тонкий клиент REST API.
+// Веб (PWA): пусто → same-origin '/api'. Нативная обёртка (Capacitor):
+// задаётся VITE_API_BASE=https://ваш-сервер.onrender.com при сборке.
+const API_BASE = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
 const TOKEN_KEY = 'grot_token';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
@@ -8,7 +11,7 @@ async function request(path, { method = 'GET', body } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   const t = getToken();
   if (t) headers.Authorization = `Bearer ${t}`;
-  const res = await fetch(`/api${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const res = await fetch(`${API_BASE}/api${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Ошибка запроса');
   return data;

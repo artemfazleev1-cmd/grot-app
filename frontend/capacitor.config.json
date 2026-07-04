@@ -1,0 +1,8 @@
+{
+  "appId": "com.grot.app",
+  "appName": "GROT",
+  "webDir": "dist",
+  "backgroundColor": "#0a0a0b",
+  "ios": { "contentInset": "always" },
+  "android": { "backgroundColor": "#0a0a0b" }
+}
