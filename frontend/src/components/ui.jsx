@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export const Loader = () => <div className="loader"><i /></div>;
 
@@ -41,10 +41,13 @@ export function useFetch(fn, deps = []) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
+  const first = useRef(true);
   useEffect(() => {
     let alive = true;
-    setLoading(true);
-    fn().then((d) => alive && setData(d)).catch(() => {}).finally(() => alive && setLoading(false));
+    // Лоадер показываем только при самой первой загрузке. Фоновые reload() (поллинг)
+    // обновляют данные молча, НЕ мигая <Loader/> — иначе открытые sheet/чат размонтируются.
+    if (first.current) setLoading(true);
+    fn().then((d) => alive && setData(d)).catch(() => {}).finally(() => { if (alive) { setLoading(false); first.current = false; } });
     return () => { alive = false; };
     // eslint-disable-next-line
   }, [...deps, reloadKey]);
