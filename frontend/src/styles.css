@@ -220,6 +220,9 @@ label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px
 .brand-logo.glow-lg { box-shadow: 0 0 0 1px rgba(212,175,55,.4), 0 0 60px rgba(255,122,24,.4); animation: float 3.4s ease-in-out infinite; }
 .topbar .brand-logo { width: 38px; height: 38px; }
 .lang-toggle { min-width: 42px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--graphite); color: var(--text); font-weight: 800; font-size: 13px; letter-spacing: 1px; cursor: pointer; }
+.lang-choice { display: flex; align-items: center; gap: 16px; width: 100%; padding: 16px 22px; border-radius: 16px; border: 1px solid var(--line); background: linear-gradient(160deg, var(--graphite), var(--graphite-2)); color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; transition: transform .14s ease, border-color .2s; }
+.lang-choice:active { transform: scale(.97); }
+.lang-choice:hover { border-color: var(--gold); }
 .bell { position: relative; font-size: 20px; cursor: pointer; }
 .bell .dot { position: absolute; top: -4px; right: -4px; background: var(--red); color: #fff; font-size: 9px; min-width: 15px; height: 15px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
 
