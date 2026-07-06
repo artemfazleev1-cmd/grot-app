@@ -76,12 +76,12 @@ const STAFF = ['waiter', 'cook', 'courier', 'admin', 'owner'];
 const authLimiter = rateLimit({ max: 10, windowMs: 60_000 });
 
 // Регистрация: телефон подтверждается кодом из SMS + задаётся пароль.
-app.post('/api/auth/register', authLimiter, (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
   const { phone, code, password, name } = req.body;
   if (!phone || !password) return res.status(400).json({ error: 'Телефон и пароль обязательны' });
   if (String(password).length < 4) return res.status(400).json({ error: 'Пароль слишком короткий' });
   if (db.users.find((u) => u.phone === phone)) return res.status(409).json({ error: 'Пользователь с этим номером уже есть' });
-  if (!sms.verifyOtp(phone, code)) return res.status(401).json({ error: 'Неверный или просроченный код из SMS' });
+  if (!(await sms.verifyCode(phone, code))) return res.status(401).json({ error: 'Неверный или просроченный код из SMS' });
   const u = { id: db.id(), phone: String(phone), password: hashPassword(password), name: String(name || 'Гость').slice(0, 60), role: 'client',
     createdAt: db.now(), stats: { totalSpent: 0, ordersCount: 0, visits: 0, lastVisit: null }, favDishes: [], favDrinks: [] };
   db.users.push(u);
@@ -118,19 +118,21 @@ app.post('/api/me/phone', auth, (req, res) => {
 app.post('/api/auth/request-otp', authLimiter, async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'Укажите телефон' });
-  const code = sms.issueOtp(phone);
-  try { await sms.sendSms(phone, `GROT: код подтверждения ${code}`); } catch { return res.status(502).json({ error: 'Не удалось отправить SMS' }); }
-  // Пока не подключён SMS-провайдер (Twilio) — код показываем на экране (демо/тест).
-  // Как только Twilio настроен (smsEnabled) — код уходит реальной SMS и не отдаётся.
-  const exposeCode = !sms.smsEnabled;
-  res.json({ ok: true, demo: !sms.smsEnabled, ...(exposeCode ? { devCode: code } : {}) });
+  try {
+    // requestOtp сам выбирает режим (Verify / Messaging / демо). В демо вернёт devCode.
+    const r = await sms.requestOtp(phone);
+    res.json({ ok: true, ...r });
+  } catch (e) {
+    console.error('OTP send failed:', e.message);
+    res.status(502).json({ error: 'Не удалось отправить SMS' });
+  }
 });
 
 // Сброс пароля только с подтверждением кодом из SMS (OTP).
-app.post('/api/auth/reset-password', authLimiter, (req, res) => {
+app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
   const { phone, code, password } = req.body;
   if (!password || String(password).length < 4) return res.status(400).json({ error: 'Пароль слишком короткий' });
-  if (!sms.verifyOtp(phone, code)) return res.status(401).json({ error: 'Неверный или просроченный код подтверждения' });
+  if (!(await sms.verifyCode(phone, code))) return res.status(401).json({ error: 'Неверный или просроченный код подтверждения' });
   const u = db.users.find((x) => x.phone === phone);
   if (!u) return res.status(404).json({ error: 'Не найден' });
   u.password = hashPassword(password);
