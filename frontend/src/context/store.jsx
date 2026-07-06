@@ -16,7 +16,11 @@ export function StoreProvider({ children }) {
   const [config, setConfig] = useState({});
   const [lang, setLangState] = useState(() => localStorage.getItem('grot_lang') || 'ru');
   const setLang = (l) => { localStorage.setItem('grot_lang', l); setLangState(l); };
-  const t = useCallback((key) => (STR[lang] && STR[lang][key]) || STR.ru[key] || key, [lang]);
+  const t = useCallback((key, data) => {
+    let s = (STR[lang] && STR[lang][key]) || STR.ru[key] || key;
+    if (data) for (const k in data) s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), data[k]);
+    return s;
+  }, [lang]);
   const seen = useRef(new Set());
 
   // Публичный конфиг (какие интеграции включены на сервере)

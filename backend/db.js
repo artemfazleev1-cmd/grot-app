@@ -177,13 +177,14 @@ export const news = [
 export const calls = []; // { id, tableNumber, type:'waiter'|'bill', status:'open'|'done', createdAt }
 
 // ---------- Push-уведомления (in-app очередь) ----------
-export const notifications = []; // { id, userId, role, text, createdAt, read }
+export const notifications = []; // { id, userId, role, text, key, data, createdAt, read }
 
 // Необязательный хук для реальной доставки (Web Push). Ставится из server.js.
 export const hooks = { onNotify: null };
 
-export const pushNotify = ({ userId = null, role = null, text }) => {
-  const n = { id: id(), userId, role, text, createdAt: now(), read: false };
+// text — русский фолбэк (Web Push / старые клиенты). key+data — для перевода на клиенте (i18n).
+export const pushNotify = ({ userId = null, role = null, text, key = null, data = null }) => {
+  const n = { id: id(), userId, role, text, key, data, createdAt: now(), read: false };
   notifications.push(n);
   if (hooks.onNotify) { try { hooks.onNotify(n); } catch {} }
   return n;

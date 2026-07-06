@@ -237,7 +237,7 @@ app.post('/api/orders', auth, (req, res) => {
   db.orders.push(order);
   if (req.user.stats) { req.user.stats.totalSpent += total; req.user.stats.ordersCount += 1; req.user.stats.lastVisit = db.now(); }
   db.pushNotify({ role: 'waiter', text: `🆕 Новый заказ #${order.id} (${type})` });
-  db.pushNotify({ userId: req.user.id, text: `Заказ #${order.id} принят` });
+  db.pushNotify({ userId: req.user.id, text: `Заказ #${order.id} принят`, key: 'ntf_order_placed', data: { id: order.id } });
   res.json(order);
 });
 
@@ -283,7 +283,7 @@ app.patch('/api/orders/:id/status', auth, requireRole(...STAFF), (req, res) => {
   if (req.user.role === 'courier') o.courierId = req.user.id;
   if (status === 'ready') db.pushNotify({ role: 'waiter', text: `✅ Заказ #${o.id} готов` });
   if (['delivered', 'handed'].includes(status)) writeOffStock(o);
-  if (STATUS_MSG[status]) db.pushNotify({ userId: o.userId, text: `Заказ #${o.id} ${STATUS_MSG[status]}` });
+  if (STATUS_MSG[status]) db.pushNotify({ userId: o.userId, text: `Заказ #${o.id} ${STATUS_MSG[status]}`, key: 'ntf_status_' + status, data: { id: o.id } });
   res.json(o);
 });
 
@@ -328,7 +328,7 @@ app.post('/api/events/:id/remind', auth, (req, res) => {
   const e = db.events.find((x) => x.id === Number(req.params.id));
   if (!e) return res.status(404).json({ error: 'Нет события' });
   if (!e.reminders.includes(req.user.id)) e.reminders.push(req.user.id);
-  db.pushNotify({ userId: req.user.id, text: `🔔 Напомним о событии «${e.title}» в ${e.time}` });
+  db.pushNotify({ userId: req.user.id, text: `🔔 Напомним о событии «${e.title}» в ${e.time}`, key: 'ntf_event_reminder', data: { title: e.title, time: e.time } });
   res.json({ ok: true });
 });
 

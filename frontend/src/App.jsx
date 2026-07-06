@@ -102,7 +102,7 @@ function TopBar() {
       <div className="list" style={{ marginTop: 12 }}>
         {notifications.length === 0 && <div className="muted">{t('nothing_yet')}</div>}
         {notifications.map((n) => (
-          <div key={n.id} className="card tight">{n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-GB')}</div></div>
+          <div key={n.id} className="card tight">{n.key ? t(n.key, n.data) : n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-GB')}</div></div>
         ))}
       </div>
     </Sheet>
