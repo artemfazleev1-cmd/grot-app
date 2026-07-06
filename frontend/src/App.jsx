@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { useStore } from './context/store.jsx';
-import { api } from './api.js';
 import { STR } from './i18n.js';
 import { Sheet } from './components/ui.jsx';
 import Auth from './screens/Auth.jsx';
@@ -15,21 +14,15 @@ import Owner from './screens/Owner.jsx';
 
 // ---------------- Интро ----------------
 function Intro({ onDone }) {
-  const [intro, setIntro] = useState(null);
   useEffect(() => {
-    api.get('/intro').then(setIntro).catch(() => setIntro({}));
     const t = setTimeout(onDone, 3000);
     return () => clearTimeout(t);
   }, [onDone]);
+  // Только логотип — без текста (гости разноязычные). Тап по экрану пропускает.
   return (
-    <div className="intro">
-      <img src="/logo.png" alt="GROT" className="brand-logo glow-lg" style={{ width: 190, height: 190 }} />
-      <span className="badge gold" style={{ marginTop: 20 }}>{intro?.badge || 'GROT'}</span>
-      <h1 style={{ margin: '14px 0 6px' }}>{intro?.title || 'GROT Bar & Grill'}</h1>
-      <div className="muted">{intro?.subtitle}</div>
-      <div style={{ marginTop: 8 }}>{intro?.text}</div>
-      <button className="btn fire" style={{ marginTop: 22 }} onClick={onDone}>{intro?.cta || 'Подробнее'}</button>
-      <div className="intro-bar"><i /></div>
+    <div className="intro" style={{ justifyContent: 'center', cursor: 'pointer' }} onClick={onDone}>
+      <img src="/logo.png" alt="GROT" className="brand-logo glow-lg" style={{ width: 200, height: 200 }} />
+      <div className="intro-bar" style={{ marginTop: 34 }}><i /></div>
     </div>
   );
 }
