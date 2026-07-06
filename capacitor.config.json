@@ -1,0 +1,11 @@
+{
+  "appId": "com.grot.app",
+  "appName": "GROT",
+  "webDir": "frontend/dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}

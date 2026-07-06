@@ -9,6 +9,15 @@
     "dev:frontend": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build",
     "start": "cd backend && NODE_ENV=production node server.js",
-    "prod": "npm run build && npm run start"
+    "prod": "npm run build && npm run start",
+    "build:app": "cd frontend && npm install && VITE_API_BASE=https://grot-app.onrender.com npm run build && cd .. && npx cap copy",
+    "sync:app": "cd frontend && VITE_API_BASE=https://grot-app.onrender.com npm run build && cd .. && npx cap sync"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1"
   }
 }
