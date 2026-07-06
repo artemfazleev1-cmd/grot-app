@@ -8,6 +8,7 @@
   :root{--black:#0a0a0b;--graphite:#16161a;--line:#2a2a31;--gold:#d4af37;--gold2:#e8cf83;--orange:#ff7a18;--red:#e23b3b;--text:#f6f3ec;--muted:#c3bdb0}
   *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#3a3a3f;display:flex;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
+  @media print{body{padding:0;background:none}.flyer{box-shadow:none}}
   .flyer{width:148mm;height:210mm;background:
       radial-gradient(120% 55% at 50% 0%,#3a1d08 0%,#1a1008 34%,#0c0b0d 70%),var(--black);
     color:var(--text);position:relative;overflow:hidden;display:flex;flex-direction:column;
