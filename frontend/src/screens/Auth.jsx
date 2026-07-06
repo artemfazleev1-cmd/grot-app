@@ -51,6 +51,18 @@ export default function Auth() {
     } catch (e) { toast(e.message); } finally { setBusy(false); }
   };
 
+  // Простая регистрация (без SMS-кода): имя + телефон + пароль
+  const doRegisterSimple = async () => {
+    try {
+      if (!f.name.trim()) return toast(t('enter_name'));
+      if (!fullPhone()) return toast(t('enter_phone'));
+      if (f.password.length < 4) return toast(t('pw_min'));
+      if (f.password !== f.password2) return toast(t('pw_mismatch'));
+      setBusy(true);
+      await register({ phone: fullPhone(), password: f.password, name: f.name });
+    } catch (e) { toast(e.message); } finally { setBusy(false); }
+  };
+
   const doLogin = async () => {
     try { setBusy(true); await login(fullPhone(), f.password); }
     catch (e) { toast(e.message); } finally { setBusy(false); }
@@ -91,8 +103,28 @@ export default function Auth() {
           </>
         )}
 
+        {/* ---------- РЕГИСТРАЦИЯ (простая, без SMS-кода) ---------- */}
+        {mode === 'register' && !config.otpRequired && (
+          <>
+            <label>{t('name_label')}</label>
+            <input value={f.name} onChange={set('name')} placeholder={t('name_ph')} />
+            <label>{t('phone_label')}</label>
+            <div className="row" style={{ gap: 8 }}>
+              <select value={cc} onChange={(e) => setCc(e.target.value)} style={{ width: 116 }}>
+                {COUNTRIES.map(([label, code], i) => <option key={i} value={code}>{label}</option>)}
+              </select>
+              <input value={f.phone} onChange={set('phone')} placeholder="81 234 5678" inputMode="tel" style={{ flex: 1 }} />
+            </div>
+            <label>{t('create_pw')}</label>
+            <input type="password" value={f.password} onChange={set('password')} placeholder="••••••" />
+            <label>{t('repeat_pw')}</label>
+            <input type="password" value={f.password2} onChange={set('password2')} placeholder="••••••" />
+            <button className="btn block" style={{ marginTop: 18 }} disabled={busy || !f.phone} onClick={doRegisterSimple}>{t('create_account')}</button>
+          </>
+        )}
+
         {/* ---------- РЕГИСТРАЦИЯ: номер → SMS-код → пароль ---------- */}
-        {mode === 'register' && (
+        {mode === 'register' && config.otpRequired && (
           !codeSent ? (
             <>
               <label>{t('name_label')}</label>

@@ -64,7 +64,7 @@ export const STR = {
     code_sent_to: 'Код отправлен на', sms_code_label: 'Код из SMS',
     create_pw: 'Придумайте пароль', repeat_pw: 'Повторите пароль',
     create_account: 'Создать аккаунт', resend_code: 'Отправить код повторно',
-    enter_phone: 'Введите номер телефона', enter_code: 'Введите код из SMS',
+    enter_phone: 'Введите номер телефона', enter_name: 'Введите имя', enter_code: 'Введите код из SMS',
     pw_min: 'Пароль минимум 4 символа', pw_mismatch: 'Пароли не совпадают',
     demo_code: 'Демо-код', code_sent: 'Код отправлен на',
     // столы / брони / QR
@@ -149,7 +149,7 @@ export const STR = {
     code_sent_to: 'Code sent to', sms_code_label: 'SMS code',
     create_pw: 'Create a password', repeat_pw: 'Repeat password',
     create_account: 'Create account', resend_code: 'Resend code',
-    enter_phone: 'Enter your phone number', enter_code: 'Enter the SMS code',
+    enter_phone: 'Enter your phone number', enter_name: 'Enter your name', enter_code: 'Enter the SMS code',
     pw_min: 'Password must be at least 4 characters', pw_mismatch: 'Passwords do not match',
     demo_code: 'Demo code', code_sent: 'Code sent to',
     hall_bookings: 'Hall & bookings', scan_qr: 'Scan table QR',

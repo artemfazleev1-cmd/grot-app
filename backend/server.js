@@ -76,12 +76,16 @@ const STAFF = ['waiter', 'cook', 'courier', 'admin', 'owner'];
 const authLimiter = rateLimit({ max: 10, windowMs: 60_000 });
 
 // Регистрация: телефон подтверждается кодом из SMS + задаётся пароль.
+// Требовать ли SMS-код при регистрации. По умолчанию ВЫКЛ (простая регистрация имя+телефон+пароль).
+// Чтобы включить проверку кода (когда Twilio боевой) — задать REQUIRE_OTP=true в окружении.
+const REQUIRE_OTP = process.env.REQUIRE_OTP === 'true';
+
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   const { phone, code, password, name } = req.body;
   if (!phone || !password) return res.status(400).json({ error: 'Телефон и пароль обязательны' });
   if (String(password).length < 4) return res.status(400).json({ error: 'Пароль слишком короткий' });
   if (db.users.find((u) => u.phone === phone)) return res.status(409).json({ error: 'Пользователь с этим номером уже есть' });
-  if (!(await sms.verifyCode(phone, code))) return res.status(401).json({ error: 'Неверный или просроченный код из SMS' });
+  if (REQUIRE_OTP && !(await sms.verifyCode(phone, code))) return res.status(401).json({ error: 'Неверный или просроченный код из SMS' });
   const u = { id: db.id(), phone: String(phone), password: hashPassword(password), name: String(name || 'Гость').slice(0, 60), role: 'client',
     createdAt: db.now(), stats: { totalSpent: 0, ordersCount: 0, visits: 0, lastVisit: null }, favDishes: [], favDrinks: [] };
   db.users.push(u);
@@ -518,6 +522,7 @@ app.post('/api/delivery/check', auth, rateLimit({ max: 30, windowMs: 60_000 }), 
 // ================= ПУБЛИЧНЫЙ КОНФИГ ДЛЯ ФРОНТЕНДА =================
 app.get('/api/config', (req, res) => res.json({
   smsEnabled: sms.smsEnabled,
+  otpRequired: REQUIRE_OTP,
   pushEnabled: push.pushEnabled,
   vapidPublicKey: push.vapidPublicKey,
   mapsEnabled: maps.mapsEnabled,
