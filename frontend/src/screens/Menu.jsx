@@ -106,8 +106,8 @@ export function Checkout() {
 
   // Автоопределение геолокации через GPS телефона + проверка зоны доставки
   const locate = () => {
-    if (!navigator.geolocation) { toast('Геолокация не поддерживается этим браузером'); return; }
-    if (!window.isSecureContext) { toast('Геолокация работает только по защищённому соединению (https)'); return; }
+    if (!navigator.geolocation) { toast(t('geo_unsupported')); return; }
+    if (!window.isSecureContext) { toast(t('geo_insecure')); return; }
     setLocating(true);
     const onOk = async (pos) => {
       const { latitude: lat, longitude: lng } = pos.coords;
@@ -116,15 +116,15 @@ export function Checkout() {
         setDelivery(d);
         setGeo({ lat, lng, mapUrl: d.mapUrl });
         if (d.formatted) setAddress(d.formatted);
-        toast('Местоположение определено');
+        toast(t('geo_located'));
       } catch (e) { toast(e.message); } finally { setLocating(false); }
     };
     const onErr = (err) => {
       setLocating(false);
-      if (err.code === 1) toast('Доступ к геолокации запрещён. Разрешите его в настройках браузера и откройте ссылку в Chrome или Safari (не внутри мессенджера).');
-      else if (err.code === 2) toast('Местоположение недоступно. Включите геолокацию на телефоне и попробуйте на улице.');
-      else if (err.code === 3) toast('Не успели определить за отведённое время — попробуйте ещё раз.');
-      else toast('Не удалось получить геолокацию. Можно ввести адрес вручную.');
+      if (err.code === 1) toast(t('geo_denied'));
+      else if (err.code === 2) toast(t('geo_unavailable'));
+      else if (err.code === 3) toast(t('geo_timeout'));
+      else toast(t('geo_failed'));
     };
     // сначала быстрый запрос, при таймауте — точный по GPS
     navigator.geolocation.getCurrentPosition(onOk, () => {

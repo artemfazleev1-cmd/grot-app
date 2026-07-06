@@ -78,7 +78,7 @@ function TabBar({ role }) {
 }
 
 function TopBar() {
-  const { unread, notifications, markRead, user, lang, setLang } = useStore();
+  const { unread, notifications, markRead, user, lang, setLang, t } = useStore();
   const [open, setOpen] = useState(false);
   // Переключатель языка — только для клиента, официанта, курьера
   const showLang = ['client', 'waiter', 'courier'].includes(user?.role);
@@ -98,11 +98,11 @@ function TopBar() {
       </div>
     </div>
     <Sheet open={open} onClose={() => setOpen(false)}>
-      <h2>Уведомления</h2>
+      <h2>{t('notifications_title')}</h2>
       <div className="list" style={{ marginTop: 12 }}>
-        {notifications.length === 0 && <div className="muted">Пока пусто</div>}
+        {notifications.length === 0 && <div className="muted">{t('nothing_yet')}</div>}
         {notifications.map((n) => (
-          <div key={n.id} className="card tight">{n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString('ru-RU')}</div></div>
+          <div key={n.id} className="card tight">{n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-GB')}</div></div>
         ))}
       </div>
     </Sheet>
