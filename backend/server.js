@@ -606,6 +606,8 @@ app.use((err, req, res, next) => {
 if (process.env.NODE_ENV === 'production') {
   const dist = path.join(__dirname, '..', 'frontend', 'dist');
   app.use(express.static(dist));
+  // Лендинг установки (для QR на флаере) — короткий адрес /install
+  app.get('/install', (req, res) => res.sendFile(path.join(dist, 'install.html')));
   app.get('*', (req, res) => res.sendFile(path.join(dist, 'index.html')));
 }
 

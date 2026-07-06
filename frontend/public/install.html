@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GROT — установка приложения</title>
+<link rel="icon" href="/logo.png" />
+<style>
+  :root{--black:#0a0a0b;--graphite:#16161a;--graphite2:#1f1f25;--line:#2a2a31;--gold:#d4af37;--gold2:#e8cf83;--orange:#ff7a18;--red:#e23b3b;--text:#f6f3ec;--muted:#bdb8ac}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{background:radial-gradient(90% 60% at 50% 15%,#241405,#0a0a0b 70%);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;line-height:1.5;
+    padding:calc(28px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;align-items:center;text-align:center}
+  .wrap{width:100%;max-width:440px}
+  .logo{width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto;
+    box-shadow:0 0 0 1px rgba(212,175,55,.4),0 0 60px rgba(255,122,24,.4)}
+  .brand{font-family:Georgia,"Times New Roman",serif;letter-spacing:5px;font-size:26px;margin:16px 0 2px;
+    color:#ffb070;text-shadow:0 0 6px rgba(255,160,80,.8),0 0 18px rgba(226,59,59,.5)}
+  .tag{color:var(--muted);letter-spacing:2px;font-size:12px;text-transform:uppercase;margin-bottom:22px}
+  h1{font-size:24px;font-weight:800;margin:0 0 6px}
+  .sub{color:var(--muted);margin-bottom:22px}
+  .btn{display:block;width:100%;border:none;cursor:pointer;font-weight:800;font-size:18px;padding:17px;border-radius:16px;
+    color:#1a1206;background:linear-gradient(135deg,#d4af37,#e8cf83 55%,#b8860b);text-decoration:none;
+    box-shadow:0 12px 28px rgba(212,175,55,.35);margin-bottom:14px}
+  .btn.fire{background:linear-gradient(135deg,#ff7a18,#e23b3b);color:#fff;box-shadow:0 12px 28px rgba(226,59,59,.35)}
+  .card{background:#161618cc;border:1px solid var(--line);border-radius:18px;padding:18px;text-align:left;margin-top:8px}
+  .card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .step{display:flex;gap:12px;align-items:flex-start;margin:12px 0}
+  .num{flex:0 0 26px;height:26px;border-radius:50%;background:var(--graphite2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--gold)}
+  .step div{font-size:15px}
+  .muted{color:var(--muted);font-size:13px;margin-top:18px}
+  .lang{position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;display:flex;gap:6px}
+  .lang button{background:var(--graphite);border:1px solid var(--line);color:var(--text);border-radius:9px;
+    padding:6px 10px;font-weight:800;font-size:12px;cursor:pointer}
+  .lang button.on{background:linear-gradient(135deg,#d4af37,#e8cf83);color:#1a1206;border-color:transparent}
+  .hide{display:none}
+  .ic{font-size:18px}
+</style>
+</head>
+<body>
+  <div class="lang">
+    <button id="ru" class="on" onclick="setLang('ru')">RU</button>
+    <button id="en" onclick="setLang('en')">EN</button>
+  </div>
+  <div class="wrap">
+    <img class="logo" src="/logo.png" alt="GROT" />
+    <div class="brand">GR<span style="color:#ffb070">O</span>T</div>
+    <div class="tag">Grill Bar · Beer Bar · Pattaya</div>
+
+    <h1 data-ru="Наше приложение для доставки" data-en="Our delivery app"></h1>
+    <p class="sub" data-ru="Заказывайте гриль и пиво с доставкой — быстро, прямо с телефона."
+                   data-en="Order grill & beer for delivery — fast, right from your phone."></p>
+
+    <a class="btn fire" href="/" data-ru="Заказать сейчас" data-en="Order now"></a>
+
+    <!-- iOS -->
+    <div id="ios" class="card hide">
+      <h2><span class="ic">📲</span><span data-ru="Установить на iPhone" data-en="Install on iPhone"></span></h2>
+      <div class="step"><div class="num">1</div><div data-ru="Нажмите «Поделиться» &#8593; внизу браузера Safari"
+                                                     data-en="Tap the Share button &#8593; in Safari"></div></div>
+      <div class="step"><div class="num">2</div><div data-ru="Выберите «На экран Домой» (Add to Home Screen)"
+                                                     data-en="Choose “Add to Home Screen”"></div></div>
+      <div class="step"><div class="num">3</div><div data-ru="Готово — иконка GROT появится на телефоне"
+                                                     data-en="Done — the GROT icon appears on your phone"></div></div>
+    </div>
+
+    <!-- Android -->
+    <div id="android" class="card hide">
+      <h2><span class="ic">📲</span><span data-ru="Установить на Android" data-en="Install on Android"></span></h2>
+      <div id="androidPrompt" class="hide">
+        <button class="btn" onclick="doInstall()" data-ru="Установить приложение" data-en="Install app"></button>
+      </div>
+      <div class="step"><div class="num">1</div><div data-ru="Нажмите меню ⋮ вверху браузера Chrome"
+                                                     data-en="Tap the ⋮ menu in Chrome"></div></div>
+      <div class="step"><div class="num">2</div><div data-ru="Выберите «Установить приложение» / «На главный экран»"
+                                                     data-en="Choose “Install app” / “Add to Home screen”"></div></div>
+    </div>
+
+    <p class="muted" data-ru="Устанавливать необязательно — можно заказывать прямо в браузере по кнопке выше."
+                     data-en="Installing is optional — you can order right in the browser using the button above."></p>
+  </div>
+
+<script>
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;
+    var p=document.getElementById('androidPrompt'); if(p) p.classList.remove('hide');});
+  function doInstall(){ if(deferred){ deferred.prompt(); deferred=null; } }
+
+  var ua=navigator.userAgent||'';
+  var isIOS=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var isAndroid=/Android/i.test(ua);
+  if(isIOS) document.getElementById('ios').classList.remove('hide');
+  else if(isAndroid) document.getElementById('android').classList.remove('hide');
+  else { document.getElementById('ios').classList.remove('hide'); document.getElementById('android').classList.remove('hide'); }
+
+  function setLang(l){
+    document.documentElement.lang=l;
+    document.getElementById('ru').classList.toggle('on',l==='ru');
+    document.getElementById('en').classList.toggle('on',l==='en');
+    document.querySelectorAll('[data-ru]').forEach(function(el){ el.innerHTML=el.getAttribute('data-'+l); });
+  }
+  setLang((navigator.language||'ru').slice(0,2)==='ru'?'ru':'en');
+</script>
+</body>
+</html>
