@@ -144,22 +144,22 @@ export const reservations = [
 
 // ---------- События (календарь недели) ----------
 export const events = [
-  { id: id(), day: 'ПН', emoji: '🔥', title: 'День шашлыка',         time: '18:00', description: 'Все виды шашлыка со скидкой 20%', banner: 'grill', reminders: [] },
-  { id: id(), day: 'ВТ', emoji: '🍺', title: 'Немецкий вечер',       time: '19:00', description: 'Дегустация немецкого пива', banner: 'beer', reminders: [] },
-  { id: id(), day: 'СР', emoji: '🎲', title: 'Настольные игры',      time: '19:00', description: 'Турниры и призы', banner: 'games', reminders: [] },
-  { id: id(), day: 'ЧТ', emoji: '🔥', title: 'Гриль-вечер',          time: '18:00', description: 'Гриль-меню и живой огонь', banner: 'bbq', reminders: [] },
-  { id: id(), day: 'ПТ', emoji: '⚽', title: 'Спорт-вечер',          time: '20:00', description: 'Трансляции матчей на большом экране', banner: 'sport', reminders: [] },
-  { id: id(), day: 'СБ', emoji: '♟', title: 'Турнир по шахматам',   time: '17:00', description: 'Регистрация открыта', banner: 'chess', reminders: [] },
-  { id: id(), day: 'ВС', emoji: '🎯', title: 'Турнир по нардам',     time: '17:00', description: 'Призовой фонд 5000 бат', banner: 'backgammon', reminders: [] },
+  { id: id(), day: 'ПН', emoji: '🔥', title: 'День шашлыка',         titleEn: 'Skewer Day',          time: '18:00', description: 'Все виды шашлыка со скидкой 20%',            descriptionEn: 'All skewers 20% off', banner: 'grill', reminders: [] },
+  { id: id(), day: 'ВТ', emoji: '🍺', title: 'Немецкий вечер',       titleEn: 'German Night',        time: '19:00', description: 'Дегустация немецкого пива',                   descriptionEn: 'German beer tasting', banner: 'beer', reminders: [] },
+  { id: id(), day: 'СР', emoji: '🎲', title: 'Настольные игры',      titleEn: 'Board Games',         time: '19:00', description: 'Турниры и призы',                             descriptionEn: 'Tournaments & prizes', banner: 'games', reminders: [] },
+  { id: id(), day: 'ЧТ', emoji: '🔥', title: 'Гриль-вечер',          titleEn: 'Grill Night',         time: '18:00', description: 'Гриль-меню и живой огонь',                    descriptionEn: 'Grill menu & live fire', banner: 'bbq', reminders: [] },
+  { id: id(), day: 'ПТ', emoji: '⚽', title: 'Спорт-вечер',          titleEn: 'Sports Night',        time: '20:00', description: 'Трансляции матчей на большом экране',         descriptionEn: 'Match broadcasts on the big screen', banner: 'sport', reminders: [] },
+  { id: id(), day: 'СБ', emoji: '♟', title: 'Турнир по шахматам',   titleEn: 'Chess Tournament',    time: '17:00', description: 'Регистрация открыта',                         descriptionEn: 'Registration open', banner: 'chess', reminders: [] },
+  { id: id(), day: 'ВС', emoji: '🎯', title: 'Турнир по нардам',     titleEn: 'Backgammon Tournament', time: '17:00', description: 'Призовой фонд 5000 бат',                    descriptionEn: 'Prize pool 5000 THB', banner: 'backgammon', reminders: [] },
 ];
 
 // ---------- Интро (управляется владельцем) ----------
 export const intro = {
-  badge: 'СОБЫТИЕ НЕДЕЛИ',
-  title: 'Неделя шашлыка',
-  subtitle: 'ПН–ЧТ',
-  text: 'Специальные предложения. Доставка по Паттайе.',
-  cta: 'Подробнее',
+  badge: 'СОБЫТИЕ НЕДЕЛИ', badgeEn: 'EVENT OF THE WEEK',
+  title: 'Неделя шашлыка', titleEn: 'Skewer Week',
+  subtitle: 'ПН–ЧТ', subtitleEn: 'Mon–Thu',
+  text: 'Специальные предложения. Доставка по Паттайе.', textEn: 'Special offers. Delivery across Pattaya.',
+  cta: 'Подробнее', ctaEn: 'Learn more',
   durationMs: 3000,
 };
 
@@ -169,8 +169,8 @@ export const promos = [
   { id: id(), title: 'Немецкое пиво 2+1',    text: 'По вторникам',       emoji: '🍺' },
 ];
 export const news = [
-  { id: id(), title: 'Открыли летнюю террасу', date: '2026-06-20', text: 'Теперь +20 мест на свежем воздухе.' },
-  { id: id(), title: 'Новинка: Гриль-бургер острый', date: '2026-06-22', text: 'Попробуйте новинку недели.' },
+  { id: id(), title: 'Открыли летнюю террасу', titleEn: 'Summer terrace now open', date: '2026-06-20', text: 'Теперь +20 мест на свежем воздухе.', textEn: 'Now +20 seats outdoors.' },
+  { id: id(), title: 'Новинка: Гриль-бургер острый', titleEn: 'New: Spicy Grill Burger', date: '2026-06-22', text: 'Попробуйте новинку недели.', textEn: "Try this week's new item." },
 ];
 
 // ---------- Вызовы официанта / запросы счёта ----------

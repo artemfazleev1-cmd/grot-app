@@ -5,7 +5,7 @@ import { Loader, useFetch } from '../components/ui.jsx';
 
 export default function Home() {
   const nav = useNavigate();
-  const { user, t } = useStore();
+  const { user, t, L } = useStore();
   const { data, loading } = useFetch(() => api.get('/home'));
   if (loading || !data) return <Loader />;
 
@@ -17,9 +17,9 @@ export default function Home() {
         <div className="muted" style={{ marginBottom: 16 }}>{t('welcome')}</div>
 
         <div className="card" style={{ background: 'linear-gradient(135deg,#2a1606,#3a1d08)', borderColor: 'rgba(212,175,55,.45)' }}>
-          <span className="badge gold">{data.intro.badge}</span>
-          <h2 style={{ marginTop: 10, fontSize: 22 }}>{data.intro.title}</h2>
-          <div className="muted">{data.intro.subtitle} · {data.intro.text}</div>
+          <span className="badge gold">{L(data.intro, 'badge')}</span>
+          <h2 style={{ marginTop: 10, fontSize: 22 }}>{L(data.intro, 'title')}</h2>
+          <div className="muted">{L(data.intro, 'subtitle')} · {L(data.intro, 'text')}</div>
           <button className="btn fire" style={{ marginTop: 14 }} onClick={() => nav('/events')}>{t('more')}</button>
         </div>
       </div>
@@ -45,9 +45,9 @@ export default function Home() {
       <div className="list">
         {data.news.map((n) => (
           <div key={n.id} className="card tight">
-            <div style={{ fontWeight: 700, fontSize: 16 }}>{n.title}</div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>{L(n, 'title')}</div>
             <div className="muted">{n.date}</div>
-            <div style={{ marginTop: 4 }}>{n.text}</div>
+            <div style={{ marginTop: 4 }}>{L(n, 'text')}</div>
           </div>
         ))}
       </div>

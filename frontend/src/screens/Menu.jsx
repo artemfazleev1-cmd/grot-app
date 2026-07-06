@@ -60,7 +60,7 @@ export function Menu() {
 }
 
 export function Cart() {
-  const { cart, setQty, cartTotal, t } = useStore();
+  const { cart, setQty, cartTotal, t, L } = useStore();
   const nav = useNavigate();
   if (!cart.length) return <div className="screen"><h1>{t('cart')}</h1><Empty icon="🛒" text={t('cart_empty')} /></div>;
   return (
@@ -69,7 +69,7 @@ export function Cart() {
       <div className="list" style={{ marginTop: 14 }}>
         {cart.map((i) => (
           <div key={i.menuId} className="card tight between">
-            <div><div style={{ fontWeight: 700 }}>{i.name}</div><div className="price">{money(i.price)}</div></div>
+            <div><div style={{ fontWeight: 700 }}>{L(i, 'name')}</div><div className="price">{money(i.price)}</div></div>
             <div className="stepper">
               <button onClick={() => setQty(i.menuId, i.qty - 1)}>−</button>
               <b>{i.qty}</b>

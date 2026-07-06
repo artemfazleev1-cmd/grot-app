@@ -142,7 +142,7 @@ app.get('/api/me', auth, (req, res) => res.json(sanitize(req.user)));
 // ================= КОНТЕНТ ГЛАВНОГО ЭКРАНА =================
 app.get('/api/intro', (req, res) => res.json(db.intro));
 app.put('/api/intro', auth, requireRole('owner', 'admin'), (req, res) => {
-  Object.assign(db.intro, pick(req.body, ['badge', 'title', 'subtitle', 'text', 'cta', 'durationMs']));
+  Object.assign(db.intro, pick(req.body, ['badge', 'badgeEn', 'title', 'titleEn', 'subtitle', 'subtitleEn', 'text', 'textEn', 'cta', 'ctaEn', 'durationMs']));
   res.json(db.intro);
 });
 
@@ -158,6 +158,13 @@ app.get('/api/home', (req, res) => {
 });
 app.get('/api/news', (req, res) => res.json(db.news));
 app.get('/api/promos', (req, res) => res.json(db.promos));
+const NEWS_FIELDS = ['title', 'titleEn', 'date', 'text', 'textEn'];
+app.put('/api/news/:id', auth, requireRole('owner', 'admin'), (req, res) => {
+  const n = db.news.find((x) => x.id === Number(req.params.id));
+  if (!n) return res.status(404).json({ error: 'Нет новости' });
+  Object.assign(n, pick(req.body, NEWS_FIELDS));
+  res.json(n);
+});
 
 // ================= МЕНЮ =================
 app.get('/api/menu', (req, res) => res.json({ categories: db.categories, categoryGroups: db.categoryGroups, items: db.menu }));
@@ -224,7 +231,7 @@ app.post('/api/orders', auth, (req, res) => {
     if (!dish) return res.status(400).json({ error: 'Позиция не найдена' });
     if (!dish.available) return res.status(409).json({ error: `«${dish.name}» сейчас недоступна` });
     const qty = Math.min(50, Math.max(1, Math.floor(Number(it.qty) || 1)));
-    items.push({ menuId: dish.id, name: dish.name, price: dish.price, qty });
+    items.push({ menuId: dish.id, name: dish.name, nameEn: dish.nameEn || null, price: dish.price, qty });
     total += dish.price * qty;
   }
   const allowedTypes = ['delivery', 'pickup', 'dinein'];
@@ -314,7 +321,7 @@ app.patch('/api/reservations/:id', auth, (req, res) => {
 });
 
 // ================= СОБЫТИЯ =================
-const EVENT_FIELDS = ['day', 'emoji', 'title', 'time', 'description', 'banner'];
+const EVENT_FIELDS = ['day', 'emoji', 'title', 'titleEn', 'time', 'description', 'descriptionEn', 'banner'];
 app.get('/api/events', (req, res) => res.json(db.events));
 app.post('/api/events', auth, requireRole('owner', 'admin'), (req, res) => {
   const e = { id: db.id(), reminders: [], ...pick(req.body, EVENT_FIELDS) }; db.events.push(e); res.json(e);

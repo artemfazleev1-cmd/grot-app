@@ -21,6 +21,8 @@ export function StoreProvider({ children }) {
     if (data) for (const k in data) s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), data[k]);
     return s;
   }, [lang]);
+  // Локализованное поле контента из БД: при EN берём fieldEn, иначе — русский оригинал.
+  const L = useCallback((obj, field) => (obj && (lang === 'en' && obj[field + 'En'] ? obj[field + 'En'] : obj[field])) || '', [lang]);
   const seen = useRef(new Set());
 
   // Публичный конфиг (какие интеграции включены на сервере)
@@ -56,7 +58,7 @@ export function StoreProvider({ children }) {
     setCart((c) => {
       const ex = c.find((x) => x.menuId === item.id);
       if (ex) return c.map((x) => x.menuId === item.id ? { ...x, qty: x.qty + 1 } : x);
-      return [...c, { menuId: item.id, name: item.name, price: item.price, qty: 1 }];
+      return [...c, { menuId: item.id, name: item.name, nameEn: item.nameEn || null, price: item.price, qty: 1 }];
     });
     toast(`Добавлено: ${item.name}`);
   };
@@ -94,7 +96,7 @@ export function StoreProvider({ children }) {
       user, booting, login, register, logout, refreshMe, setUser,
       cart, addToCart, setQty, clearCart, cartCount, cartTotal,
       table, setTable, toast, config,
-      lang, setLang, t,
+      lang, setLang, t, L,
       notifications, unread, markRead,
     }}>
       {children}

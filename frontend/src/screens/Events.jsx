@@ -2,12 +2,15 @@ import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
 import { Loader, useFetch } from '../components/ui.jsx';
 
+const DOW_EN = { 'ПН': 'Mon', 'ВТ': 'Tue', 'СР': 'Wed', 'ЧТ': 'Thu', 'ПТ': 'Fri', 'СБ': 'Sat', 'ВС': 'Sun' };
+
 export default function Events() {
   const { data, loading } = useFetch(() => api.get('/events'));
-  const { toast, t } = useStore();
+  const { toast, t, L, lang } = useStore();
   if (loading || !data) return <Loader />;
 
-  const remind = async (e) => { try { await api.post(`/events/${e.id}/remind`); toast(`${t('remind_me')}: «${e.title}»`); } catch (er) { toast(er.message); } };
+  const dow = (d) => (lang === 'en' && DOW_EN[d]) ? DOW_EN[d] : d;
+  const remind = async (e) => { try { await api.post(`/events/${e.id}/remind`); toast(`${t('remind_me')}: «${L(e, 'title')}»`); } catch (er) { toast(er.message); } };
 
   return (
     <div className="screen">
@@ -20,13 +23,13 @@ export default function Events() {
               <div className="row">
                 <div style={{ fontSize: 30 }}>{e.emoji}</div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 16 }}>{e.title}</div>
-                  <div className="muted">{e.day} · {e.time}</div>
+                  <div style={{ fontWeight: 800, fontSize: 16 }}>{L(e, 'title')}</div>
+                  <div className="muted">{dow(e.day)} · {e.time}</div>
                 </div>
               </div>
-              <span className="badge gold">{e.day}</span>
+              <span className="badge gold">{dow(e.day)}</span>
             </div>
-            <div style={{ marginTop: 10 }}>{e.description}</div>
+            <div style={{ marginTop: 10 }}>{L(e, 'description')}</div>
             <button className="btn ghost sm" style={{ marginTop: 12 }} onClick={() => remind(e)}>{t('remind_me')}</button>
           </div>
         ))}
