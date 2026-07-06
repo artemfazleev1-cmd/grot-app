@@ -12,12 +12,12 @@
   .flyer{width:148mm;height:210mm;background:
       radial-gradient(120% 55% at 50% 0%,#3a1d08 0%,#1a1008 34%,#0c0b0d 70%),var(--black);
     color:var(--text);position:relative;overflow:hidden;display:flex;flex-direction:column;
-    padding:9mm 10mm;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    padding:8mm 10mm;box-shadow:0 20px 60px rgba(0,0,0,.5)}
   /* верх: бренд */
   .top{text-align:center}
-  .logo{width:26mm;height:26mm;border-radius:50%;object-fit:cover;margin:0 auto 3mm;
+  .logo{width:22mm;height:22mm;border-radius:50%;object-fit:cover;margin:0 auto 2.5mm;
     box-shadow:0 0 0 1px rgba(212,175,55,.5),0 0 14mm rgba(255,122,24,.45)}
-  .brand{font-family:Georgia,"Times New Roman",serif;letter-spacing:6px;font-size:34pt;font-weight:700;
+  .brand{font-family:Georgia,"Times New Roman",serif;letter-spacing:6px;font-size:29pt;font-weight:700;
     color:#ffb070;text-shadow:0 0 3px rgba(255,160,80,.9),0 0 10px rgba(255,122,24,.7),0 0 22px rgba(226,59,59,.5);line-height:1}
   .brand span{color:#ffb070}
   .tag{letter-spacing:3.5px;font-size:8pt;text-transform:uppercase;color:var(--muted);margin-top:2.5mm}
@@ -25,7 +25,7 @@
     background:linear-gradient(135deg,#ff7a18,#e23b3b);color:#fff;box-shadow:0 6px 16px rgba(226,59,59,.4)}
   /* заголовок */
   .hero{text-align:center;margin-top:4mm}
-  .hero h1{font-size:20pt;font-weight:800;line-height:1.15}
+  .hero h1{font-size:18pt;font-weight:800;line-height:1.15}
   .hero .gold{background:linear-gradient(135deg,#d4af37,#e8cf83 55%,#b8860b);-webkit-background-clip:text;background-clip:text;color:transparent}
   .hero .en{color:var(--muted);font-size:10.5pt;margin-top:2.5mm;font-weight:500}
   /* пункты */
@@ -35,13 +35,15 @@
   .pt .t{font-size:9pt;font-weight:700;margin-top:1mm}
   .pt .s{font-size:7.5pt;color:var(--muted);margin-top:.5mm}
   /* промо */
-  .promo{margin:5mm auto 0;text-align:center;border:1px dashed rgba(212,175,55,.6);border-radius:12px;
-    padding:3mm 5mm;background:rgba(212,175,55,.06);max-width:88%}
-  .promo b{color:var(--gold);font-size:11pt}
-  .promo .en{color:var(--muted);font-size:8pt}
+  .invite{margin:4mm auto 0;text-align:center;max-width:92%;border:1px solid rgba(212,175,55,.28);
+    border-radius:14px;padding:3mm 6mm;background:rgba(212,175,55,.05)}
+  .invite .ih{color:var(--gold);font-weight:800;letter-spacing:2.5px;font-size:8pt;text-transform:uppercase;margin-bottom:2mm}
+  .invite .im{font-size:11pt;font-weight:600;line-height:1.4}
+  .invite .im .g{background:linear-gradient(135deg,#d4af37,#e8cf83 55%,#b8860b);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .invite .ie{color:var(--muted);font-size:8pt;margin-top:2mm;line-height:1.4}
   /* QR */
   .qrwrap{margin-top:auto;display:flex;align-items:center;gap:6mm;background:#0f0f11;border:1px solid var(--line);
-    border-radius:16px;padding:5mm}
+    border-radius:16px;padding:4mm}
   .qrcard{background:#fff;border-radius:10px;padding:3mm;flex:0 0 auto;line-height:0}
   .qrcard svg{width:34mm;height:34mm;display:block}
   .qrtext .h{font-size:12.5pt;font-weight:800;line-height:1.2}
@@ -50,7 +52,7 @@
   .qrtext .no{display:inline-block;margin-top:2.5mm;font-size:7.5pt;color:var(--gold);border:1px solid rgba(212,175,55,.4);
     border-radius:999px;padding:1mm 3mm}
   /* низ: контакты */
-  .foot{margin-top:5mm;border-top:1px solid var(--line);padding-top:3.5mm;display:flex;justify-content:space-between;
+  .foot{margin-top:4mm;border-top:1px solid var(--line);padding-top:3mm;display:flex;justify-content:space-between;
     font-size:8pt;color:var(--muted);line-height:1.5}
   .foot b{color:var(--text)}
   .flame{position:absolute;right:-6mm;top:44mm;font-size:60pt;opacity:.06;transform:rotate(12deg)}
@@ -79,9 +81,10 @@
       <div class="pt"><div class="e">🛵</div><div class="t">Доставка</div><div class="s">Fast delivery</div></div>
     </div>
 
-    <div class="promo">
-      <b>−15% на первый заказ&nbsp;·&nbsp;код GROT</b>
-      <div class="en">15% off your first order · promo code GROT</div>
+    <div class="invite">
+      <div class="ih">Заходите в гости · Visit us</div>
+      <div class="im"><span class="g">Настольные игры</span>, гриль на живом огне и бокал отменного пива — в тёплой атмосфере грота.</div>
+      <div class="ie">Board games, live-fire grill and fine craft beer — in a warm cave atmosphere.</div>
     </div>
 
     <div class="qrwrap">
