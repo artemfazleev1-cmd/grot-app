@@ -5,7 +5,7 @@ import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty, FoodImg } from '../components/ui.jsx';
 
 export function Menu() {
-  const { addToCart, cartCount, cartTotal } = useStore();
+  const { addToCart, cartCount, cartTotal, t, lang } = useStore();
   const nav = useNavigate();
   const { data, loading } = useFetch(() => api.get('/menu'));
   const [group, setGroup] = useState('food');
@@ -15,21 +15,23 @@ export function Menu() {
   const groupCats = data.categoryGroups?.[group] || [];
   const cats = ['Все', ...groupCats];
   const items = data.items.filter((i) => i.group === group && (cat === 'Все' || i.category === cat));
+  const catLabel = (c) => c === 'Все' ? t('all') : t('cat_' + c);
+  const dishName = (d) => (lang === 'en' && d.nameEn) ? d.nameEn : d.name;
 
   const switchGroup = (g) => { setGroup(g); setCat('Все'); };
 
   return (
     <div className="screen">
-      <h1>Меню</h1>
+      <h1>{t('menu')}</h1>
 
       {/* Переключатель Еда / Напитки */}
       <div className="seg" style={{ marginTop: 12 }}>
-        <button className={group === 'food' ? 'on' : ''} onClick={() => switchGroup('food')}>Еда</button>
-        <button className={group === 'drinks' ? 'on' : ''} onClick={() => switchGroup('drinks')}>Напитки</button>
+        <button className={group === 'food' ? 'on' : ''} onClick={() => switchGroup('food')}>{t('food')}</button>
+        <button className={group === 'drinks' ? 'on' : ''} onClick={() => switchGroup('drinks')}>{t('drinks')}</button>
       </div>
 
       <div className="chips" style={{ marginTop: 14 }}>
-        {cats.map((c) => <button key={c} className={`chip ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{c}</button>)}
+        {cats.map((c) => <button key={c} className={`chip ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{catLabel(c)}</button>)}
       </div>
 
       <div className="list" style={{ marginTop: 16 }}>
@@ -37,8 +39,8 @@ export function Menu() {
           <div key={d.id} className={`card tight dish ${d.available ? '' : 'unavailable'}`}>
             <FoodImg src={d.image} />
             <div style={{ flex: 1 }}>
-              <div className="name">{d.name}</div>
-              <div className="price">{money(d.price)}{!d.available && <span className="muted"> · нет в наличии</span>}</div>
+              <div className="name">{dishName(d)}</div>
+              <div className="price">{money(d.price)}{!d.available && <span className="muted"> · {t('out_of_stock')}</span>}</div>
             </div>
             <button className="btn sm" disabled={!d.available} onClick={() => addToCart(d)}>＋</button>
           </div>
@@ -48,7 +50,7 @@ export function Menu() {
       {cartCount > 0 && (
         <div style={{ position: 'fixed', bottom: 'calc(96px + env(safe-area-inset-bottom))', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 35 }}>
           <button className="btn fire" style={{ maxWidth: 440, width: '90%' }} onClick={() => nav('/cart')}>
-            Корзина · {cartCount} · {money(cartTotal)}
+            {t('cart')} · {cartCount} · {money(cartTotal)}
           </button>
         </div>
       )}
@@ -58,12 +60,12 @@ export function Menu() {
 }
 
 export function Cart() {
-  const { cart, setQty, cartTotal } = useStore();
+  const { cart, setQty, cartTotal, t } = useStore();
   const nav = useNavigate();
-  if (!cart.length) return <div className="screen"><h1>Корзина</h1><Empty icon="🛒" text="Корзина пуста" /></div>;
+  if (!cart.length) return <div className="screen"><h1>{t('cart')}</h1><Empty icon="🛒" text={t('cart_empty')} /></div>;
   return (
     <div className="screen">
-      <h1>Корзина</h1>
+      <h1>{t('cart')}</h1>
       <div className="list" style={{ marginTop: 14 }}>
         {cart.map((i) => (
           <div key={i.menuId} className="card tight between">
@@ -77,15 +79,15 @@ export function Cart() {
         ))}
       </div>
       <div className="card between" style={{ marginTop: 16 }}>
-        <span className="muted">Итого</span><b style={{ fontSize: 20 }} className="gold">{money(cartTotal)}</b>
+        <span className="muted">{t('total')}</span><b style={{ fontSize: 20 }} className="gold">{money(cartTotal)}</b>
       </div>
-      <button className="btn block" style={{ marginTop: 16 }} onClick={() => nav('/checkout')}>Оформить заказ</button>
+      <button className="btn block" style={{ marginTop: 16 }} onClick={() => nav('/checkout')}>{t('checkout')}</button>
     </div>
   );
 }
 
 export function Checkout() {
-  const { cart, cartTotal, clearCart, table, refreshMe, toast } = useStore();
+  const { cart, cartTotal, clearCart, table, refreshMe, toast, t } = useStore();
   const nav = useNavigate();
   const [type, setType] = useState('delivery');
   const [address, setAddress] = useState('');
@@ -135,52 +137,51 @@ export function Checkout() {
   const blocked = type === 'delivery' && delivery && !delivery.inZone;
 
   const submit = async () => {
-    if (blocked) { toast('Адрес вне зоны доставки'); return; }
+    if (blocked) { toast(t('out_zone')); return; }
     try {
       setBusy(true);
       await api.post('/orders', { items: cart, type, address: type === 'delivery' ? address : null,
         geo: type === 'delivery' ? geo : null,
         comment, tableNumber: type === 'dinein' ? table?.number : null });
       clearCart(); await refreshMe();
-      toast('Заказ оформлен ✅');
+      toast(t('order_placed') + ' ✅');
       nav('/profile');
     } catch (e) { toast(e.message); } finally { setBusy(false); }
   };
 
   return (
     <div className="screen">
-      <h1>Оформление</h1>
-      <label>Способ получения</label>
+      <h1>{t('checkout_title')}</h1>
+      <label>{t('receive_method')}</label>
       <div className="chips">
-        {[['delivery', 'Доставка'], ['pickup', 'Самовывоз']].map(([v, l]) => (
+        {[['delivery', t('delivery')], ['pickup', t('pickup')]].map(([v, l]) => (
           <button key={v} className={`chip ${type === v ? 'active' : ''}`} onClick={() => setType(v)}>{l}</button>
         ))}
       </div>
       {type === 'delivery' && (<>
-        <label>Адрес доставки</label>
+        <label>{t('delivery_address')}</label>
         <button className="btn ghost block" style={{ marginBottom: 8 }} disabled={locating} onClick={locate}>
-          {locating ? 'Определяем…' : 'Определить моё местоположение'}
+          {locating ? t('detecting') : t('detect_location')}
         </button>
-        <input value={address} onChange={(e) => { setAddress(e.target.value); setGeo(null); }} onBlur={checkAddress} placeholder="Soi, дом, Pattaya" />
+        <input value={address} onChange={(e) => { setAddress(e.target.value); setGeo(null); }} onBlur={checkAddress} placeholder={t('address_ph')} />
         {delivery && (
           <div className="card tight" style={{ marginTop: 10, borderColor: delivery.inZone ? 'var(--line)' : 'var(--red)' }}>
             {delivery.inZone
-              ? <>В зоне доставки · {delivery.distanceKm} км · доставка {delivery.fee ? money(delivery.fee) : 'бесплатно'}</>
-              : <>Вне зоны доставки (радиус {delivery.radiusKm} км). Выберите самовывоз.</>}
-            {geo?.mapUrl && <div style={{ marginTop: 6 }}><a href={geo.mapUrl} target="_blank" rel="noreferrer" className="gold">Открыть точку на карте</a></div>}
-            {delivery.demo && <div className="muted" style={{ fontSize: 11 }}>демо-расчёт · с ключом Google Maps будет точный адрес</div>}
+              ? <>{t('in_zone')} · {delivery.distanceKm} km · {t('delivery_fee')} {delivery.fee ? money(delivery.fee) : t('free')}</>
+              : <>{t('out_zone')}</>}
+            {geo?.mapUrl && <div style={{ marginTop: 6 }}><a href={geo.mapUrl} target="_blank" rel="noreferrer" className="gold">{t('open_map')}</a></div>}
           </div>
         )}
       </>)}
-      {type === 'dinein' && <div className="card tight" style={{ marginTop: 12 }}>Стол №{table?.number || '—'}</div>}
-      <label>Комментарий</label>
-      <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Например: без лука" />
+      {type === 'dinein' && <div className="card tight" style={{ marginTop: 12 }}>{t('table')} №{table?.number || '—'}</div>}
+      <label>{t('comment')}</label>
+      <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('comment_ph')} />
 
       <div className="card between" style={{ marginTop: 16 }}>
-        <span className="muted">К оплате</span><b style={{ fontSize: 22 }} className="gold">{money(finalTotal)}</b>
+        <span className="muted">{t('to_pay')}</span><b style={{ fontSize: 22 }} className="gold">{money(finalTotal)}</b>
       </div>
-      <div className="muted center" style={{ marginTop: 8, fontSize: 11 }}>Онлайн-оплата подключается позже · сейчас оплата на месте</div>
-      <button className="btn block" style={{ marginTop: 14 }} disabled={busy || blocked} onClick={submit}>Подтвердить заказ</button>
+      <div className="muted center" style={{ marginTop: 8, fontSize: 11 }}>{t('pay_note')}</div>
+      <button className="btn block" style={{ marginTop: 14 }} disabled={busy || blocked} onClick={submit}>{t('confirm_order')}</button>
     </div>
   );
 }

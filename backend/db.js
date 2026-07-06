@@ -55,7 +55,7 @@ export const ingredients = [
 ];
 
 const m = (name, category, price, description, opts = {}) => ({
-  id: id(), name, category, group: opts.group || 'food', price, description,
+  id: id(), name, nameEn: opts.nameEn ?? null, category, group: opts.group || 'food', price, description,
   available: opts.available !== false,
   weight: opts.weight ?? null,        // вес/объём порции
   style: opts.style ?? null,          // стиль (для пива)
@@ -72,23 +72,23 @@ const m = (name, category, price, description, opts = {}) => ({
 export const menu = [
   // ----- ЕДА · Шашлык на вынос -----
   m('Свиной шашлык', 'Шашлык', 250, 'Сочный и нежный свиной шашлык, идеально приготовленный на гриле.', {
-    weight: '200 г', composition: 'свиная шея, лук, специи', calories: 540, popular: true, image: '/menu/pork.jpg',
+    nameEn: 'Pork Skewer', weight: '200 г', composition: 'свиная шея, лук, специи', calories: 540, popular: true, image: '/menu/pork.jpg',
     recipe: { [ING.pork]: 250, [ING.onion]: 60 } }),
   m('Утиный шашлык', 'Шашлык', 300, 'Премиальная утка с хрустящей корочкой и насыщенным вкусом.', {
-    weight: '200 г', composition: 'утиное филе бедра, лук, соевый соус, специи', calories: 560, popular: true, image: '/menu/duck.jpg',
+    nameEn: 'Duck Skewer', weight: '200 г', composition: 'утиное филе бедра, лук, соевый соус, специи', calories: 560, popular: true, image: '/menu/duck.jpg',
     recipe: { [ING.duck]: 250, [ING.onion]: 30 } }),
   m('Куриные крылышки', 'Шашлык', 300, 'Сочные куриные крылышки, приготовленные на гриле до идеальной корочки.', {
-    weight: '6 шт.', composition: 'куриные крылышки, специи, соус', calories: 620, popular: true, image: '/menu/wings.jpg',
+    nameEn: 'Chicken Wings', weight: '6 шт.', composition: 'куриные крылышки, специи, соус', calories: 620, popular: true, image: '/menu/wings.jpg',
     recipe: { [ING.chicken_wings]: 360 } }),
 
   // ----- ЕДА · Купаты -----
   m('Купаты', 'Купаты', 300, 'Домашние купаты из свинины и курицы. Сочные и ароматные.', {
-    weight: '200 г', composition: 'свиная шея, куриное бедро, специи', calories: 600, image: '/menu/kupaty.jpg',
+    nameEn: 'Kupaty Sausages', weight: '200 г', composition: 'свиная шея, куриное бедро, специи', calories: 600, image: '/menu/kupaty.jpg',
     recipe: { [ING.pork]: 150, [ING.chicken_thigh]: 100 } }),
 
   // ----- ЕДА · Бургеры -----
   m('Smash Burger (говядина)', 'Бургеры', 300, 'Фирменный рецепт нашего шеф-повара: две говяжьи котлеты Smash, расплавленный сыр, фирменный соус, мягкая булочка бриошь.', {
-    weight: '380–420 г', composition: 'говядина 80/20, булочка бриошь, чеддер, фирменный соус, лук, огурцы', calories: 920, popular: true, image: '/menu/burger.jpg',
+    nameEn: 'Smash Burger (Beef)', weight: '380–420 г', composition: 'говядина 80/20, булочка бриошь, чеддер, фирменный соус, лук, огурцы', calories: 920, popular: true, image: '/menu/burger.jpg',
     recipe: { [ING.beef]: 180, [ING.bun]: 1, [ING.cheddar]: 40, [ING.red_onion]: 15 } }),
 
   // ----- НАПИТКИ · Немецкое пиво -----
@@ -105,8 +105,8 @@ export const menu = [
   // ----- НАПИТКИ · Сидр -----
   m('Moose Craft Cider', 'Сидр', 100, 'Хрустящий, освежающий и натурально вкусный.', { group: 'drinks', style: 'Apple Cider', composition: 'яблочный сидр', popular: true, image: '/menu/cider.jpg' }),
   // ----- НАПИТКИ · Морс -----
-  m('Домашний клюквенный морс 0.33 л', 'Морс', 60, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', style: 'Клюквенный морс', weight: '0.33 л', composition: 'клюква, вода, сахар', image: '/menu/mors-033.jpg' }),
-  m('Домашний клюквенный морс 0.2 л', 'Морс', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-02.jpg' }),
+  m('Домашний клюквенный морс 0.33 л', 'Морс', 60, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.33 L', style: 'Клюквенный морс', weight: '0.33 л', composition: 'клюква, вода, сахар', image: '/menu/mors-033.jpg' }),
+  m('Домашний клюквенный морс 0.2 л', 'Морс', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.2 L', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-02.jpg' }),
 ];
 
 // Каждый напиток — складская позиция в бутылках; 1 заказанная единица = -1 бутылка

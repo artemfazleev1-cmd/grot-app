@@ -5,59 +5,59 @@ import { Loader, useFetch, money, Empty } from '../components/ui.jsx';
 
 // ---------------- ОФИЦИАНТ ----------------
 export function WaiterPanel() {
-  const { user, toast } = useStore();
+  const { toast, t } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const calls = useFetch(() => api.get('/calls'));
   const resv = useFetch(() => api.get('/reservations'));
   if (orders.loading) return <Loader />;
 
-  const setStatus = async (o, status) => { await api.patch(`/orders/${o.id}/status`, { status, waiterId: user.id }); toast(`Заказ #${o.id}: ${status}`); orders.reload(); };
+  const setStatus = async (o, status) => { await api.patch(`/orders/${o.id}/status`, { status }); toast(`№${o.id}: ${t('st_' + status)}`); orders.reload(); };
   const closeCall = async (c) => { await api.patch(`/calls/${c.id}`, { status: 'done' }); calls.reload(); };
-  const confirmResv = async (r) => { await api.patch(`/reservations/${r.id}`, { status: 'confirmed' }); toast('Бронь подтверждена'); resv.reload(); };
+  const confirmResv = async (r) => { await api.patch(`/reservations/${r.id}`, { status: 'confirmed' }); toast('OK'); resv.reload(); };
 
   const active = orders.data.filter((o) => !['delivered', 'handed'].includes(o.status));
 
   return (
     <div className="screen">
-      <h1>Панель официанта</h1>
+      <h1>{t('waiter_panel')}</h1>
 
-      <div className="section-title"><h2>Вызовы и счёт</h2></div>
+      <div className="section-title"><h2>{t('calls')}</h2></div>
       <div className="list">
         {(calls.data || []).map((c) => (
           <div key={c.id} className="card tight between">
-            <span>Стол №{c.tableNumber} — {c.type === 'bill' ? 'просит счёт' : 'вызов официанта'}</span>
-            <button className="btn sm" onClick={() => closeCall(c)}>Принял</button>
+            <span>{t('table')} №{c.tableNumber} — {c.type === 'bill' ? t('asks_bill') : t('calls_waiter')}</span>
+            <button className="btn sm" onClick={() => closeCall(c)}>{t('got_it')}</button>
           </div>
         ))}
-        {(!calls.data || calls.data.length === 0) && <Empty icon="🔕" text="Нет активных вызовов" />}
+        {(!calls.data || calls.data.length === 0) && <Empty icon="🔕" text={t('no_calls')} />}
       </div>
 
-      <div className="section-title"><h2>Заказы</h2></div>
+      <div className="section-title"><h2>{t('orders')}</h2></div>
       <div className="list">
         {active.map((o) => (
           <div key={o.id} className="card">
-            <div className="between"><b>#{o.id} · {o.type === 'delivery' ? 'Доставка' : o.tableNumber ? `Стол №${o.tableNumber}` : o.type}</b>
-              <span className="badge gold">{o.status}</span></div>
+            <div className="between"><b>#{o.id} · {o.type === 'delivery' ? t('delivery') : o.tableNumber ? `${t('table')} №${o.tableNumber}` : o.type}</b>
+              <span className="badge gold">{t('st_' + o.status)}</span></div>
             <div className="muted">{o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')}</div>
-            {o.comment && <div className="muted">Комментарий: {o.comment}</div>}
+            {o.comment && <div className="muted">{t('comment')}: {o.comment}</div>}
             <div className="row" style={{ marginTop: 10 }}>
-              {o.status === 'new' && <button className="btn sm" onClick={() => setStatus(o, 'accepted')}>Принять</button>}
-              {o.status === 'accepted' && <button className="btn sm" onClick={() => setStatus(o, 'cooking')}>На кухню</button>}
-              {o.status === 'cooking' && <button className="btn sm" onClick={() => setStatus(o, 'ready')}>Готов</button>}
-              {o.status === 'ready' && o.type === 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'delivering')}>Курьеру</button>}
-              {o.status === 'ready' && o.type !== 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'handed')}>Выдать</button>}
+              {o.status === 'new' && <button className="btn sm" onClick={() => setStatus(o, 'accepted')}>{t('accept')}</button>}
+              {o.status === 'accepted' && <button className="btn sm" onClick={() => setStatus(o, 'cooking')}>{t('to_kitchen')}</button>}
+              {o.status === 'cooking' && <button className="btn sm" onClick={() => setStatus(o, 'ready')}>{t('ready')}</button>}
+              {o.status === 'ready' && o.type === 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'delivering')}>{t('to_courier')}</button>}
+              {o.status === 'ready' && o.type !== 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'handed')}>{t('hand_over')}</button>}
             </div>
           </div>
         ))}
-        {active.length === 0 && <Empty icon="✨" text="Нет активных заказов" />}
+        {active.length === 0 && <Empty icon="✨" text={t('no_active')} />}
       </div>
 
-      <div className="section-title"><h2>Брони</h2></div>
+      <div className="section-title"><h2>{t('bookings')}</h2></div>
       <div className="list">
         {(resv.data || []).map((r) => (
           <div key={r.id} className="card tight between">
-            <div>Стол №{r.tableNumber} · {r.date} {r.time} · {r.guests} гостей
-              {r.preorder?.length > 0 && <div className="muted">Предзаказ: {r.preorder.map((i) => i.name).join(', ')}</div>}</div>
+            <div>{t('table')} №{r.tableNumber} · {r.date} {r.time} · {r.guests} {t('guests')}
+              {r.preorder?.length > 0 && <div className="muted">{t('preorder')}: {r.preorder.map((i) => i.name).join(', ')}</div>}</div>
             {r.status !== 'confirmed' ? <button className="btn sm" onClick={() => confirmResv(r)}>✓</button> : <span className="badge green">OK</span>}
           </div>
         ))}
@@ -191,7 +191,7 @@ function mapLink(o) {
 }
 
 export function CourierPanel() {
-  const { user, toast, logout } = useStore();
+  const { toast, logout, t } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const [view, setView] = useState('active');
   useEffect(() => { const iv = setInterval(orders.reload, 5000); return () => clearInterval(iv); }, []);
@@ -200,32 +200,32 @@ export function CourierPanel() {
   const deliveries = orders.data.filter((o) => o.type === 'delivery');
   const active = deliveries.filter((o) => ['ready', 'delivering'].includes(o.status));
   const history = deliveries.filter((o) => o.status === 'delivered').reverse();
-  const act = async (o, status) => { await api.patch(`/orders/${o.id}/status`, { status, courierId: user.id }); toast(`Заказ #${o.id}: ${status === 'delivering' ? 'в пути' : 'доставлен'}`); orders.reload(); };
+  const act = async (o, status) => { await api.patch(`/orders/${o.id}/status`, { status }); toast(`№${o.id}: ${status === 'delivering' ? t('on_the_way') : t('delivered')}`); orders.reload(); };
 
   return (
     <div className="screen">
-      <div className="between"><h1>Курьер</h1><button className="btn ghost sm" onClick={logout}>Выйти</button></div>
+      <div className="between"><h1>{t('courier')}</h1><button className="btn ghost sm" onClick={logout}>{t('logout')}</button></div>
       <div className="chips" style={{ marginTop: 10 }}>
-        <button className={`chip ${view === 'active' ? 'active' : ''}`} onClick={() => setView('active')}>Активные ({active.length})</button>
-        <button className={`chip ${view === 'history' ? 'active' : ''}`} onClick={() => setView('history')}>История ({history.length})</button>
+        <button className={`chip ${view === 'active' ? 'active' : ''}`} onClick={() => setView('active')}>{t('active')} ({active.length})</button>
+        <button className={`chip ${view === 'history' ? 'active' : ''}`} onClick={() => setView('history')}>{t('history')} ({history.length})</button>
       </div>
 
       {view === 'active' && (
         <div className="list" style={{ marginTop: 16 }}>
           {active.map((o) => (
             <div key={o.id} className="card">
-              <div className="between"><b style={{ fontSize: 17 }}>Доставка #{o.id}</b><span className="badge gold">{o.status === 'delivering' ? 'в пути' : 'готов к выдаче'}</span></div>
-              <div style={{ marginTop: 6, fontSize: 16 }}>{o.address || 'Адрес не указан'}</div>
+              <div className="between"><b style={{ fontSize: 17 }}>{t('delivery')} #{o.id}</b><span className="badge gold">{o.status === 'delivering' ? t('on_the_way') : t('ready_pickup')}</span></div>
+              <div style={{ marginTop: 6, fontSize: 16 }}>{o.address || t('address_none')}</div>
               <DeliveryMap o={o} />
-              {mapLink(o) && <div style={{ marginTop: 8 }}><a href={mapLink(o)} target="_blank" rel="noreferrer" className="gold">Открыть маршрут в Google Картах →</a></div>}
+              {mapLink(o) && <div style={{ marginTop: 8 }}><a href={mapLink(o)} target="_blank" rel="noreferrer" className="gold">{t('route_maps')} →</a></div>}
               <div className="muted" style={{ marginTop: 8 }}>{o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')} · {money(o.total)}</div>
               <div className="row" style={{ marginTop: 10 }}>
-                {o.status === 'ready' && <button className="btn sm" onClick={() => act(o, 'delivering')}>Взять заказ</button>}
-                {o.status === 'delivering' && <button className="btn sm" onClick={() => act(o, 'delivered')}>Доставлено</button>}
+                {o.status === 'ready' && <button className="btn sm" onClick={() => act(o, 'delivering')}>{t('take_order')}</button>}
+                {o.status === 'delivering' && <button className="btn sm" onClick={() => act(o, 'delivered')}>{t('delivered')}</button>}
               </div>
             </div>
           ))}
-          {active.length === 0 && <Empty icon="🛵" text="Нет заказов на доставку" />}
+          {active.length === 0 && <Empty icon="🛵" text={t('no_deliveries')} />}
         </div>
       )}
 
@@ -233,13 +233,13 @@ export function CourierPanel() {
         <div className="list" style={{ marginTop: 16 }}>
           {history.map((o) => (
             <div key={o.id} className="card tight">
-              <div className="between"><b>Доставка #{o.id}</b><span className="badge green">доставлен</span></div>
+              <div className="between"><b>{t('delivery')} #{o.id}</b><span className="badge green">{t('st_delivered')}</span></div>
               <div className="muted" style={{ margin: '2px 0' }}>{fmtTime(o.createdAt)}</div>
-              <div style={{ marginBottom: 2 }}>{o.address || 'Адрес не указан'}</div>
+              <div style={{ marginBottom: 2 }}>{o.address || t('address_none')}</div>
               <div className="muted">{o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')} · {money(o.total)}</div>
             </div>
           ))}
-          {history.length === 0 && <Empty icon="🕓" text="История доставок пуста" />}
+          {history.length === 0 && <Empty icon="🕓" text={t('history')} />}
         </div>
       )}
     </div>

@@ -161,7 +161,7 @@ app.get('/api/promos', (req, res) => res.json(db.promos));
 
 // ================= МЕНЮ =================
 app.get('/api/menu', (req, res) => res.json({ categories: db.categories, categoryGroups: db.categoryGroups, items: db.menu }));
-const MENU_FIELDS = ['name', 'category', 'group', 'price', 'description', 'available', 'weight', 'style', 'calories', 'composition', 'popular', 'isNew', 'image', 'recipe'];
+const MENU_FIELDS = ['name', 'nameEn', 'category', 'group', 'price', 'description', 'available', 'weight', 'style', 'calories', 'composition', 'popular', 'isNew', 'image', 'recipe'];
 app.post('/api/menu', auth, requireRole('owner', 'admin'), (req, res) => {
   const item = { id: db.id(), available: true, recipe: {}, group: 'food', ...pick(req.body, MENU_FIELDS) };
   db.menu.push(item); res.json(item);

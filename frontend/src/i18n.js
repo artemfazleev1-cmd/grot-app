@@ -1,0 +1,96 @@
+// Переводы интерфейса для клиента, официанта, курьера (RU/EN).
+// Владелец и кухня — только RU (их строки не используют t()).
+export const STR = {
+  ru: {
+    // навигация
+    nav_home: 'Главная', nav_menu: 'Меню', nav_events: 'События', nav_account: 'Кабинет',
+    nav_orders: 'Заказы', nav_delivery: 'Доставка', nav_me: 'Я', nav_business: 'Бизнес', nav_kitchen: 'Кухня',
+    // общее
+    back: 'Назад', save: 'Сохранить', logout: 'Выйти', comment: 'Комментарий',
+    // главная
+    greeting: 'Добрый вечер', welcome: 'Рады видеть вас в GROT',
+    tile_order: 'Заказать', tile_order_sub: 'Доставка и самовывоз',
+    tile_menu: 'Меню', tile_menu_sub: 'Гриль и пиво',
+    tile_events: 'События', tile_events_sub: 'Афиша недели',
+    tile_orders: 'Мои заказы', tile_orders_sub: 'История заказов',
+    news: 'Новости', more: 'Подробнее',
+    // меню
+    menu: 'Меню', food: 'Еда', drinks: 'Напитки', all: 'Все',
+    out_of_stock: 'нет в наличии', cart: 'Корзина', add: 'Добавить',
+    // корзина
+    cart_empty: 'Корзина пуста', total: 'Итого', checkout: 'Оформить заказ',
+    // оформление
+    checkout_title: 'Оформление', receive_method: 'Способ получения',
+    delivery: 'Доставка', pickup: 'Самовывоз',
+    delivery_address: 'Адрес доставки', detect_location: 'Определить моё местоположение',
+    detecting: 'Определяем…', address_ph: 'Soi, дом, Pattaya',
+    in_zone: 'В зоне доставки', out_zone: 'Вне зоны доставки. Выберите самовывоз.',
+    delivery_fee: 'доставка', free: 'бесплатно', open_map: 'Открыть точку на карте',
+    to_pay: 'К оплате', pay_note: 'Онлайн-оплата подключается позже · сейчас оплата на месте',
+    confirm_order: 'Подтвердить заказ', comment_ph: 'Например: без лука',
+    order_placed: 'Заказ оформлен',
+    // кабинет / заказы
+    account: 'Кабинет', active_orders: 'Активные заказы', order_history: 'История заказов',
+    no_active: 'Нет активных заказов', repeat: 'Повторить', added_to_cart: 'Добавлено в корзину',
+    fav_dishes: 'Любимые блюда', fav_drinks: 'Любимые напитки',
+    // статусы заказа
+    st_new: 'Принят', st_accepted: 'Принят', st_cooking: 'Готовится', st_ready: 'Готов',
+    st_delivering: 'У курьера', st_delivered: 'Доставлен', st_handed: 'Выдан',
+    // события
+    events_title: 'События недели', events_sub: 'Афиша мероприятий GROT', remind_me: 'Напомнить мне',
+    // официант
+    waiter_panel: 'Панель официанта', calls: 'Вызовы и счёт', orders: 'Заказы', bookings: 'Брони',
+    no_calls: 'Нет активных вызовов', accept: 'Принять', to_kitchen: 'На кухню',
+    ready: 'Готов', to_courier: 'Курьеру', hand_over: 'Выдать', got_it: 'Принял',
+    asks_bill: 'просит счёт', calls_waiter: 'вызов официанта', table: 'Стол',
+    preorder: 'Предзаказ', guests: 'гостей',
+    // курьер
+    courier: 'Курьер', active: 'Активные', history: 'История',
+    take_order: 'Взять заказ', delivered: 'Доставлено', ready_pickup: 'готов к выдаче',
+    on_the_way: 'в пути', route_maps: 'Открыть маршрут в Google Картах',
+    no_deliveries: 'Нет заказов на доставку', address_none: 'Адрес не указан',
+    // категории меню
+    cat_Шашлык: 'Шашлык', 'cat_Купаты': 'Купаты', 'cat_Бургеры': 'Бургеры',
+    'cat_Немецкое пиво': 'Немецкое пиво', 'cat_Сидр': 'Сидр', 'cat_Морс': 'Морс',
+  },
+  en: {
+    nav_home: 'Home', nav_menu: 'Menu', nav_events: 'Events', nav_account: 'Account',
+    nav_orders: 'Orders', nav_delivery: 'Delivery', nav_me: 'Me',
+    back: 'Back', save: 'Save', logout: 'Log out', comment: 'Comment',
+    greeting: 'Good evening', welcome: 'Welcome to GROT',
+    tile_order: 'Order', tile_order_sub: 'Delivery & pickup',
+    tile_menu: 'Menu', tile_menu_sub: 'Grill & beer',
+    tile_events: 'Events', tile_events_sub: 'This week',
+    tile_orders: 'My orders', tile_orders_sub: 'Order history',
+    news: 'News', more: 'Learn more',
+    menu: 'Menu', food: 'Food', drinks: 'Drinks', all: 'All',
+    out_of_stock: 'out of stock', cart: 'Cart', add: 'Add',
+    cart_empty: 'Your cart is empty', total: 'Total', checkout: 'Checkout',
+    checkout_title: 'Checkout', receive_method: 'How to receive',
+    delivery: 'Delivery', pickup: 'Pickup',
+    delivery_address: 'Delivery address', detect_location: 'Use my location',
+    detecting: 'Locating…', address_ph: 'Soi, house, Pattaya',
+    in_zone: 'Within delivery zone', out_zone: 'Outside delivery zone. Choose pickup.',
+    delivery_fee: 'delivery', free: 'free', open_map: 'Open location on map',
+    to_pay: 'To pay', pay_note: 'Online payment coming soon · pay on site for now',
+    confirm_order: 'Confirm order', comment_ph: 'e.g. no onion',
+    order_placed: 'Order placed',
+    account: 'Account', active_orders: 'Active orders', order_history: 'Order history',
+    no_active: 'No active orders', repeat: 'Repeat', added_to_cart: 'Added to cart',
+    fav_dishes: 'Favorite dishes', fav_drinks: 'Favorite drinks',
+    st_new: 'Accepted', st_accepted: 'Accepted', st_cooking: 'Cooking', st_ready: 'Ready',
+    st_delivering: 'With courier', st_delivered: 'Delivered', st_handed: 'Handed over',
+    events_title: 'Events of the week', events_sub: 'GROT events schedule', remind_me: 'Remind me',
+    waiter_panel: 'Waiter panel', calls: 'Calls & bills', orders: 'Orders', bookings: 'Bookings',
+    no_calls: 'No active calls', accept: 'Accept', to_kitchen: 'To kitchen',
+    ready: 'Ready', to_courier: 'To courier', hand_over: 'Hand over', got_it: 'Got it',
+    asks_bill: 'asks for the bill', calls_waiter: 'calls a waiter', table: 'Table',
+    preorder: 'Pre-order', guests: 'guests',
+    courier: 'Courier', active: 'Active', history: 'History',
+    take_order: 'Take order', delivered: 'Delivered', ready_pickup: 'ready for pickup',
+    on_the_way: 'on the way', route_maps: 'Open route in Google Maps',
+    no_deliveries: 'No delivery orders', address_none: 'Address not specified',
+    cat_Шашлык: 'Skewers', 'cat_Купаты': 'Kupaty', 'cat_Бургеры': 'Burgers',
+    'cat_Немецкое пиво': 'German Beer', 'cat_Сидр': 'Cider', 'cat_Морс': 'Berry Juice',
+  },
+};

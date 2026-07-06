@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { useStore } from './context/store.jsx';
 import { api } from './api.js';
+import { STR } from './i18n.js';
 import { Sheet } from './components/ui.jsx';
 import Auth from './screens/Auth.jsx';
 import Home from './screens/Home.jsx';
@@ -35,24 +36,27 @@ function Intro({ onDone }) {
 
 // ---------------- Навигация по ролям ----------------
 const CLIENT_TABS = [
-  ['/', '🏠', 'Главная'], ['/menu', '🍔', 'Меню'],
-  ['/events', '🎉', 'События'], ['/profile', '👤', 'Кабинет'],
+  ['/', '🏠', 'nav_home'], ['/menu', '🍔', 'nav_menu'],
+  ['/events', '🎉', 'nav_events'], ['/profile', '👤', 'nav_account'],
 ];
 const STAFF_TABS = {
-  waiter:  [['/staff', '🧾', 'Заказы'], ['/menu', '🍔', 'Меню'], ['/profile', '👤', 'Я']],
-  cook:    [['/staff', '🍳', 'Кухня']],
-  courier: [['/staff', '🛵', 'Доставка']],
-  owner:   [['/owner', '📊', 'Бизнес'], ['/', '🏠', 'Главная'], ['/menu', '🍔', 'Меню'], ['/profile', '👤', 'Я']],
-  admin:   [['/owner', '📊', 'Бизнес'], ['/staff', '🧾', 'Заказы'], ['/', '🏠', 'Главная'], ['/profile', '👤', 'Я']],
+  waiter:  [['/staff', '🧾', 'nav_orders'], ['/menu', '🍔', 'nav_menu'], ['/profile', '👤', 'nav_me']],
+  cook:    [['/staff', '🍳', 'nav_kitchen']],
+  courier: [['/staff', '🛵', 'nav_delivery']],
+  owner:   [['/owner', '📊', 'nav_business'], ['/', '🏠', 'nav_home'], ['/menu', '🍔', 'nav_menu'], ['/profile', '👤', 'nav_me']],
+  admin:   [['/owner', '📊', 'nav_business'], ['/staff', '🧾', 'nav_orders'], ['/', '🏠', 'nav_home'], ['/profile', '👤', 'nav_me']],
 };
 
 function TabBar({ role }) {
+  const { t } = useStore();
   const tabs = role === 'client' ? CLIENT_TABS : (STAFF_TABS[role] || CLIENT_TABS);
+  // Язык переключают только клиент/официант/курьер; остальные — RU
+  const translatable = ['client', 'waiter', 'courier'].includes(role);
   return (
     <nav className="tabbar">
-      {tabs.map(([to, ic, label]) => (
+      {tabs.map(([to, ic, key]) => (
         <NavLink key={to} to={to} end={to === '/'}>
-          {({ isActive }) => (<><span className="ic" style={{ filter: isActive ? 'none' : 'grayscale(.6)' }}>{ic}</span><span className={isActive ? 'active' : ''}>{label}</span></>)}
+          {({ isActive }) => (<><span className="ic" style={{ filter: isActive ? 'none' : 'grayscale(.6)' }}>{ic}</span><span className={isActive ? 'active' : ''}>{translatable ? t(key) : STR.ru[key]}</span></>)}
         </NavLink>
       ))}
     </nav>
@@ -60,15 +64,24 @@ function TabBar({ role }) {
 }
 
 function TopBar() {
-  const { unread, notifications, markRead } = useStore();
+  const { unread, notifications, markRead, user, lang, setLang } = useStore();
   const [open, setOpen] = useState(false);
+  // Переключатель языка — только для клиента, официанта, курьера
+  const showLang = ['client', 'waiter', 'courier'].includes(user?.role);
   return (<>
     <div className="topbar">
       <div className="row" style={{ gap: 10 }}>
         <img src="/logo.png" alt="GROT" className="brand-logo" />
         <div className="logo">GR<span>O</span>T</div>
       </div>
-      <div className="bell" onClick={() => { setOpen(true); markRead(); }}>🔔{unread > 0 && <span className="dot">{unread}</span>}</div>
+      <div className="row" style={{ gap: 12 }}>
+        {showLang && (
+          <button className="lang-toggle" onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
+            {lang === 'ru' ? 'EN' : 'RU'}
+          </button>
+        )}
+        <div className="bell" onClick={() => { setOpen(true); markRead(); }}>🔔{unread > 0 && <span className="dot">{unread}</span>}</div>
+      </div>
     </div>
     <Sheet open={open} onClose={() => setOpen(false)}>
       <h2>Уведомления</h2>

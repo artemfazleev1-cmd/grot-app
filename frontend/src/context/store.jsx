@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { api, setToken, getToken } from '../api.js';
 import { subscribePush } from '../pwa.js';
+import { STR } from '../i18n.js';
 
 const Store = createContext(null);
 export const useStore = () => useContext(Store);
@@ -13,6 +14,9 @@ export function StoreProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [config, setConfig] = useState({});
+  const [lang, setLangState] = useState(() => localStorage.getItem('grot_lang') || 'ru');
+  const setLang = (l) => { localStorage.setItem('grot_lang', l); setLangState(l); };
+  const t = useCallback((key) => (STR[lang] && STR[lang][key]) || STR.ru[key] || key, [lang]);
   const seen = useRef(new Set());
 
   // Публичный конфиг (какие интеграции включены на сервере)
@@ -86,6 +90,7 @@ export function StoreProvider({ children }) {
       user, booting, login, register, logout, refreshMe, setUser,
       cart, addToCart, setQty, clearCart, cartCount, cartTotal,
       table, setTable, toast, config,
+      lang, setLang, t,
       notifications, unread, markRead,
     }}>
       {children}
