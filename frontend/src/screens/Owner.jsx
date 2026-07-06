@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
+import OrderChat from '../components/OrderChat.jsx';
 
-const TABS = ['Аналитика', 'CRM', 'Персонал', 'Склад', 'Рассылки', 'Контент'];
+const TABS = ['Аналитика', 'CRM', 'Доставки', 'Персонал', 'Склад', 'Рассылки', 'Контент'];
 
 export default function Owner() {
   const [tab, setTab] = useState('Аналитика');
@@ -16,11 +17,40 @@ export default function Owner() {
       <div style={{ marginTop: 16 }}>
         {tab === 'Аналитика' && <Analytics />}
         {tab === 'CRM' && <CRM />}
+        {tab === 'Доставки' && <Deliveries />}
         {tab === 'Персонал' && <Staff />}
         {tab === 'Склад' && <Inventory />}
         {tab === 'Рассылки' && <Broadcasts />}
         {tab === 'Контент' && <Content />}
       </div>
+    </div>
+  );
+}
+
+const DELIV_ST = { new: 'Принят', accepted: 'Принят', cooking: 'Готовится', ready: 'Готов', delivering: 'У курьера', delivered: 'Доставлен', handed: 'Выдан' };
+function Deliveries() {
+  const { data, loading } = useFetch(() => api.get('/deliveries'));
+  const [chatOrder, setChatOrder] = useState(null);
+  if (loading) return <Loader />;
+  const fmt = (iso) => new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return (
+    <div className="list">
+      {data.map((o) => (
+        <div key={o.id} className="card tight">
+          <div className="between">
+            <b>Доставка #{o.id}</b>
+            <span className={`badge ${o.open ? 'gold' : 'green'}`}>{DELIV_ST[o.status] || o.status}</span>
+          </div>
+          <div className="muted" style={{ margin: '2px 0' }}>{fmt(o.createdAt)}</div>
+          <div>{o.clientName} · <span className="gold">{o.clientPhone}</span></div>
+          <div className="muted" style={{ marginTop: 2 }}>{o.address || 'Адрес не указан'} · {money(o.total)}</div>
+          <button className="btn ghost sm" style={{ marginTop: 10 }} onClick={() => setChatOrder(o.id)}>
+            💬 Переписка{o.messagesCount > 0 ? ` (${o.messagesCount})` : ''}
+          </button>
+        </div>
+      ))}
+      {data.length === 0 && <Empty icon="🛵" text="Пока нет доставок" />}
+      {chatOrder && <OrderChat orderId={chatOrder} me="owner" onClose={() => setChatOrder(null)} />}
     </div>
   );
 }

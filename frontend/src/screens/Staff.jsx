@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty } from '../components/ui.jsx';
+import OrderChat from '../components/OrderChat.jsx';
 
 // ---------------- ОФИЦИАНТ ----------------
 export function WaiterPanel() {
@@ -194,6 +195,7 @@ export function CourierPanel() {
   const { toast, logout, t } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const [view, setView] = useState('active');
+  const [chatOrder, setChatOrder] = useState(null);
   useEffect(() => { const iv = setInterval(orders.reload, 5000); return () => clearInterval(iv); }, []);
   if (orders.loading) return <Loader />;
 
@@ -219,9 +221,10 @@ export function CourierPanel() {
               <DeliveryMap o={o} />
               {mapLink(o) && <div style={{ marginTop: 8 }}><a href={mapLink(o)} target="_blank" rel="noreferrer" className="gold">{t('route_maps')} →</a></div>}
               <div className="muted" style={{ marginTop: 8 }}>{o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')} · {money(o.total)}</div>
-              <div className="row" style={{ marginTop: 10 }}>
+              <div className="row" style={{ marginTop: 10, gap: 8 }}>
                 {o.status === 'ready' && <button className="btn sm" onClick={() => act(o, 'delivering')}>{t('take_order')}</button>}
                 {o.status === 'delivering' && <button className="btn sm" onClick={() => act(o, 'delivered')}>{t('delivered')}</button>}
+                <button className="btn ghost sm" onClick={() => setChatOrder(o.id)}>💬 {t('chat')}</button>
               </div>
             </div>
           ))}
@@ -242,6 +245,8 @@ export function CourierPanel() {
           {history.length === 0 && <Empty icon="🕓" text={t('history')} />}
         </div>
       )}
+
+      {chatOrder && <OrderChat orderId={chatOrder} me="courier" onClose={() => setChatOrder(null)} />}
     </div>
   );
 }

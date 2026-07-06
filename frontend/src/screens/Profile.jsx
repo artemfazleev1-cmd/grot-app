@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty } from '../components/ui.jsx';
+import OrderChat from '../components/OrderChat.jsx';
 
 const STEPS = ['new', 'accepted', 'cooking', 'ready', 'delivered'];
 
-function OrderCard({ o, onRepeat, t, L }) {
+function OrderCard({ o, onRepeat, onChat, t, L }) {
   const idx = Math.max(0, STEPS.indexOf(o.status === 'handed' ? 'delivered' : o.status === 'delivering' ? 'ready' : o.status));
   const active = !['delivered', 'handed'].includes(o.status);
   const typeLabel = o.type === 'delivery' ? t('delivery') : o.type === 'pickup' ? t('pickup') : `${t('table')} №${o.tableNumber}`;
@@ -19,7 +21,10 @@ function OrderCard({ o, onRepeat, t, L }) {
       <div className="muted">{o.items.map((i) => `${L(i, 'name')} ×${i.qty}`).join(', ')}</div>
       <div className="between" style={{ marginTop: 8 }}>
         <b className="gold">{money(o.total)}</b>
-        <button className="btn ghost sm" onClick={() => onRepeat(o)}>↩ {t('repeat')}</button>
+        <div className="row" style={{ gap: 8 }}>
+          {o.type === 'delivery' && active && <button className="btn ghost sm" onClick={() => onChat(o.id)}>💬 {t('chat_with_courier')}</button>}
+          <button className="btn ghost sm" onClick={() => onRepeat(o)}>↩ {t('repeat')}</button>
+        </div>
       </div>
     </div>
   );
@@ -28,6 +33,7 @@ function OrderCard({ o, onRepeat, t, L }) {
 export default function Profile() {
   const { user, logout, addToCart, toast, t, L } = useStore();
   const orders = useFetch(() => api.get('/orders'));
+  const [chatOrder, setChatOrder] = useState(null);
 
   if (orders.loading) return <Loader />;
   const repeat = (o) => { o.items.forEach((i) => addToCart({ id: i.menuId, name: i.name, nameEn: i.nameEn, price: i.price })); toast(t('added_to_cart')); };
@@ -47,14 +53,16 @@ export default function Profile() {
 
       <div className="section-title"><h2>{t('active_orders')}</h2></div>
       <div className="list">
-        {activeOrders.map((o) => <OrderCard key={o.id} o={o} onRepeat={repeat} t={t} L={L} />)}
+        {activeOrders.map((o) => <OrderCard key={o.id} o={o} onRepeat={repeat} onChat={setChatOrder} t={t} L={L} />)}
         {activeOrders.length === 0 && <Empty icon="✨" text={t('no_active')} />}
       </div>
 
       <div className="section-title"><h2>{t('order_history')}</h2></div>
       <div className="list">
-        {pastOrders.map((o) => <OrderCard key={o.id} o={o} onRepeat={repeat} t={t} L={L} />)}
+        {pastOrders.map((o) => <OrderCard key={o.id} o={o} onRepeat={repeat} onChat={setChatOrder} t={t} L={L} />)}
       </div>
+
+      {chatOrder && <OrderChat orderId={chatOrder} me="client" onClose={() => setChatOrder(null)} />}
     </div>
   );
 }

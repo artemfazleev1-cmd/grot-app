@@ -246,7 +246,7 @@ app.post('/api/orders', auth, (req, res) => {
     address: address ? String(address).slice(0, 300) : null,
     geo: (geo && typeof geo.lat === 'number' && typeof geo.lng === 'number') ? { lat: geo.lat, lng: geo.lng, mapUrl: String(geo.mapUrl || '').slice(0, 300) } : null,
     comment: comment ? String(comment).slice(0, 500) : '',
-    tableNumber: tableNumber ? Number(tableNumber) : null, total, status: 'new', createdAt: db.now() };
+    tableNumber: tableNumber ? Number(tableNumber) : null, total, status: 'new', createdAt: db.now(), messages: [] };
   db.orders.push(order);
   if (req.user.stats) { req.user.stats.totalSpent += total; req.user.stats.ordersCount += 1; req.user.stats.lastVisit = db.now(); }
   db.pushNotify({ role: 'waiter', text: `🆕 Новый заказ #${order.id} (${type})` });
@@ -298,6 +298,65 @@ app.patch('/api/orders/:id/status', auth, requireRole(...STAFF), (req, res) => {
   if (['delivered', 'handed'].includes(status)) writeOffStock(o);
   if (STATUS_MSG[status]) db.pushNotify({ userId: o.userId, text: `Заказ #${o.id} ${STATUS_MSG[status]}`, key: 'ntf_status_' + status, data: { id: o.id } });
   res.json(o);
+});
+
+// ================= ЧАТ ПО ЗАКАЗУ (клиент ↔ курьер) =================
+// Чат открыт, пока заказ доставки не завершён. Курьер НЕ видит телефон клиента —
+// телефон отдаётся только владельцу/админу. Владелец видит всю переписку.
+const chatOpen = (o) => o.type === 'delivery' && !['delivered', 'handed'].includes(o.status);
+// Доступ к чату заказа: владелец/админ — всегда; клиент — только свой заказ; курьер — любой заказ доставки.
+const canAccessChat = (o, user) =>
+  ['owner', 'admin'].includes(user.role) ||
+  (user.role === 'client' && o.userId === user.id) ||
+  (user.role === 'courier' && o.type === 'delivery');
+
+app.get('/api/orders/:id/chat', auth, (req, res) => {
+  const o = db.orders.find((x) => x.id === Number(req.params.id));
+  if (!o) return res.status(404).json({ error: 'Нет заказа' });
+  if (!canAccessChat(o, req.user)) return res.status(403).json({ error: 'Нет доступа' });
+  const owner = ['owner', 'admin'].includes(req.user.role);
+  const client = owner ? db.users.find((u) => u.id === o.userId) : null;
+  res.json({
+    orderId: o.id,
+    open: chatOpen(o),
+    messages: o.messages || [],
+    // Телефон и имя клиента — ТОЛЬКО владельцу/админу.
+    ...(owner ? { clientName: client?.name || 'Гость', clientPhone: client?.phone || '—' } : {}),
+  });
+});
+
+app.post('/api/orders/:id/chat', auth, requireRole('client', 'courier'), (req, res) => {
+  const o = db.orders.find((x) => x.id === Number(req.params.id));
+  if (!o) return res.status(404).json({ error: 'Нет заказа' });
+  if (!canAccessChat(o, req.user)) return res.status(403).json({ error: 'Нет доступа' });
+  if (!chatOpen(o)) return res.status(409).json({ error: 'Чат закрыт: заказ завершён' });
+  const text = String(req.body.text || '').trim().slice(0, 800);
+  if (!text) return res.status(400).json({ error: 'Пустое сообщение' });
+  const from = req.user.role === 'client' ? 'client' : 'courier';
+  const msg = { id: db.id(), from, text, at: db.now() };
+  o.messages = o.messages || [];
+  o.messages.push(msg);
+  // Уведомляем вторую сторону.
+  if (from === 'client') {
+    if (o.courierId) db.pushNotify({ userId: o.courierId, text: `💬 Клиент написал по заказу #${o.id}`, key: 'ntf_chat_from_client', data: { id: o.id } });
+    else db.pushNotify({ role: 'courier', text: `💬 Клиент написал по заказу #${o.id}`, key: 'ntf_chat_from_client', data: { id: o.id } });
+  } else {
+    db.pushNotify({ userId: o.userId, text: `Курьер написал по заказу #${o.id}`, key: 'ntf_chat_from_courier', data: { id: o.id } });
+  }
+  res.json(msg);
+});
+
+// Владельцу/админу: список доставок с именем/телефоном клиента и счётчиком сообщений.
+app.get('/api/deliveries', auth, requireRole('owner', 'admin'), (req, res) => {
+  const list = db.orders.filter((o) => o.type === 'delivery').slice().reverse().map((o) => {
+    const c = db.users.find((u) => u.id === o.userId);
+    return {
+      id: o.id, status: o.status, createdAt: o.createdAt, address: o.address, total: o.total,
+      clientName: c?.name || 'Гость', clientPhone: c?.phone || '—',
+      messagesCount: (o.messages || []).length, open: chatOpen(o),
+    };
+  });
+  res.json(list);
 });
 
 // ================= БРОНИРОВАНИЕ =================
