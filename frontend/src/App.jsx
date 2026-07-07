@@ -8,6 +8,7 @@ import Home from './screens/Home.jsx';
 import { Menu, Cart, Checkout } from './screens/Menu.jsx';
 import Tables, { TableService } from './screens/Tables.jsx';
 import Events from './screens/Events.jsx';
+import Location from './screens/Location.jsx';
 import Profile from './screens/Profile.jsx';
 import { WaiterPanel, KitchenPanel, CourierPanel } from './screens/Staff.jsx';
 import Owner from './screens/Owner.jsx';
@@ -51,7 +52,7 @@ function LangPick({ onDone }) {
 // ---------------- Навигация по ролям ----------------
 const CLIENT_TABS = [
   ['/', '🏠', 'nav_home'], ['/menu', '🍔', 'nav_menu'],
-  ['/events', '🎉', 'nav_events'], ['/profile', '👤', 'nav_account'],
+  ['/events', '🎉', 'nav_events'], ['/location', '📍', 'nav_location'], ['/profile', '👤', 'nav_account'],
 ];
 const STAFF_TABS = {
   waiter:  [['/staff', '🧾', 'nav_orders'], ['/menu', '🍔', 'nav_menu'], ['/profile', '👤', 'nav_me']],
@@ -139,6 +140,7 @@ export default function App() {
         <Route path="/tables" element={<Tables />} />
         <Route path="/table-service" element={<TableService />} />
         <Route path="/events" element={<Events />} />
+        <Route path="/location" element={<Location />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/staff" element={
           <RoleRoute roles={['waiter', 'cook', 'courier', 'admin']} role={role}>

@@ -5,6 +5,8 @@ export const STR = {
     // навигация
     nav_home: 'Главная', nav_menu: 'Меню', nav_events: 'События', nav_account: 'Кабинет',
     nav_orders: 'Заказы', nav_delivery: 'Доставка', nav_me: 'Я', nav_business: 'Бизнес', nav_kitchen: 'Кухня',
+    nav_location: 'Локация',
+    location_title: 'Как нас найти', build_route: 'Построить маршрут', open_in_maps: 'Открыть в Google Картах',
     // общее
     back: 'Назад', save: 'Сохранить', logout: 'Выйти', comment: 'Комментарий',
     // главная
@@ -108,6 +110,8 @@ export const STR = {
   en: {
     nav_home: 'Home', nav_menu: 'Menu', nav_events: 'Events', nav_account: 'Account',
     nav_orders: 'Orders', nav_delivery: 'Delivery', nav_me: 'Me',
+    nav_location: 'Location',
+    location_title: 'How to find us', build_route: 'Get directions', open_in_maps: 'Open in Google Maps',
     back: 'Back', save: 'Save', logout: 'Log out', comment: 'Comment',
     greeting: 'Good evening', welcome: 'Welcome to GROT',
     tile_order: 'Order', tile_order_sub: 'Delivery & pickup',
