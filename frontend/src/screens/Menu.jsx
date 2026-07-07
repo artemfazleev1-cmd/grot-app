@@ -134,9 +134,11 @@ export function Checkout() {
 
   const deliveryFee = type === 'delivery' && delivery?.inZone ? (delivery.fee || 0) : 0;
   const finalTotal = cartTotal + deliveryFee;
-  const blocked = type === 'delivery' && delivery && !delivery.inZone;
+  // Доставка доступна только внутри зоны: нужен подтверждённый чек зоны (inZone).
+  const blocked = type === 'delivery' && !delivery?.inZone;
 
   const submit = async () => {
+    if (type === 'delivery' && !delivery) { toast(t('need_location_for_delivery')); return; }
     if (blocked) { toast(t('out_zone')); return; }
     try {
       setBusy(true);
@@ -164,12 +166,14 @@ export function Checkout() {
           {locating ? t('detecting') : t('detect_location')}
         </button>
         <input value={address} onChange={(e) => { setAddress(e.target.value); setGeo(null); }} onBlur={checkAddress} placeholder={t('address_ph')} />
+        {!delivery && <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>{t('need_location_for_delivery')}</div>}
         {delivery && (
           <div className="card tight" style={{ marginTop: 10, borderColor: delivery.inZone ? 'var(--line)' : 'var(--red)' }}>
             {delivery.inZone
               ? <>{t('in_zone')} · {delivery.distanceKm} km · {t('delivery_fee')} {delivery.fee ? money(delivery.fee) : t('free')}</>
               : <>{t('out_zone')}</>}
             {geo?.mapUrl && <div style={{ marginTop: 6 }}><a href={geo.mapUrl} target="_blank" rel="noreferrer" className="gold">{t('open_map')}</a></div>}
+            {!delivery.inZone && <button className="btn fire block sm" style={{ marginTop: 10 }} onClick={() => setType('pickup')}>{t('switch_to_pickup')}</button>}
           </div>
         )}
       </>)}

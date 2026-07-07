@@ -7,9 +7,10 @@ const KEY = process.env.GOOGLE_MAPS_KEY || null;
 export const mapsEnabled = !!KEY;
 export const mapsBrowserKey = process.env.GOOGLE_MAPS_BROWSER_KEY || KEY || null;
 
+// Координаты бара GROT (Pattaya). Можно переопределить через ENV RESTAURANT_LAT/LNG.
 const ORIGIN = {
-  lat: Number(process.env.RESTAURANT_LAT || 12.9236),
-  lng: Number(process.env.RESTAURANT_LNG || 100.8825),
+  lat: Number(process.env.RESTAURANT_LAT || 12.805392),
+  lng: Number(process.env.RESTAURANT_LNG || 100.928761),
 };
 const DELIVERY_RADIUS_KM = Number(process.env.DELIVERY_RADIUS_KM || 8);
 
