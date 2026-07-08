@@ -98,12 +98,6 @@ export function Checkout() {
   const [locating, setLocating] = useState(false);
   if (!cart.length) { nav('/menu'); return null; }
 
-  const checkAddress = async () => {
-    if (!address.trim()) return;
-    try { setDelivery(await api.post('/delivery/check', { address })); }
-    catch (e) { toast(e.message); }
-  };
-
   // Автоопределение геолокации через GPS телефона + проверка зоны доставки
   const locate = () => {
     if (!navigator.geolocation) { toast(t('geo_unsupported')); return; }
@@ -161,11 +155,10 @@ export function Checkout() {
         ))}
       </div>
       {type === 'delivery' && (<>
-        <label>{t('delivery_address')}</label>
-        <button className="btn ghost block" style={{ marginBottom: 8 }} disabled={locating} onClick={locate}>
-          {locating ? t('detecting') : t('detect_location')}
+        <label>{t('delivery_location')}</label>
+        <button className="btn ghost block" disabled={locating} onClick={locate}>
+          {locating ? t('detecting') : `📍 ${t('detect_location')}`}
         </button>
-        <input value={address} onChange={(e) => { setAddress(e.target.value); setGeo(null); }} onBlur={checkAddress} placeholder={t('address_ph')} />
         {!delivery && <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>{t('need_location_for_delivery')}</div>}
         {delivery && (
           <div className="card tight" style={{ marginTop: 10, borderColor: delivery.inZone ? 'var(--line)' : 'var(--red)' }}>
@@ -178,8 +171,8 @@ export function Checkout() {
         )}
       </>)}
       {type === 'dinein' && <div className="card tight" style={{ marginTop: 12 }}>{t('table')} №{table?.number || '—'}</div>}
-      <label>{t('comment')}</label>
-      <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('comment_ph')} />
+      <label>{type === 'delivery' ? t('address_details') : t('comment')}</label>
+      <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={type === 'delivery' ? t('delivery_note_ph') : t('comment_ph')} />
 
       <div className="card between" style={{ marginTop: 16 }}>
         <span className="muted">{t('to_pay')}</span><b style={{ fontSize: 22 }} className="gold">{money(finalTotal)}</b>
