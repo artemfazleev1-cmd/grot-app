@@ -28,27 +28,6 @@ function Intro({ onDone }) {
   );
 }
 
-// ---------------- Выбор языка (первый запуск) ----------------
-function LangPick({ onDone }) {
-  const { setLang } = useStore();
-  const pick = (l) => { setLang(l); localStorage.setItem('grot_lang_set', '1'); onDone(); };
-  return (
-    <div className="intro" style={{ justifyContent: 'center' }}>
-      <img src="/logo.png" alt="GROT" className="brand-logo glow-lg" style={{ width: 130, height: 130 }} />
-      <h1 style={{ margin: '22px 0 4px', fontSize: 28 }}>Выберите язык</h1>
-      <div className="muted" style={{ marginBottom: 30 }}>Choose your language</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 300 }}>
-        <button className="lang-choice" onClick={() => pick('ru')}>
-          <span style={{ fontSize: 32 }}>🇷🇺</span><span>Русский</span>
-        </button>
-        <button className="lang-choice" onClick={() => pick('en')}>
-          <span style={{ fontSize: 32 }}>🇬🇧</span><span>English</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ---------------- Навигация по ролям ----------------
 const CLIENT_TABS = [
   ['/', '🏠', 'nav_home'], ['/menu', '🍔', 'nav_menu'],
@@ -79,10 +58,8 @@ function TabBar({ role }) {
 }
 
 function TopBar() {
-  const { unread, notifications, markRead, user, lang, setLang, t } = useStore();
+  const { unread, notifications, markRead, t } = useStore();
   const [open, setOpen] = useState(false);
-  // Переключатель языка — только для клиента, официанта, курьера
-  const showLang = ['client', 'waiter', 'courier'].includes(user?.role);
   return (<>
     <div className="topbar">
       <div className="row" style={{ gap: 10 }}>
@@ -90,11 +67,6 @@ function TopBar() {
         <div className="logo">GR<span>O</span>T</div>
       </div>
       <div className="row" style={{ gap: 12 }}>
-        {showLang && (
-          <button className="lang-toggle" onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
-            {lang === 'ru' ? 'EN' : 'RU'}
-          </button>
-        )}
         <div className="bell" onClick={() => { setOpen(true); markRead(); }}>🔔{unread > 0 && <span className="dot">{unread}</span>}</div>
       </div>
     </div>
@@ -103,7 +75,7 @@ function TopBar() {
       <div className="list" style={{ marginTop: 12 }}>
         {notifications.length === 0 && <div className="muted">{t('nothing_yet')}</div>}
         {notifications.map((n) => (
-          <div key={n.id} className="card tight">{n.key ? t(n.key, n.data) : n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-GB')}</div></div>
+          <div key={n.id} className="card tight">{n.key ? t(n.key, n.data) : n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString('en-GB')}</div></div>
         ))}
       </div>
     </Sheet>
@@ -118,12 +90,10 @@ function RoleRoute({ roles, role, children }) {
 export default function App() {
   const { user, booting } = useStore();
   const [introDone, setIntroDone] = useState(false);
-  const [langChosen, setLangChosen] = useState(() => !!localStorage.getItem('grot_lang_set'));
   const loc = useLocation();
 
   if (booting) return <div className="app-shell"><div className="loader"><i /></div></div>;
   if (!introDone) return <div className="app-shell"><Intro onDone={() => setIntroDone(true)} /></div>;
-  if (!langChosen) return <div className="app-shell"><LangPick onDone={() => setLangChosen(true)} /></div>;
   if (!user) return <div className="app-shell"><Auth /></div>;
 
   const role = user.role;

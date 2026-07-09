@@ -17,7 +17,7 @@ const toE164 = (cc, local) => {
 };
 
 export default function Auth() {
-  const { login, register, toast, config, t, lang, setLang } = useStore();
+  const { login, register, toast, config, t } = useStore();
   const [mode, setMode] = useState('login');           // login | register
   const [cc, setCc] = useState('66');                  // код страны (по умолч. Таиланд)
   const [f, setF] = useState({ phone: '', password: '', password2: '', name: '', code: '' });
@@ -70,11 +70,6 @@ export default function Auth() {
 
   return (
     <div className="screen" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100dvh', paddingTop: 'calc(24px + env(safe-area-inset-top))', paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
-      <div style={{ position: 'absolute', top: 'calc(16px + env(safe-area-inset-top))', right: 18 }}>
-        <button className="lang-toggle" onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
-          {lang === 'ru' ? 'EN' : 'RU'}
-        </button>
-      </div>
       <div className="center" style={{ marginBottom: 26 }}>
         <img src="/logo.png" alt="GROT" className="brand-logo glow-lg" style={{ width: 150, height: 150, margin: '0 auto' }} />
         <div className="muted" style={{ marginTop: 12, letterSpacing: 1 }}>GRILL BAR · BEER BAR · PATTAYA</div>
