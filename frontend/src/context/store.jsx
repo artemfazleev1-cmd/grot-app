@@ -14,10 +14,10 @@ export function StoreProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [config, setConfig] = useState({});
-  // Клиентское приложение — только английский (без выбора языка). Русский остаётся
-  // лишь в хардкоде внутренних панелей владельца/кухни (STR.ru), t() всегда даёт EN.
-  const [lang, setLangState] = useState('en');
-  const setLang = (l) => setLangState(l);
+  // Дефолт — английский. Клиент всегда EN (форсим в App). Персонал (официант/кухня/
+  // курьер) может переключать язык — выбор сохраняется. Владелец/кухня-хардкод STR.ru.
+  const [lang, setLangState] = useState(() => localStorage.getItem('grot_lang') || 'en');
+  const setLang = (l) => { localStorage.setItem('grot_lang', l); setLangState(l); };
   const t = useCallback((key, data) => {
     let s = (STR[lang] && STR[lang][key]) || STR.ru[key] || key;
     if (data) for (const k in data) s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), data[k]);

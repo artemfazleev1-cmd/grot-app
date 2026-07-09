@@ -44,8 +44,8 @@ const STAFF_TABS = {
 function TabBar({ role }) {
   const { t } = useStore();
   const tabs = role === 'client' ? CLIENT_TABS : (STAFF_TABS[role] || CLIENT_TABS);
-  // Язык переключают только клиент/официант/курьер; остальные — RU
-  const translatable = ['client', 'waiter', 'courier'].includes(role);
+  // Переводимые роли: клиент/официант/кухня/курьер. Владелец/админ — RU (хардкод панели).
+  const translatable = ['client', 'waiter', 'cook', 'courier'].includes(role);
   return (
     <nav className="tabbar">
       {tabs.map(([to, ic, key]) => (
@@ -58,8 +58,10 @@ function TabBar({ role }) {
 }
 
 function TopBar() {
-  const { unread, notifications, markRead, t } = useStore();
+  const { unread, notifications, markRead, t, user, lang, setLang } = useStore();
   const [open, setOpen] = useState(false);
+  // Переключатель языка — только для персонала (официант/кухня/курьер). Клиент — всегда EN.
+  const showLang = ['waiter', 'cook', 'courier'].includes(user?.role);
   return (<>
     <div className="topbar">
       <div className="row" style={{ gap: 10 }}>
@@ -67,6 +69,11 @@ function TopBar() {
         <div className="logo">GR<span>O</span>T</div>
       </div>
       <div className="row" style={{ gap: 12 }}>
+        {showLang && (
+          <button className="lang-toggle" onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
+            {lang === 'ru' ? 'EN' : 'RU'}
+          </button>
+        )}
         <div className="bell" onClick={() => { setOpen(true); markRead(); }}>🔔{unread > 0 && <span className="dot">{unread}</span>}</div>
       </div>
     </div>
@@ -75,7 +82,7 @@ function TopBar() {
       <div className="list" style={{ marginTop: 12 }}>
         {notifications.length === 0 && <div className="muted">{t('nothing_yet')}</div>}
         {notifications.map((n) => (
-          <div key={n.id} className="card tight">{n.key ? t(n.key, n.data) : n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString('en-GB')}</div></div>
+          <div key={n.id} className="card tight">{n.key ? t(n.key, n.data) : n.text}<div className="muted" style={{ fontSize: 11 }}>{new Date(n.createdAt).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-GB')}</div></div>
         ))}
       </div>
     </Sheet>
@@ -88,9 +95,12 @@ function RoleRoute({ roles, role, children }) {
 }
 
 export default function App() {
-  const { user, booting } = useStore();
+  const { user, booting, lang, setLang } = useStore();
   const [introDone, setIntroDone] = useState(false);
   const loc = useLocation();
+
+  // Клиент — всегда английский (персонал может переключать, клиент — нет).
+  useEffect(() => { if (user?.role === 'client' && lang !== 'en') setLang('en'); }, [user, lang]);
 
   if (booting) return <div className="app-shell"><div className="loader"><i /></div></div>;
   if (!introDone) return <div className="app-shell"><Intro onDone={() => setIntroDone(true)} /></div>;

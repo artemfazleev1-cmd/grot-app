@@ -73,7 +73,7 @@ const isToday = (iso) => new Date(iso).toDateString() === new Date().toDateStrin
 const fmtTime = (iso) => new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 export function KitchenPanel() {
-  const { toast, logout } = useStore();
+  const { toast, logout, t, L } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const menu = useFetch(() => api.get('/menu'));
   const [view, setView] = useState('queue');
@@ -83,22 +83,22 @@ export function KitchenPanel() {
 
   const queue = orders.data.filter((o) => ['cooking', 'accepted'].includes(o.status));
   const history = orders.data.filter((o) => ['ready', 'delivering', 'delivered', 'handed'].includes(o.status));
-  const toggle = async (m) => { await api.patch(`/menu/${m.id}/availability`, { available: !m.available }); toast(`${m.name}: ${!m.available ? 'в наличии' : 'отключено'}`); menu.reload(); };
+  const toggle = async (m) => { await api.patch(`/menu/${m.id}/availability`, { available: !m.available }); toast(`${L(m, 'name')}: ${!m.available ? t('avail_on') : t('avail_off')}`); menu.reload(); };
 
   // отчёт по приготовленным заказам
   const prepared = history;
   const todayOrders = prepared.filter((o) => isToday(o.createdAt));
   const byDish = {};
   let dishesToday = 0;
-  todayOrders.forEach((o) => o.items.forEach((i) => { byDish[i.name] = (byDish[i.name] || 0) + i.qty; dishesToday += i.qty; }));
+  todayOrders.forEach((o) => o.items.forEach((i) => { const n = L(i, 'name'); byDish[n] = (byDish[n] || 0) + i.qty; dishesToday += i.qty; }));
   const topDishes = Object.entries(byDish).sort((a, b) => b[1] - a[1]);
   const maxDish = Math.max(...topDishes.map((d) => d[1]), 1);
 
-  const TABS = [['queue', 'Заказы'], ['stop', 'Стоп-лист'], ['history', 'История'], ['report', 'Отчёт']];
+  const TABS = [['queue', t('orders')], ['stop', t('stop_list')], ['history', t('history')], ['report', t('report')]];
 
   return (
     <div className="screen">
-      <div className="between"><h1>Кухня</h1><button className="btn ghost sm" onClick={logout}>Выйти</button></div>
+      <div className="between"><h1>{t('nav_kitchen')}</h1><button className="btn ghost sm" onClick={logout}>{t('logout')}</button></div>
       <div className="chips" style={{ marginTop: 10 }}>
         {TABS.map(([v, l]) => <button key={v} className={`chip ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>{l}</button>)}
       </div>
@@ -107,24 +107,24 @@ export function KitchenPanel() {
         <div className="list" style={{ marginTop: 16 }}>
           {queue.map((o) => (
             <div key={o.id} className="card">
-              <b style={{ fontSize: 18 }}>Заказ #{o.id}{o.tableNumber ? ` · Стол №${o.tableNumber}` : ''}</b>
+              <b style={{ fontSize: 18 }}>{t('k_order')} #{o.id}{o.tableNumber ? ` · ${t('table')} №${o.tableNumber}` : ''}</b>
               <div style={{ margin: '8px 0' }}>
-                {o.items.map((i) => <div key={i.menuId} style={{ fontSize: 16, padding: '3px 0' }}>{i.name} <b className="gold">×{i.qty}</b></div>)}
+                {o.items.map((i) => <div key={i.menuId} style={{ fontSize: 16, padding: '3px 0' }}>{L(i, 'name')} <b className="gold">×{i.qty}</b></div>)}
               </div>
-              {o.comment && <div className="muted">Комментарий: {o.comment}</div>}
+              {o.comment && <div className="muted">{t('comment')}: {o.comment}</div>}
             </div>
           ))}
-          {queue.length === 0 && <Empty icon="🍽" text="Нет заказов в работе" />}
+          {queue.length === 0 && <Empty icon="🍽" text={t('k_no_queue')} />}
         </div>
       )}
 
       {view === 'stop' && (<>
-        <div className="muted" style={{ margin: '14px 0 10px' }}>Отключайте позиции, которых сейчас нет — они станут недоступны для заказа</div>
+        <div className="muted" style={{ margin: '14px 0 10px' }}>{t('k_stop_hint')}</div>
         <div className="list">
           {menu.data.items.map((m) => (
             <div key={m.id} className="card tight between">
-              <span className={m.available ? '' : 'unavailable'}>{m.name}</span>
-              <button className={`chip ${m.available ? 'active' : ''}`} onClick={() => toggle(m)}>{m.available ? 'В наличии' : 'Нет'}</button>
+              <span className={m.available ? '' : 'unavailable'}>{L(m, 'name')}</span>
+              <button className={`chip ${m.available ? 'active' : ''}`} onClick={() => toggle(m)}>{m.available ? t('in_stock') : t('not_avail')}</button>
             </div>
           ))}
         </div>
@@ -135,27 +135,27 @@ export function KitchenPanel() {
           {history.slice().reverse().map((o) => (
             <div key={o.id} className="card tight">
               <div className="between">
-                <b>Заказ #{o.id}</b>
-                <span className="badge green">{K_STATUS[o.status]}</span>
+                <b>{t('k_order')} #{o.id}</b>
+                <span className="badge green">{t('st_' + o.status)}</span>
               </div>
               <div className="muted" style={{ margin: '2px 0' }}>{fmtTime(o.createdAt)}</div>
-              <div>{o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')}</div>
+              <div>{o.items.map((i) => `${L(i, 'name')} ×${i.qty}`).join(', ')}</div>
             </div>
           ))}
-          {history.length === 0 && <Empty icon="🕓" text="История пуста" />}
+          {history.length === 0 && <Empty icon="🕓" text={t('history_empty')} />}
         </div>
       )}
 
       {view === 'report' && (<>
         <div className="kpi-grid" style={{ marginTop: 16 }}>
-          <div className="kpi"><div className="v">{todayOrders.length}</div><div className="l">Заказов сегодня</div></div>
-          <div className="kpi"><div className="v">{dishesToday}</div><div className="l">Позиций приготовлено</div></div>
-          <div className="kpi"><div className="v">{prepared.length}</div><div className="l">Всего заказов</div></div>
-          <div className="kpi"><div className="v">{topDishes.length}</div><div className="l">Видов блюд</div></div>
+          <div className="kpi"><div className="v">{todayOrders.length}</div><div className="l">{t('k_orders_today')}</div></div>
+          <div className="kpi"><div className="v">{dishesToday}</div><div className="l">{t('k_items_cooked')}</div></div>
+          <div className="kpi"><div className="v">{prepared.length}</div><div className="l">{t('k_total_orders')}</div></div>
+          <div className="kpi"><div className="v">{topDishes.length}</div><div className="l">{t('k_dish_types')}</div></div>
         </div>
-        <div className="section-title"><h2>Приготовлено сегодня по позициям</h2></div>
+        <div className="section-title"><h2>{t('k_cooked_by_item')}</h2></div>
         <div className="card">
-          {topDishes.length === 0 && <div className="muted">Сегодня ещё ничего не приготовлено</div>}
+          {topDishes.length === 0 && <div className="muted">{t('k_nothing_cooked')}</div>}
           {topDishes.map(([name, qty]) => (
             <div key={name} className="bar-row">
               <span className="lab">{name}</span>
