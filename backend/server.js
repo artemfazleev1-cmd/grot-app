@@ -537,20 +537,30 @@ app.get('/api/inventory/production', auth, (req, res) => {
 app.get('/api/analytics', auth, (req, res) => {
   if (!['owner', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Нет доступа' });
   const all = db.orders;
+  const clients = db.users.filter((u) => u.role === 'client');
+  const now = Date.now();
+  const since = (days) => now - days * 86400000;                 // скользящее окно
+  const within = (iso, days) => iso && new Date(iso).getTime() >= since(days);
+  const sumIn = (days) => all.filter((o) => within(o.createdAt, days)).reduce((s, o) => s + o.total, 0);
+  const cntIn = (arr, days) => arr.filter((o) => within(o.createdAt, days)).length;
   const revenue = all.reduce((s, o) => s + o.total, 0);
   const avgCheck = all.length ? Math.round(revenue / all.length) : 0;
   const byDish = {};
   all.forEach((o) => o.items.forEach((i) => { byDish[i.name] = (byDish[i.name] || 0) + i.qty; }));
   const topDishes = Object.entries(byDish).sort((a, b) => b[1] - a[1]).slice(0, 5);
   res.json({
-    revenue, avgCheck,
-    revenueByDay: { 'Сегодня': revenue, 'Неделя': Math.round(revenue * 6.4), 'Месяц': Math.round(revenue * 27) },
-    guests: db.users.filter((u) => u.role === 'client').length,
+    // Регистрации клиентов по скользящим окнам
+    registrations: { total: clients.length, d1: cntIn(clients, 1), d7: cntIn(clients, 7), d30: cntIn(clients, 30) },
+    // Заказы и выручка (реальные периоды)
+    orders: { total: all.length, d1: cntIn(all, 1), d7: cntIn(all, 7), d30: cntIn(all, 30) },
+    revenue: { total: revenue, d1: sumIn(1), d7: sumIn(7), d30: sumIn(30) },
+    avgCheck,
+    guests: clients.length,
     deliveries: all.filter((o) => o.type === 'delivery').length,
     reservations: db.reservations.length,
     topDishes,
     tableLoad: Math.round((db.tables.filter((t) => t.status !== 'free').length / db.tables.length) * 100),
-    returningClients: db.users.filter((u) => (u.stats?.ordersCount || 0) > 1).length,
+    returningClients: clients.filter((u) => (u.stats?.ordersCount || 0) > 1).length,
   });
 });
 

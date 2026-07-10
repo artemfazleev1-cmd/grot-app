@@ -182,32 +182,56 @@ function Analytics() {
   const { data, loading } = useFetch(() => api.get('/analytics'));
   if (loading || !data) return <Loader />;
   const maxTop = Math.max(...data.topDishes.map((d) => d[1]), 1);
+  const reg = data.registrations, ord = data.orders, rev = data.revenue;
+  const Row = ({ label, a, b, c, d, fmt = (x) => x }) => (
+    <div className="between" style={{ padding: '7px 0' }}>
+      <span className="muted" style={{ flex: 1 }}>{label}</span>
+      <span style={{ width: 70, textAlign: 'right' }}>{fmt(a)}</span>
+      <span style={{ width: 70, textAlign: 'right' }}>{fmt(b)}</span>
+      <span style={{ width: 70, textAlign: 'right' }}><b className="gold">{fmt(c)}</b></span>
+      <span style={{ width: 80, textAlign: 'right' }}><b>{fmt(d)}</b></span>
+    </div>
+  );
   return (<>
     <div className="kpi-grid">
-      <div className="kpi"><div className="v">{money(data.revenue)}</div><div className="l">Выручка (сегодня)</div></div>
+      <div className="kpi"><div className="v">{reg.total}</div><div className="l">Регистраций всего</div></div>
+      <div className="kpi"><div className="v" style={{ color: 'var(--green)' }}>+{reg.d1}</div><div className="l">Регистраций за сутки</div></div>
+      <div className="kpi"><div className="v">{ord.total}</div><div className="l">Заказов всего</div></div>
+      <div className="kpi"><div className="v">{money(rev.total)}</div><div className="l">Выручка за всё время</div></div>
       <div className="kpi"><div className="v">{money(data.avgCheck)}</div><div className="l">Средний чек</div></div>
-      <div className="kpi"><div className="v">{data.guests}</div><div className="l">Гостей в базе</div></div>
+      <div className="kpi"><div className="v">{data.returningClients}</div><div className="l">Постоянных клиентов</div></div>
+    </div>
+
+    <div className="section-title"><h2>По периодам</h2></div>
+    <div className="card">
+      <div className="between" style={{ padding: '2px 0', fontSize: 12, opacity: .7 }}>
+        <span style={{ flex: 1 }}>&nbsp;</span>
+        <span style={{ width: 70, textAlign: 'right' }}>Сутки</span>
+        <span style={{ width: 70, textAlign: 'right' }}>7 дней</span>
+        <span style={{ width: 70, textAlign: 'right' }}>30 дней</span>
+        <span style={{ width: 80, textAlign: 'right' }}>Всего</span>
+      </div>
+      <div className="divider" style={{ margin: '4px 0' }} />
+      <Row label="Регистрации" a={reg.d1} b={reg.d7} c={reg.d30} d={reg.total} />
+      <Row label="Заказы" a={ord.d1} b={ord.d7} c={ord.d30} d={ord.total} />
+      <Row label="Выручка" a={rev.d1} b={rev.d7} c={rev.d30} d={rev.total} fmt={money} />
+    </div>
+
+    <div className="kpi-grid" style={{ marginTop: 14 }}>
       <div className="kpi"><div className="v">{data.deliveries}</div><div className="l">Доставок</div></div>
       <div className="kpi"><div className="v">{data.reservations}</div><div className="l">Броней</div></div>
       <div className="kpi"><div className="v">{data.tableLoad}%</div><div className="l">Загрузка столов</div></div>
     </div>
 
-    <div className="section-title"><h2>Выручка</h2></div>
-    <div className="card">
-      {Object.entries(data.revenueByDay).map(([k, v]) => (
-        <div key={k} className="between" style={{ padding: '6px 0' }}><span className="muted">{k}</span><b className="gold">{money(v)}</b></div>
-      ))}
-    </div>
-
     <div className="section-title"><h2>Топ блюд</h2></div>
     <div className="card">
+      {data.topDishes.length === 0 && <div className="muted">Пока нет данных</div>}
       {data.topDishes.map(([name, qty]) => (
         <div key={name} className="bar-row"><span className="lab">{name}</span>
           <div className="bar-track"><div className="bar-fill" style={{ width: `${(qty / maxTop) * 100}%` }} /></div>
           <b>{qty}</b></div>
       ))}
     </div>
-    <div className="card tight between" style={{ marginTop: 12 }}><span className="muted">Возврат клиентов</span><b>{data.returningClients}</b></div>
   </>);
 }
 
