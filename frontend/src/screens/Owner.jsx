@@ -5,7 +5,7 @@ import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
 import OrderChat from '../components/OrderChat.jsx';
 
-const TABS = ['Аналитика', 'CRM', 'Доставки', 'Персонал', 'Склад', 'Рассылки', 'Контент'];
+const TABS = ['Аналитика', 'Регистрации', 'CRM', 'Доставки', 'Персонал', 'Склад', 'Рассылки', 'Контент'];
 
 export default function Owner() {
   const [tab, setTab] = useState('Аналитика');
@@ -19,6 +19,7 @@ export default function Owner() {
       </div>
       <div style={{ marginTop: 16 }}>
         {tab === 'Аналитика' && <Analytics />}
+        {tab === 'Регистрации' && <Registrations />}
         {tab === 'CRM' && <CRM />}
         {tab === 'Доставки' && <Deliveries />}
         {tab === 'Персонал' && <Staff />}
@@ -234,6 +235,32 @@ function Analytics() {
           <div className="bar-track"><div className="bar-fill" style={{ width: `${(qty / maxTop) * 100}%` }} /></div>
           <b>{qty}</b></div>
       ))}
+    </div>
+  </>);
+}
+
+function Registrations() {
+  const { data, loading } = useFetch(() => api.get('/crm/clients'));
+  if (loading || !data) return <Loader />;
+  const list = data.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  const fmt = (iso) => iso ? new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  const isNew = (iso) => iso && (Date.now() - new Date(iso).getTime()) < 86400000;
+  return (<>
+    <div className="card between" style={{ marginBottom: 12 }}>
+      <span className="muted">Всего зарегистрировано</span><b style={{ fontSize: 24 }} className="gold">{list.length}</b>
+    </div>
+    <div className="list">
+      {list.map((c, i) => (
+        <div key={c.id} className="card tight">
+          <div className="between">
+            <b>{c.name}</b>
+            {isNew(c.createdAt) ? <span className="badge green">новый</span> : <span className="muted" style={{ fontSize: 12 }}>#{list.length - i}</span>}
+          </div>
+          <div className="muted" style={{ marginTop: 2 }}>{c.phone}</div>
+          <div className="muted" style={{ marginTop: 2 }}>🕓 {fmt(c.createdAt)}</div>
+        </div>
+      ))}
+      {list.length === 0 && <Empty icon="👤" text="Пока нет регистраций" />}
     </div>
   </>);
 }
