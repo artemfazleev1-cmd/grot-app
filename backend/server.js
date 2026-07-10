@@ -564,6 +564,32 @@ app.get('/api/analytics', auth, (req, res) => {
   });
 });
 
+// Живой монитор для владельца (браузерная панель, поллинг): регистрации + входящие заказы.
+app.get('/api/dashboard', auth, requireRole('owner', 'admin'), (req, res) => {
+  const all = db.orders;
+  const clients = db.users.filter((u) => u.role === 'client');
+  const now = Date.now();
+  const within = (iso, days) => iso && new Date(iso).getTime() >= now - days * 86400000;
+  const ACTIVE = ['new', 'accepted', 'cooking', 'ready', 'delivering'];
+  const active = all.filter((o) => ACTIVE.includes(o.status)).slice().reverse().map((o) => {
+    const c = db.users.find((u) => u.id === o.userId);
+    return {
+      id: o.id, type: o.type, status: o.status, total: o.total, createdAt: o.createdAt,
+      items: o.items.map((i) => `${i.name} ×${i.qty}`).join(', '),
+      clientName: c?.name || 'Гость', tableNumber: o.tableNumber || null,
+    };
+  });
+  res.json({
+    registrations: { total: clients.length, today: clients.filter((u) => within(u.createdAt, 1)).length },
+    ordersToday: all.filter((o) => within(o.createdAt, 1)).length,
+    revenueToday: all.filter((o) => within(o.createdAt, 1)).reduce((s, o) => s + o.total, 0),
+    ordersTotal: all.length,
+    activeCount: active.length,
+    active,
+    ts: now,
+  });
+});
+
 // ================= УВЕДОМЛЕНИЯ (polling) =================
 app.get('/api/notifications', auth, (req, res) => {
   const mine = db.notifications.filter((n) => (n.userId && n.userId === req.user.id) || (n.role && n.role === req.user.role));

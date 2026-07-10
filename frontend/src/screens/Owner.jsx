@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
@@ -8,9 +9,11 @@ const TABS = ['Аналитика', 'CRM', 'Доставки', 'Персонал
 
 export default function Owner() {
   const [tab, setTab] = useState('Аналитика');
+  const nav = useNavigate();
   return (
     <div className="screen">
-      <h1>Панель владельца</h1>
+      <div className="between"><h1>Панель владельца</h1>
+        <button className="btn fire sm" onClick={() => nav('/dashboard')}>📺 Монитор</button></div>
       <div className="chips" style={{ marginTop: 10 }}>
         {TABS.map((t) => <button key={t} className={`chip ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{t}</button>)}
       </div>

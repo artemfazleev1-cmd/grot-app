@@ -12,6 +12,7 @@ import Location from './screens/Location.jsx';
 import Profile from './screens/Profile.jsx';
 import { WaiterPanel, KitchenPanel, CourierPanel } from './screens/Staff.jsx';
 import Owner from './screens/Owner.jsx';
+import Dashboard from './screens/Dashboard.jsx';
 
 // ---------------- Интро ----------------
 function Intro({ onDone }) {
@@ -108,6 +109,11 @@ export default function App() {
 
   const role = user.role;
   const homeFor = ['waiter', 'cook', 'courier'].includes(role) ? '/staff' : role === 'owner' || role === 'admin' ? '/owner' : '/';
+
+  // Живой монитор — полноэкранная браузерная панель (вне мобильной оболочки), только владелец/админ.
+  if (loc.pathname === '/dashboard') {
+    return ['owner', 'admin'].includes(role) ? <Dashboard /> : <Navigate to="/" replace />;
+  }
 
   return (
     <div className="app-shell">
