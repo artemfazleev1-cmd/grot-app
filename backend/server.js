@@ -590,6 +590,22 @@ app.get('/api/dashboard', auth, requireRole('owner', 'admin'), (req, res) => {
   });
 });
 
+// Сброс операционных данных для чистого старта (владелец/админ, требует подтверждения).
+// Обнуляет заказы, брони, статистику клиентов, статусы столов, уведомления.
+// Пользователей (регистрации), меню, склад, события — НЕ трогает.
+app.post('/api/admin/reset-operations', auth, requireRole('owner', 'admin'), (req, res) => {
+  if (req.body.confirm !== 'RESET') return res.status(400).json({ error: 'Требуется подтверждение { confirm: "RESET" }' });
+  const cleared = { orders: db.orders.length, reservations: db.reservations.length, notifications: db.notifications.length };
+  db.orders.length = 0;
+  db.reservations.length = 0;
+  db.calls.length = 0;
+  db.notifications.length = 0;
+  db.users.forEach((u) => { if (u.role === 'client' && u.stats) { u.stats.totalSpent = 0; u.stats.ordersCount = 0; u.stats.visits = 0; u.stats.lastVisit = null; } });
+  db.tables.forEach((t) => { t.status = 'free'; });
+  console.log('[reset-operations] by', req.user.phone, '·', JSON.stringify(cleared));
+  res.json({ ok: true, cleared });
+});
+
 // ================= УВЕДОМЛЕНИЯ (polling) =================
 app.get('/api/notifications', auth, (req, res) => {
   const mine = db.notifications.filter((n) => (n.userId && n.userId === req.user.id) || (n.role && n.role === req.user.role));
