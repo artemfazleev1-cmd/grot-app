@@ -22,6 +22,26 @@ export const users = [
     favDishes: ['Купаты'], favDrinks: ['Moose Craft Cider'] },
 ];
 
+// Демо-аккаунты для входа (формат +66, совпадает с формой логина).
+// Вызывается при старте ПОСЛЕ загрузки состояния с диска: если такого телефона
+// в базе нет — аккаунт добавляется. Реальные/существующие данные не трогаются.
+export const DEMO_USERS = [
+  { phone: '+66800000000', password: 'owner',   name: 'Владелец GROT',   role: 'owner'   },
+  { phone: '+66822222222', password: 'waiter',  name: 'Официант (демо)', role: 'waiter'  },
+  { phone: '+66833333333', password: 'cook',    name: 'Повар (демо)',    role: 'cook'    },
+  { phone: '+66844444444', password: 'courier', name: 'Курьер (демо)',   role: 'courier' },
+];
+export function ensureDemoUsers() {
+  let added = 0;
+  for (const d of DEMO_USERS) {
+    if (!users.find((u) => u.phone === d.phone)) {
+      users.push({ id: id(), phone: d.phone, password: d.password, name: d.name, role: d.role, active: true, createdAt: now() });
+      added++;
+    }
+  }
+  return added;
+}
+
 // ---------- Категории и меню ----------
 // Категории по группам: еда / напитки
 export const categories = ['Шашлык', 'Купаты', 'Бургеры', 'Немецкое пиво', 'Сидр', 'Морс'];
