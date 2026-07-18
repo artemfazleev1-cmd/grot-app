@@ -284,6 +284,65 @@ export async function openDrawer() {
   await writeBytes(CMD.drawer);
 }
 
+// ── Отчёт смены (Z-отчёт) ───────────────────────────────────────────────────────
+// r = { dateStr, printedStr, orders:[{id,label,total}], count, revenue, kitchen, bar, float }
+export function buildShiftReport(r, opts = {}) {
+  const cfg = RECEIPT_CONFIG;
+  const cur = cfg.currency;
+  const bytes = []; const text = [];
+  const put = (a) => bytes.push(...a);
+  const line = (s = '') => { put(textBytes(s)); put([0x0a]); text.push(s); };
+  const center = (s) => { put(CMD.alignC); line(s); put(CMD.alignL); };
+
+  put(CMD.init);
+  const logo = logoRaster();
+  if (logo) { put(CMD.alignC); put(logo); put([0x0a]); put(CMD.alignL); text.push('[ flame ]'); }
+  put(CMD.alignC);
+  put(CMD.boldOn); put(CMD.sizeBig); line(cfg.name); put(CMD.sizeNormal);
+  line('SHIFT REPORT'); put(CMD.boldOff);
+  if (cfg.address) line(cfg.address);
+  put(CMD.alignL);
+  line(rule());
+  line(lr('Date', r.dateStr));
+  line(lr('Printed', r.printedStr));
+  line(rule());
+
+  put(CMD.boldOn); line('ORDERS'); put(CMD.boldOff);
+  if (!r.orders.length) line('No orders today');
+  for (const o of r.orders) line(lr(`#${o.id} ${o.label}`, money(o.total)));
+  line(rule());
+
+  line(lr('Orders', String(r.count)));
+  line(lr('Kitchen sales', `${money(r.kitchen)} ${cur}`));
+  line(lr('Bar sales', `${money(r.bar)} ${cur}`));
+  put(CMD.boldOn); put(CMD.sizeTall);
+  line(lr('REVENUE', `${money(r.revenue)} ${cur}`));
+  put(CMD.sizeNormal); put(CMD.boldOff);
+  line(rule());
+
+  line(lr('Cash float', `${money(r.float)} ${cur}`));
+  put(CMD.boldOn);
+  line(lr('IN DRAWER', `${money((r.float || 0) + r.revenue)} ${cur}`));
+  put(CMD.boldOff);
+  line(rule());
+  center('END OF SHIFT');
+
+  put(CMD.feed(3));
+  put(CMD.cut);
+  if (opts.openDrawer) put(CMD.drawer);
+  return { bytes, text: text.join('\n') };
+}
+
+// Напечатать отчёт смены. Без принтера → бросает NO_PRINTER с .preview.
+export async function printShiftReport(r, opts = {}) {
+  const { bytes, text } = buildShiftReport(r, opts);
+  if (!isNativePrintingAvailable()) {
+    const e = new Error('NO_PRINTER'); e.preview = text; throw e;
+  }
+  try { await writeBytes(bytes); return { ok: true, text }; }
+  catch (err) { err.preview = text; throw err; }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ЗАМЕТКА по кириллице/тайскому:
 // Принтер печатает латиницу из коробки. Для тайского — переключить кодовую

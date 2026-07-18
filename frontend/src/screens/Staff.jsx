@@ -4,7 +4,7 @@ import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
 import OrderChat from '../components/OrderChat.jsx';
 import {
-  printReceipt, openDrawer, isNativePrintingAvailable, listPrinters,
+  printReceipt, printShiftReport, openDrawer, isNativePrintingAvailable, listPrinters,
   connectPrinter, disconnectPrinter, isConnected, printerStore,
 } from '../printer.js';
 
@@ -77,6 +77,8 @@ export function WaiterPanel() {
   const [printerOpen, setPrinterOpen] = useState(false);
   const [preview, setPreview] = useState(null);   // текст чека для превью
   const [ready, setReady] = useState(false);       // принтер подключён?
+  const [shiftOpen, setShiftOpen] = useState(false);
+  const [floatVal, setFloatVal] = useState(() => localStorage.getItem('grot_float') || '');
   // Периодически проверяем связь с принтером для индикатора статуса.
   useEffect(() => {
     let alive = true;
@@ -109,13 +111,43 @@ export function WaiterPanel() {
 
   const active = orders.data.filter((o) => !['delivered', 'handed'].includes(o.status));
 
+  // ── Данные смены (за сегодня) ──
+  const isToday2 = (iso) => new Date(iso).toDateString() === new Date().toDateString();
+  const orderLabel = (o) => o.type === 'delivery' ? 'Delivery' : o.tableNumber ? `Table ${o.tableNumber}` : o.type === 'pickup' ? 'Pickup' : 'Dine-in';
+  const todayOrders = orders.data.filter((o) => isToday2(o.createdAt));
+  const revenue = todayOrders.reduce((s, o) => s + o.total, 0);
+  let kitchen = 0, bar = 0;
+  todayOrders.forEach((o) => (o.items || []).forEach((i) => {
+    const g = i.group || groupMap[i.menuId] || 'food';
+    (g === 'drinks' ? (bar += i.price * i.qty) : (kitchen += i.price * i.qty));
+  }));
+  const floatNum = Number(floatVal) || 0;
+
+  const doPrintShift = async () => {
+    localStorage.setItem('grot_float', floatVal);
+    const r = {
+      dateStr: new Date().toLocaleDateString('en-GB'),
+      printedStr: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      orders: todayOrders.map((o) => ({ id: o.id, label: orderLabel(o), total: o.total })),
+      count: todayOrders.length, revenue, kitchen, bar, float: floatNum,
+    };
+    try { await printShiftReport(r); toast(t('print_ok')); setShiftOpen(false); }
+    catch (e) {
+      if (e.preview) { setShiftOpen(false); setPreview(e.preview); }
+      toast(e.message === 'NO_PRINTER' || e.message === 'NO_NATIVE' ? t('printer_not_connected') : t('print_fail'));
+    }
+  };
+
   return (
     <div className="screen">
       <div className="between">
         <h1>{t('waiter_panel')}</h1>
-        <button className={`chip ${ready ? 'active' : ''}`} onClick={() => setPrinterOpen(true)}>
-          🖨 {ready ? t('printer_on') : t('printer_off')}
-        </button>
+        <div className="row" style={{ gap: 8 }}>
+          <button className="chip" onClick={() => setShiftOpen(true)}>🧾 {t('shift_report')}</button>
+          <button className={`chip ${ready ? 'active' : ''}`} onClick={() => setPrinterOpen(true)}>
+            🖨 {ready ? t('printer_on') : t('printer_off')}
+          </button>
+        </div>
       </div>
 
       <div className="section-title"><h2>{t('calls')}</h2></div>
@@ -163,6 +195,24 @@ export function WaiterPanel() {
       </div>
 
       <PrinterSheet open={printerOpen} onClose={() => setPrinterOpen(false)} />
+
+      <Sheet open={shiftOpen} onClose={() => setShiftOpen(false)}>
+        <h2 style={{ marginTop: 0 }}>🧾 {t('shift_title')}</h2>
+        <div className="muted" style={{ marginBottom: 12 }}>{new Date().toLocaleDateString('ru-RU')}</div>
+        <div className="card tight">
+          <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_orders')}</span><b>{todayOrders.length}</b></div>
+          <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_kitchen')}</span><b>{money(kitchen)}</b></div>
+          <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_bar')}</span><b>{money(bar)}</b></div>
+          <div className="between" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><span>{t('shift_revenue')}</span><b className="gold" style={{ fontSize: 18 }}>{money(revenue)}</b></div>
+        </div>
+        <label style={{ display: 'block', margin: '14px 0 6px' }}>{t('shift_float')}</label>
+        <input type="number" inputMode="numeric" value={floatVal} onChange={(e) => setFloatVal(e.target.value)} placeholder="0" style={{ width: '100%' }} />
+        <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{t('shift_float_hint')}</div>
+        <div className="card tight" style={{ marginTop: 12 }}>
+          <div className="between" style={{ padding: '6px 0' }}><span>{t('shift_in_drawer')}</span><b style={{ fontSize: 18 }}>{money(floatNum + revenue)}</b></div>
+        </div>
+        <button className="btn block" style={{ marginTop: 16 }} onClick={doPrintShift}>🖨 {t('shift_print')}</button>
+      </Sheet>
 
       <Sheet open={!!preview} onClose={() => setPreview(null)}>
         <h2 style={{ marginTop: 0 }}>{t('receipt_preview')}</h2>
