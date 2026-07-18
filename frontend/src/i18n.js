@@ -58,6 +58,7 @@ export const STR = {
     printer_app_only: 'Печать доступна в приложении на Android. Здесь — только превью чека.',
     printer_connected: 'Принтер подключён', printer_not_connected: 'Принтер не подключён',
     receipt_preview: 'Превью чека',
+    drawer_test: 'Открыть ящик (тест)', drawer_sent: 'Команда открытия отправлена',
     preorder: 'Предзаказ', guests: 'гостей',
     // курьер
     courier: 'Курьер', active: 'Активные', history: 'История',
@@ -175,6 +176,7 @@ export const STR = {
     printer_app_only: 'Printing works in the Android app. Here you only get a receipt preview.',
     printer_connected: 'Printer connected', printer_not_connected: 'Printer not connected',
     receipt_preview: 'Receipt preview',
+    drawer_test: 'Open drawer (test)', drawer_sent: 'Open-drawer command sent',
     preorder: 'Pre-order', guests: 'guests',
     courier: 'Courier', active: 'Active', history: 'History',
     take_order: 'Take order', delivered: 'Delivered', ready_pickup: 'ready for pickup',

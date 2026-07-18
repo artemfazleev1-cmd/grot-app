@@ -33,6 +33,10 @@ function PrinterSheet({ open, onClose }) {
     setBusy(false);
   };
   const forget = async () => { await disconnectPrinter(); printerStore.clear(); toast(t('printer_forgotten')); onClose(); };
+  const testDrawer = async () => {
+    try { await openDrawer(); toast(t('drawer_sent')); }
+    catch { toast(t('print_fail')); }
+  };
 
   return (
     <Sheet open={open} onClose={onClose}>
@@ -43,6 +47,9 @@ function PrinterSheet({ open, onClose }) {
           <span>{t('printer_saved')}: <b>{saved.name || saved.address}</b></span>
           <button className="btn ghost sm" onClick={forget}>{t('printer_forget')}</button>
         </div>
+      )}
+      {native && saved && (
+        <button className="btn ghost sm" style={{ marginBottom: 10 }} onClick={testDrawer}>💵 {t('drawer_test')}</button>
       )}
       {native && (<>
         <button className="btn sm" onClick={scan} disabled={busy}>{busy ? t('printing') : t('printer_scan')}</button>
