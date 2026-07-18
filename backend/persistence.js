@@ -16,7 +16,7 @@ const FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'store.json')
 const ARRAYS = ['users', 'menu', 'ingredients', 'tables', 'orders', 'reservations',
   'events', 'promos', 'news', 'calls', 'notifications', 'broadcasts'];
 // Объекты-синглтоны
-const OBJECTS = ['intro'];
+const OBJECTS = ['intro', 'settings'];
 
 function snapshot() {
   const snap = { _id: db.dumpId(), _savedAt: new Date().toISOString() };

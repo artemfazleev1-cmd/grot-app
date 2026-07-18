@@ -233,16 +233,48 @@ app.patch('/api/calls/:id', auth, requireRole(...STAFF), (req, res) => {
   res.json(c);
 });
 
+// ================= КУХНЯ (график) =================
+// Открыта ли кухня сейчас (по местному времени бара). Вне графика — только напитки.
+function kitchenOpenNow() {
+  const s = db.settings || {};
+  if (s.kitchenForceClosed) return false;
+  const tz = s.tz || 'Asia/Bangkok';
+  const hhmm = new Date().toLocaleTimeString('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false });
+  const [h, m] = hhmm.split(':').map(Number);
+  const cur = h * 60 + m;
+  const toMin = (t) => { const [a, b] = String(t || '0:0').split(':').map(Number); return a * 60 + (b || 0); };
+  const open = toMin(s.kitchenOpen || '00:00'), close = toMin(s.kitchenClose || '23:59');
+  if (open === close) return true;                       // круглосуточно
+  return open < close ? (cur >= open && cur < close) : (cur >= open || cur < close); // с переходом через полночь
+}
+const isFood = (dish) => (dish.group || 'food') !== 'drinks';
+
+app.get('/api/kitchen', (req, res) => {
+  const s = db.settings || {};
+  res.json({ open: kitchenOpenNow(), kitchenOpen: s.kitchenOpen, kitchenClose: s.kitchenClose, kitchenForceClosed: !!s.kitchenForceClosed });
+});
+app.patch('/api/kitchen', auth, requireRole('owner', 'admin'), (req, res) => {
+  const s = db.settings;
+  const { kitchenOpen, kitchenClose, kitchenForceClosed } = req.body;
+  const valid = (t) => typeof t === 'string' && /^\d{1,2}:\d{2}$/.test(t);
+  if (valid(kitchenOpen)) s.kitchenOpen = kitchenOpen;
+  if (valid(kitchenClose)) s.kitchenClose = kitchenClose;
+  if (typeof kitchenForceClosed === 'boolean') s.kitchenForceClosed = kitchenForceClosed;
+  res.json({ open: kitchenOpenNow(), kitchenOpen: s.kitchenOpen, kitchenClose: s.kitchenClose, kitchenForceClosed: s.kitchenForceClosed });
+});
+
 // ================= ЗАКАЗЫ =================
 app.post('/api/orders', auth, (req, res) => {
   const { items: reqItems, type, address, comment, tableNumber, geo } = req.body;
   if (!Array.isArray(reqItems) || !reqItems.length) return res.status(400).json({ error: 'Корзина пуста' });
+  const kOpen = kitchenOpenNow();
   // ВАЖНО: цены и названия берём из меню на сервере, НЕ доверяем клиенту.
   const items = []; let total = 0;
   for (const it of reqItems) {
     const dish = db.menu.find((m) => m.id === Number(it.menuId));
     if (!dish) return res.status(400).json({ error: 'Позиция не найдена' });
     if (!dish.available) return res.status(409).json({ error: `«${dish.name}» сейчас недоступна` });
+    if (!kOpen && isFood(dish)) return res.status(409).json({ error: 'Кухня закрыта — доступны только напитки' });
     const qty = Math.min(50, Math.max(1, Math.floor(Number(it.qty) || 1)));
     items.push({ menuId: dish.id, name: dish.name, nameEn: dish.nameEn || null, price: dish.price, qty, group: dish.group || 'food' });
     total += dish.price * qty;
@@ -270,10 +302,12 @@ app.post('/api/orders/:id/items', auth, requireRole('waiter', 'admin', 'owner'),
   if (order.paid) return res.status(409).json({ error: 'Счёт уже закрыт' });
   const add = req.body.items;
   if (!Array.isArray(add) || !add.length) return res.status(400).json({ error: 'Нет позиций' });
+  const kOpen = kitchenOpenNow();
   for (const it of add) {
     const dish = db.menu.find((m) => m.id === Number(it.menuId));
     if (!dish) return res.status(400).json({ error: 'Позиция не найдена' });
     if (!dish.available) return res.status(409).json({ error: `«${dish.name}» сейчас недоступна` });
+    if (!kOpen && isFood(dish)) return res.status(409).json({ error: 'Кухня закрыта — доступны только напитки' });
     const qty = Math.min(50, Math.max(1, Math.floor(Number(it.qty) || 1)));
     const ex = order.items.find((x) => x.menuId === dish.id);
     if (ex) ex.qty += qty;

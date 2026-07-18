@@ -148,6 +148,16 @@ export const tables = Array.from({ length: 12 }, (_, i) => ({
   y: Math.floor(i / 4) * 30 + 10,
 }));
 
+// ---------- Настройки заведения ----------
+// Кухня работает по графику (местное время бара). Вне графика официант может
+// заказывать только напитки (бар). kitchenForceClosed — ручное закрытие сейчас.
+export const settings = {
+  kitchenOpen: '11:00',
+  kitchenClose: '23:00',
+  kitchenForceClosed: false,
+  tz: 'Asia/Bangkok',
+};
+
 // ---------- Заказы ----------
 // status: new -> accepted -> cooking -> ready -> handed | delivering -> delivered
 export const orders = [

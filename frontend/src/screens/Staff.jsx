@@ -111,6 +111,8 @@ function PreviewSheet({ preview, setPreview, onPrinter }) {
 function ItemPicker({ tableNumber, orderId, onClose, onSaved }) {
   const { t, toast, L } = useStore();
   const menu = useFetch(() => api.get('/menu'));
+  const kitchen = useFetch(() => api.get('/kitchen'));
+  const kOpen = kitchen.data?.open !== false;  // пока грузится — считаем открытой
   const [cart, setCart] = useState({});
   const [cat, setCat] = useState('all');
   const [busy, setBusy] = useState(false);
@@ -137,22 +139,26 @@ function ItemPicker({ tableNumber, orderId, onClose, onSaved }) {
     <Sheet open onClose={onClose}>
       <h2 style={{ marginTop: 0 }}>{orderId ? t('add_items') : t('new_order')} · {t('table')} {tableNumber}</h2>
       {menu.loading ? <Loader /> : (<>
+        {!kOpen && <div className="card tight" style={{ marginBottom: 8, border: '1px solid var(--gold, #d4a017)', color: 'var(--gold, #d4a017)' }}>🍳 {t('kitchen_closed_banner')}</div>}
         <div className="chips" style={{ margin: '8px 0', flexWrap: 'wrap' }}>
           {cats.map((c) => <button key={c} className={`chip ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{c === 'all' ? t('all') : c}</button>)}
         </div>
         <div className="list" style={{ maxHeight: 320, overflowY: 'auto' }}>
-          {shown.map((m) => (
-            <div key={m.id} className="card tight between">
-              <div><b>{L(m, 'name')}</b><div className="muted" style={{ fontSize: 12 }}>{money(m.price)}</div></div>
+          {shown.map((m) => {
+            const closed = !kOpen && (m.group || 'food') !== 'drinks';
+            return (
+            <div key={m.id} className="card tight between" style={closed ? { opacity: 0.45 } : undefined}>
+              <div><b>{L(m, 'name')}</b><div className="muted" style={{ fontSize: 12 }}>{closed ? t('kitchen_closed_item') : money(m.price)}</div></div>
               <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-                {cart[m.id] ? (<>
+                {closed ? <span title={t('kitchen_closed_item')}>🚫</span> : cart[m.id] ? (<>
                   <button className="btn ghost sm" onClick={() => dec(m.id)}>−</button>
                   <b style={{ minWidth: 18, textAlign: 'center' }}>{cart[m.id]}</b>
                   <button className="btn sm" onClick={() => add(m)}>+</button>
                 </>) : <button className="btn sm" onClick={() => add(m)}>{t('add')}</button>}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
         <div className="between" style={{ marginTop: 12, gap: 10 }}>
           <b>{t('total')}: {money(total)}{count ? ` · ${count}` : ''}</b>

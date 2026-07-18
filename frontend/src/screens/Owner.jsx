@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
@@ -182,6 +182,43 @@ function Staff() {
   );
 }
 
+function KitchenSettings() {
+  const { toast } = useStore();
+  const { data, loading, reload } = useFetch(() => api.get('/kitchen'));
+  const [open, setOpen] = useState('');
+  const [close, setClose] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (data) { setOpen(data.kitchenOpen || ''); setClose(data.kitchenClose || ''); } }, [data]);
+  if (loading || !data) return null;
+  const save = async (extra = {}) => {
+    setBusy(true);
+    try { await api.patch('/kitchen', { kitchenOpen: open, kitchenClose: close, ...extra }); toast('Сохранено'); reload(); }
+    catch (e) { toast(e.message); }
+    setBusy(false);
+  };
+  return (<>
+    <div className="section-title"><h2>Кухня (график работы)</h2></div>
+    <div className="card">
+      <div className="between" style={{ marginBottom: 12 }}>
+        <span>Сейчас кухня</span>
+        <span className={`badge ${data.open ? 'green' : 'gold'}`}>{data.open ? 'ОТКРЫТА' : 'ЗАКРЫТА'}</span>
+      </div>
+      <div className="row" style={{ gap: 10 }}>
+        <div style={{ flex: 1 }}><label>Открытие</label><input type="time" value={open} onChange={(e) => setOpen(e.target.value)} style={{ width: '100%' }} /></div>
+        <div style={{ flex: 1 }}><label>Закрытие</label><input type="time" value={close} onChange={(e) => setClose(e.target.value)} style={{ width: '100%' }} /></div>
+      </div>
+      <button className="btn sm" style={{ marginTop: 12 }} disabled={busy} onClick={() => save()}>Сохранить график</button>
+      <div className="between" style={{ marginTop: 14, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+        <span>Закрыть кухню сейчас (вручную)</span>
+        <button className={`chip ${data.kitchenForceClosed ? 'active' : ''}`} onClick={() => save({ kitchenForceClosed: !data.kitchenForceClosed })}>
+          {data.kitchenForceClosed ? 'Закрыта вручную' : 'По графику'}
+        </button>
+      </div>
+      <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>Когда кухня закрыта — официант может пробивать только напитки (бар). Еда в меню недоступна.</div>
+    </div>
+  </>);
+}
+
 function Analytics() {
   const { toast } = useStore();
   const { data, loading, reload } = useFetch(() => api.get('/analytics'));
@@ -245,6 +282,8 @@ function Analytics() {
           <b>{qty}</b></div>
       ))}
     </div>
+
+    <KitchenSettings />
 
     <div className="section-title"><h2>Обслуживание</h2></div>
     <div className="card">
