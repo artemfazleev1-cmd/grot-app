@@ -15,6 +15,9 @@ on:
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write   # нужно для публикации APK в Releases
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -51,9 +54,22 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: grot-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      # Публикуем APK в Release с постоянным тегом "latest" —
+      # прямая ссылка для скачивания на планшет:
+      # https://github.com/<owner>/<repo>/releases/latest/download/app-debug.apk
+      - name: Publish APK to Release (latest)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: GROT — последняя сборка APK
+          body: |
+            Приложение GROT (debug APK).
+            Скачать на планшет: нажми **app-debug.apk** ниже.
+          files: android/app/build/outputs/apk/debug/app-debug.apk
