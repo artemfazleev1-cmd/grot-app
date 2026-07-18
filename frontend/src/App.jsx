@@ -10,7 +10,7 @@ import Tables, { TableService } from './screens/Tables.jsx';
 import Events from './screens/Events.jsx';
 import Location from './screens/Location.jsx';
 import Profile from './screens/Profile.jsx';
-import { WaiterPanel, KitchenPanel, CourierPanel } from './screens/Staff.jsx';
+import { WaiterTables, WaiterNewOrder, WaiterCabinet, KitchenPanel, CourierPanel } from './screens/Staff.jsx';
 import Owner from './screens/Owner.jsx';
 import Dashboard from './screens/Dashboard.jsx';
 
@@ -35,7 +35,7 @@ const CLIENT_TABS = [
   ['/events', '🎉', 'nav_events'], ['/location', '📍', 'nav_location'], ['/profile', '👤', 'nav_account'],
 ];
 const STAFF_TABS = {
-  waiter:  [['/staff', '🧾', 'nav_orders'], ['/menu', '🍔', 'nav_menu'], ['/profile', '👤', 'nav_me']],
+  waiter:  [['/staff', '🍽', 'nav_tables'], ['/staff/new', '➕', 'nav_new_order'], ['/staff/me', '👤', 'nav_me']],
   cook:    [['/staff', '🍳', 'nav_kitchen']],
   courier: [['/staff', '🛵', 'nav_delivery']],
   owner:   [['/owner', '📊', 'nav_business'], ['/', '🏠', 'nav_home'], ['/menu', '🍔', 'nav_menu'], ['/profile', '👤', 'nav_me']],
@@ -130,8 +130,10 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/staff" element={
           <RoleRoute roles={['waiter', 'cook', 'courier', 'admin']} role={role}>
-            {role === 'cook' ? <KitchenPanel /> : role === 'courier' ? <CourierPanel /> : <WaiterPanel />}
+            {role === 'cook' ? <KitchenPanel /> : role === 'courier' ? <CourierPanel /> : <WaiterTables />}
           </RoleRoute>} />
+        <Route path="/staff/new" element={<RoleRoute roles={['waiter', 'admin']} role={role}><WaiterNewOrder /></RoleRoute>} />
+        <Route path="/staff/me" element={<RoleRoute roles={['waiter', 'admin']} role={role}><WaiterCabinet /></RoleRoute>} />
         <Route path="/owner" element={<RoleRoute roles={['owner', 'admin']} role={role}><Owner /></RoleRoute>} />
         <Route path="*" element={<Navigate to={homeFor} replace />} />
       </Routes>

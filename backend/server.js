@@ -253,11 +253,44 @@ app.post('/api/orders', auth, (req, res) => {
     address: address ? String(address).slice(0, 300) : null,
     geo: (geo && typeof geo.lat === 'number' && typeof geo.lng === 'number') ? { lat: geo.lat, lng: geo.lng, mapUrl: String(geo.mapUrl || '').slice(0, 300) } : null,
     comment: comment ? String(comment).slice(0, 500) : '',
-    tableNumber: tableNumber ? Number(tableNumber) : null, total, status: 'new', createdAt: db.now(), messages: [] };
+    tableNumber: tableNumber ? Number(tableNumber) : null, total, status: 'new',
+    paid: false, waiterId: req.user.role === 'waiter' ? req.user.id : null,
+    createdAt: db.now(), messages: [] };
   db.orders.push(order);
   if (req.user.stats) { req.user.stats.totalSpent += total; req.user.stats.ordersCount += 1; req.user.stats.lastVisit = db.now(); }
   db.pushNotify({ role: 'waiter', text: `🆕 Новый заказ #${order.id} (${type})` });
   db.pushNotify({ userId: req.user.id, text: `Заказ #${order.id} принят`, key: 'ntf_order_placed', data: { id: order.id } });
+  res.json(order);
+});
+
+// Дозаказ: дописать позиции в открытый (неоплаченный) счёт стола.
+app.post('/api/orders/:id/items', auth, requireRole('waiter', 'admin', 'owner'), (req, res) => {
+  const order = db.orders.find((o) => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ error: 'Заказ не найден' });
+  if (order.paid) return res.status(409).json({ error: 'Счёт уже закрыт' });
+  const add = req.body.items;
+  if (!Array.isArray(add) || !add.length) return res.status(400).json({ error: 'Нет позиций' });
+  for (const it of add) {
+    const dish = db.menu.find((m) => m.id === Number(it.menuId));
+    if (!dish) return res.status(400).json({ error: 'Позиция не найдена' });
+    if (!dish.available) return res.status(409).json({ error: `«${dish.name}» сейчас недоступна` });
+    const qty = Math.min(50, Math.max(1, Math.floor(Number(it.qty) || 1)));
+    const ex = order.items.find((x) => x.menuId === dish.id);
+    if (ex) ex.qty += qty;
+    else order.items.push({ menuId: dish.id, name: dish.name, nameEn: dish.nameEn || null, price: dish.price, qty, group: dish.group || 'food' });
+    order.total += dish.price * qty;
+  }
+  res.json(order);
+});
+
+// Закрыть счёт (расчёт): пометить оплаченным. Стол освобождается.
+app.post('/api/orders/:id/close', auth, requireRole('waiter', 'admin', 'owner'), (req, res) => {
+  const order = db.orders.find((o) => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ error: 'Заказ не найден' });
+  order.paid = true;
+  order.status = 'handed';
+  order.closedAt = db.now();
+  if (order.tableNumber) { const tb = db.tables.find((x) => x.number === order.tableNumber); if (tb) tb.status = 'free'; }
   res.json(order);
 });
 

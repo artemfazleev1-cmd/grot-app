@@ -67,60 +67,212 @@ function PrinterSheet({ open, onClose }) {
   );
 }
 
-// ---------------- ОФИЦИАНТ ----------------
-export function WaiterPanel() {
-  const { toast, t } = useStore();
-  const orders = useFetch(() => api.get('/orders'));
-  const calls = useFetch(() => api.get('/calls'));
-  const resv = useFetch(() => api.get('/reservations'));
-  const menu = useFetch(() => api.get('/menu'));   // для определения еда/напиток по позиции
-  const [printerOpen, setPrinterOpen] = useState(false);
-  const [preview, setPreview] = useState(null);   // текст чека для превью
-  const [ready, setReady] = useState(false);       // принтер подключён?
-  const [shiftOpen, setShiftOpen] = useState(false);
-  const [floatVal, setFloatVal] = useState(() => localStorage.getItem('grot_float') || '');
-  // Периодически проверяем связь с принтером для индикатора статуса.
-  useEffect(() => {
-    let alive = true;
-    const check = async () => { const r = await isConnected(); if (alive) setReady(r); };
-    check(); const iv = setInterval(check, 5000);
-    return () => { alive = false; clearInterval(iv); };
-  }, []);
-  if (orders.loading) return <Loader />;
+// ---------------- ОФИЦИАНТ (POS: открытые столы) ----------------
+const orderLabel = (o) => o.type === 'delivery' ? 'Delivery' : o.tableNumber ? `Table ${o.tableNumber}` : o.type === 'pickup' ? 'Pickup' : 'Dine-in';
+const isTodayIso = (iso) => new Date(iso).toDateString() === new Date().toDateString();
 
-  const setStatus = async (o, status) => { await api.patch(`/orders/${o.id}/status`, { status }); toast(`№${o.id}: ${t('st_' + status)}`); orders.reload(); };
-  const closeCall = async (c) => { await api.patch(`/calls/${c.id}`, { status: 'done' }); calls.reload(); };
-  const confirmResv = async (r) => { await api.patch(`/reservations/${r.id}`, { status: 'confirmed' }); toast('OK'); resv.reload(); };
-
-  // Карта menuId -> group (food/drinks) из меню — чтобы делить KITCHEN/BAR даже
-  // для заказов, где у позиции ещё нет метки group.
+// Меню + карта menuId -> group (еда/напиток)
+function useGroupMap() {
+  const menu = useFetch(() => api.get('/menu'));
   const groupMap = {};
   (menu.data?.items || []).forEach((m) => { groupMap[m.id] = m.group || 'food'; });
+  return { menu, groupMap };
+}
 
-  // Печать чека по заказу. Есть принтер → печатает; нет → показывает превью формата.
+// Печать чека с превью-фолбэком. Возвращает true при успешной печати.
+function usePrintBill(groupMap) {
+  const { t, toast } = useStore();
+  const [preview, setPreview] = useState(null);
   const printBill = async (o, opts = {}) => {
     const enriched = { ...o, items: (o.items || []).map((i) => ({ ...i, group: i.group || groupMap[i.menuId] || 'food' })) };
-    try {
-      await printReceipt(enriched, opts);
-      toast(t('print_ok'));
-    } catch (e) {
+    try { await printReceipt(enriched, opts); toast(t('print_ok')); return true; }
+    catch (e) {
       if (e.preview) setPreview(e.preview);
       toast(e.message === 'NO_PRINTER' || e.message === 'NO_NATIVE' ? t('printer_not_connected') : t('print_fail'));
+      return false;
     }
   };
+  return { printBill, preview, setPreview };
+}
 
-  const active = orders.data.filter((o) => !['delivered', 'handed'].includes(o.status));
+function PreviewSheet({ preview, setPreview, onPrinter }) {
+  const { t } = useStore();
+  return (
+    <Sheet open={!!preview} onClose={() => setPreview(null)}>
+      <h2 style={{ marginTop: 0 }}>{t('receipt_preview')}</h2>
+      <div className="muted" style={{ marginBottom: 10 }}>{t('printer_not_connected')}</div>
+      <pre style={{ whiteSpace: 'pre', overflowX: 'auto', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12, lineHeight: 1.45, background: 'var(--card, #111)', color: 'var(--fg, #eee)', padding: 14, borderRadius: 12, border: '1px solid var(--line)' }}>{preview}</pre>
+      {onPrinter && <button className="btn sm" style={{ marginTop: 12 }} onClick={() => { setPreview(null); onPrinter(); }}>🖨 {t('printer')}</button>}
+    </Sheet>
+  );
+}
 
-  // ── Данные смены (за сегодня) ──
-  const isToday2 = (iso) => new Date(iso).toDateString() === new Date().toDateString();
-  const orderLabel = (o) => o.type === 'delivery' ? 'Delivery' : o.tableNumber ? `Table ${o.tableNumber}` : o.type === 'pickup' ? 'Pickup' : 'Dine-in';
-  const todayOrders = orders.data.filter((o) => isToday2(o.createdAt));
-  const revenue = todayOrders.reduce((s, o) => s + o.total, 0);
+// Выбор позиций из меню → создать заказ или дописать в открытый счёт.
+function ItemPicker({ tableNumber, orderId, onClose, onSaved }) {
+  const { t, toast, L } = useStore();
+  const menu = useFetch(() => api.get('/menu'));
+  const [cart, setCart] = useState({});
+  const [cat, setCat] = useState('all');
+  const [busy, setBusy] = useState(false);
+  const items = (menu.data?.items || []).filter((m) => m.available);
+  const cats = ['all', ...(menu.data?.categories || [])];
+  const shown = cat === 'all' ? items : items.filter((m) => m.category === cat);
+  const add = (m) => setCart((c) => ({ ...c, [m.id]: (c[m.id] || 0) + 1 }));
+  const dec = (id) => setCart((c) => { const q = (c[id] || 0) - 1; const n = { ...c }; if (q <= 0) delete n[id]; else n[id] = q; return n; });
+  const lines = Object.entries(cart).map(([id, q]) => ({ m: items.find((x) => x.id === +id), q })).filter((x) => x.m);
+  const total = lines.reduce((s, x) => s + x.m.price * x.q, 0);
+  const count = lines.reduce((s, x) => s + x.q, 0);
+  const save = async () => {
+    if (!lines.length) return;
+    setBusy(true);
+    try {
+      const payload = { items: lines.map((x) => ({ menuId: x.m.id, qty: x.q })) };
+      if (orderId) await api.post(`/orders/${orderId}/items`, payload);
+      else await api.post('/orders', { type: 'dinein', tableNumber, items: payload.items });
+      toast(t('order_saved')); onSaved();
+    } catch (e) { toast(e.message); }
+    setBusy(false);
+  };
+  return (
+    <Sheet open onClose={onClose}>
+      <h2 style={{ marginTop: 0 }}>{orderId ? t('add_items') : t('new_order')} · {t('table')} {tableNumber}</h2>
+      {menu.loading ? <Loader /> : (<>
+        <div className="chips" style={{ margin: '8px 0', flexWrap: 'wrap' }}>
+          {cats.map((c) => <button key={c} className={`chip ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{c === 'all' ? t('all') : c}</button>)}
+        </div>
+        <div className="list" style={{ maxHeight: 320, overflowY: 'auto' }}>
+          {shown.map((m) => (
+            <div key={m.id} className="card tight between">
+              <div><b>{L(m, 'name')}</b><div className="muted" style={{ fontSize: 12 }}>{money(m.price)}</div></div>
+              <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                {cart[m.id] ? (<>
+                  <button className="btn ghost sm" onClick={() => dec(m.id)}>−</button>
+                  <b style={{ minWidth: 18, textAlign: 'center' }}>{cart[m.id]}</b>
+                  <button className="btn sm" onClick={() => add(m)}>+</button>
+                </>) : <button className="btn sm" onClick={() => add(m)}>{t('add')}</button>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="between" style={{ marginTop: 12, gap: 10 }}>
+          <b>{t('total')}: {money(total)}{count ? ` · ${count}` : ''}</b>
+          <button className="btn" disabled={busy || !lines.length} onClick={save}>{orderId ? t('add_items') : t('leave_open')}</button>
+        </div>
+      </>)}
+    </Sheet>
+  );
+}
+
+// ── Экран 1: Активные столики ──
+export function WaiterTables() {
+  const { t } = useStore();
+  const orders = useFetch(() => api.get('/orders'));
+  const { groupMap } = useGroupMap();
+  const { printBill, preview, setPreview } = usePrintBill(groupMap);
+  const [sel, setSel] = useState(null);       // id выбранного счёта
+  const [picker, setPicker] = useState(null); // {tableNumber, orderId}
+  useEffect(() => { const iv = setInterval(orders.reload, 5000); return () => clearInterval(iv); }, []);
+  if (orders.loading) return <Loader />;
+  const open = orders.data.filter((o) => o.type === 'dinein' && !o.paid);
+  const selOrder = sel && orders.data.find((o) => o.id === sel);
+
+  const checkout = async (o) => {
+    const ok = await printBill(o, { openDrawer: true });
+    if (ok) { await api.post(`/orders/${o.id}/close`).catch(() => {}); setSel(null); orders.reload(); }
+  };
+
+  return (
+    <div className="screen">
+      <h1>{t('nav_tables')}</h1>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginTop: 14 }}>
+        {open.map((o) => (
+          <div key={o.id} className="card" onClick={() => setSel(o.id)} style={{ cursor: 'pointer' }}>
+            <div className="between"><b style={{ fontSize: 18 }}>{t('table')} {o.tableNumber}</b><span className="badge gold">{o.items.reduce((s, i) => s + i.qty, 0)}</span></div>
+            <div className="gold" style={{ fontSize: 20, fontWeight: 700, marginTop: 6 }}>{money(o.total)}</div>
+          </div>
+        ))}
+      </div>
+      {open.length === 0 && <Empty icon="🍽" text={t('no_open_tables')} />}
+
+      {selOrder && (
+        <Sheet open onClose={() => setSel(null)}>
+          <h2 style={{ marginTop: 0 }}>{t('table')} {selOrder.tableNumber}</h2>
+          <div className="list">
+            {selOrder.items.map((i, idx) => (
+              <div key={idx} className="between" style={{ padding: '4px 0' }}>
+                <span>{i.qty}× {i.nameEn || i.name}</span><b>{money(i.price * i.qty)}</b>
+              </div>
+            ))}
+          </div>
+          <div className="between" style={{ marginTop: 8, borderTop: '1px solid var(--line)', paddingTop: 8 }}>
+            <b>{t('total')}</b><b className="gold" style={{ fontSize: 18 }}>{money(selOrder.total)}</b>
+          </div>
+          <div className="row" style={{ gap: 8, marginTop: 14 }}>
+            <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, orderId: selOrder.id })}>➕ {t('add_items')}</button>
+            <button className="btn" onClick={() => checkout(selOrder)}>💵 {t('checkout_print')}</button>
+          </div>
+        </Sheet>
+      )}
+
+      {picker && <ItemPicker tableNumber={picker.tableNumber} orderId={picker.orderId} onClose={() => setPicker(null)} onSaved={() => { setPicker(null); orders.reload(); }} />}
+      <PreviewSheet preview={preview} setPreview={setPreview} />
+    </div>
+  );
+}
+
+// ── Экран 2: Новый заказ (выбор стола → позиции) ──
+export function WaiterNewOrder() {
+  const { t } = useStore();
+  const orders = useFetch(() => api.get('/orders'));
+  const tables = useFetch(() => api.get('/tables'));
+  const [picker, setPicker] = useState(null);
+  if (orders.loading || tables.loading) return <Loader />;
+  const openByTable = {};
+  orders.data.filter((o) => o.type === 'dinein' && !o.paid).forEach((o) => { openByTable[o.tableNumber] = o; });
+  const pick = (n) => { const ex = openByTable[n]; setPicker({ tableNumber: n, orderId: ex ? ex.id : null }); };
+  return (
+    <div className="screen">
+      <h1>{t('new_order')}</h1>
+      <div className="muted" style={{ margin: '4px 0 12px' }}>{t('pick_table')}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+        {tables.data.map((tb) => {
+          const busy = openByTable[tb.number];
+          return (
+            <button key={tb.id} onClick={() => pick(tb.number)}
+              style={{ padding: '18px 0', borderRadius: 12, border: `1px solid ${busy ? 'var(--gold, #d4a017)' : 'var(--line)'}`, background: busy ? 'rgba(212,160,23,.10)' : 'transparent', color: 'inherit', cursor: 'pointer' }}>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>{tb.number}</div>
+              {busy ? <div className="gold" style={{ fontSize: 12 }}>{money(busy.total)}</div> : <div className="muted" style={{ fontSize: 11 }}>{t('table_free')}</div>}
+            </button>
+          );
+        })}
+      </div>
+      {picker && <ItemPicker tableNumber={picker.tableNumber} orderId={picker.orderId} onClose={() => setPicker(null)} onSaved={() => { setPicker(null); orders.reload(); }} />}
+    </div>
+  );
+}
+
+// ── Экран 3: Кабинет (статистика + принтер + отчёт смены) ──
+export function WaiterCabinet() {
+  const { t, user, logout, toast } = useStore();
+  const orders = useFetch(() => api.get('/orders'));
+  const { groupMap } = useGroupMap();
+  const { preview, setPreview } = usePrintBill(groupMap);
+  const [printerOpen, setPrinterOpen] = useState(false);
+  const [shiftOpen, setShiftOpen] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [floatVal, setFloatVal] = useState(() => localStorage.getItem('grot_float') || '');
+  useEffect(() => { let a = true; const c = async () => { const r = await isConnected(); if (a) setReady(r); }; c(); const iv = setInterval(c, 5000); return () => { a = false; clearInterval(iv); }; }, []);
+  if (orders.loading) return <Loader />;
+
+  const mine = orders.data.filter((o) => o.waiterId === user.id);
+  const todayMine = mine.filter((o) => isTodayIso(o.createdAt));
+  const sumRev = (arr) => arr.reduce((s, o) => s + o.total, 0);
+
+  // Отчёт смены — по всем заказам за сегодня (касса заведения)
+  const todayAll = orders.data.filter((o) => isTodayIso(o.createdAt));
+  const revenue = sumRev(todayAll);
   let kitchen = 0, bar = 0;
-  todayOrders.forEach((o) => (o.items || []).forEach((i) => {
-    const g = i.group || groupMap[i.menuId] || 'food';
-    (g === 'drinks' ? (bar += i.price * i.qty) : (kitchen += i.price * i.qty));
-  }));
+  todayAll.forEach((o) => (o.items || []).forEach((i) => { const g = i.group || groupMap[i.menuId] || 'food'; (g === 'drinks' ? (bar += i.price * i.qty) : (kitchen += i.price * i.qty)); }));
   const floatNum = Number(floatVal) || 0;
 
   const doPrintShift = async () => {
@@ -128,73 +280,34 @@ export function WaiterPanel() {
     const r = {
       dateStr: new Date().toLocaleDateString('en-GB'),
       printedStr: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-      orders: todayOrders.map((o) => ({
-        id: o.id, label: orderLabel(o), total: o.total,
-        items: (o.items || []).map((i) => ({ qty: i.qty, name: i.nameEn || i.name, amount: i.price * i.qty })),
-      })),
-      count: todayOrders.length, revenue, kitchen, bar, float: floatNum,
+      orders: todayAll.map((o) => ({ id: o.id, label: orderLabel(o), total: o.total, items: (o.items || []).map((i) => ({ qty: i.qty, name: i.nameEn || i.name, amount: i.price * i.qty })) })),
+      count: todayAll.length, revenue, kitchen, bar, float: floatNum,
     };
     try { await printShiftReport(r); toast(t('print_ok')); setShiftOpen(false); }
-    catch (e) {
-      if (e.preview) { setShiftOpen(false); setPreview(e.preview); }
-      toast(e.message === 'NO_PRINTER' || e.message === 'NO_NATIVE' ? t('printer_not_connected') : t('print_fail'));
-    }
+    catch (e) { if (e.preview) { setShiftOpen(false); setPreview(e.preview); } }
   };
 
   return (
     <div className="screen">
-      <div className="between">
-        <h1>{t('waiter_panel')}</h1>
-        <div className="row" style={{ gap: 8 }}>
-          <button className="chip" onClick={() => setShiftOpen(true)}>🧾 {t('shift_report')}</button>
-          <button className={`chip ${ready ? 'active' : ''}`} onClick={() => setPrinterOpen(true)}>
-            🖨 {ready ? t('printer_on') : t('printer_off')}
-          </button>
-        </div>
+      <div className="between"><h1>{t('nav_me')}</h1><button className="btn ghost sm" onClick={logout}>{t('logout')}</button></div>
+      <div className="muted">{user.name}</div>
+
+      <div className="section-title"><h2>{t('cab_shift')}</h2></div>
+      <div className="kpi-grid">
+        <div className="kpi"><div className="v">{todayMine.length}</div><div className="l">{t('cab_orders')}</div></div>
+        <div className="kpi"><div className="v">{money(sumRev(todayMine))}</div><div className="l">{t('cab_revenue')}</div></div>
       </div>
 
-      <div className="section-title"><h2>{t('calls')}</h2></div>
-      <div className="list">
-        {(calls.data || []).map((c) => (
-          <div key={c.id} className="card tight between">
-            <span>{t('table')} №{c.tableNumber} — {c.type === 'bill' ? t('asks_bill') : t('calls_waiter')}</span>
-            <button className="btn sm" onClick={() => closeCall(c)}>{t('got_it')}</button>
-          </div>
-        ))}
-        {(!calls.data || calls.data.length === 0) && <Empty icon="🔕" text={t('no_calls')} />}
+      <div className="section-title"><h2>{t('cab_total')}</h2></div>
+      <div className="kpi-grid">
+        <div className="kpi"><div className="v">{mine.length}</div><div className="l">{t('cab_orders')}</div></div>
+        <div className="kpi"><div className="v">{money(sumRev(mine))}</div><div className="l">{t('cab_revenue')}</div></div>
       </div>
 
-      <div className="section-title"><h2>{t('orders')}</h2></div>
+      <div className="section-title"><h2>{t('cab_tools')}</h2></div>
       <div className="list">
-        {active.map((o) => (
-          <div key={o.id} className="card">
-            <div className="between"><b>#{o.id} · {o.type === 'delivery' ? t('delivery') : o.tableNumber ? `${t('table')} №${o.tableNumber}` : o.type}</b>
-              <span className="badge gold">{t('st_' + o.status)}</span></div>
-            <div className="muted">{o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')}</div>
-            {o.comment && <div className="muted">{t('comment')}: {o.comment}</div>}
-            <div className="row" style={{ marginTop: 10, gap: 8, flexWrap: 'wrap' }}>
-              {o.status === 'new' && <button className="btn sm" onClick={() => setStatus(o, 'accepted')}>{t('accept')}</button>}
-              {o.status === 'accepted' && <button className="btn sm" onClick={() => setStatus(o, 'cooking')}>{t('to_kitchen')}</button>}
-              {o.status === 'cooking' && <button className="btn sm" onClick={() => setStatus(o, 'ready')}>{t('ready')}</button>}
-              {o.status === 'ready' && o.type === 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'delivering')}>{t('to_courier')}</button>}
-              {o.status === 'ready' && o.type !== 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'handed')}>{t('hand_over')}</button>}
-              <button className="btn ghost sm" onClick={() => printBill(o)}>🖨 {t('print_receipt')}</button>
-              <button className="btn ghost sm" onClick={() => printBill(o, { openDrawer: true })}>💵 {t('print_cash')}</button>
-            </div>
-          </div>
-        ))}
-        {active.length === 0 && <Empty icon="✨" text={t('no_active')} />}
-      </div>
-
-      <div className="section-title"><h2>{t('bookings')}</h2></div>
-      <div className="list">
-        {(resv.data || []).map((r) => (
-          <div key={r.id} className="card tight between">
-            <div>{t('table')} №{r.tableNumber} · {r.date} {r.time} · {r.guests} {t('guests')}
-              {r.preorder?.length > 0 && <div className="muted">{t('preorder')}: {r.preorder.map((i) => i.name).join(', ')}</div>}</div>
-            {r.status !== 'confirmed' ? <button className="btn sm" onClick={() => confirmResv(r)}>✓</button> : <span className="badge green">OK</span>}
-          </div>
-        ))}
+        <button className="btn block" onClick={() => setShiftOpen(true)}>🧾 {t('shift_report')}</button>
+        <button className={`btn ghost block`} onClick={() => setPrinterOpen(true)}>🖨 {ready ? t('printer_connected') : t('printer_not_connected')}</button>
       </div>
 
       <PrinterSheet open={printerOpen} onClose={() => setPrinterOpen(false)} />
@@ -203,15 +316,15 @@ export function WaiterPanel() {
         <h2 style={{ marginTop: 0 }}>🧾 {t('shift_title')}</h2>
         <div className="muted" style={{ marginBottom: 12 }}>{new Date().toLocaleDateString('ru-RU')}</div>
         <div className="card tight">
-          <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_orders')}</span><b>{todayOrders.length}</b></div>
+          <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_orders')}</span><b>{todayAll.length}</b></div>
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_kitchen')}</span><b>{money(kitchen)}</b></div>
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_bar')}</span><b>{money(bar)}</b></div>
           <div className="between" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><span>{t('shift_revenue')}</span><b className="gold" style={{ fontSize: 18 }}>{money(revenue)}</b></div>
         </div>
-        {todayOrders.length > 0 && (
+        {todayAll.length > 0 && (
           <div className="card tight" style={{ marginTop: 10, maxHeight: 240, overflowY: 'auto' }}>
             <div className="muted" style={{ marginBottom: 6 }}>{t('shift_by_order')}</div>
-            {todayOrders.map((o) => (
+            {todayAll.map((o) => (
               <div key={o.id} style={{ padding: '6px 0', borderTop: '1px solid var(--line)' }}>
                 <div className="between"><b>#{o.id} · {orderLabel(o)}</b><b>{money(o.total)}</b></div>
                 {(o.items || []).map((i, idx) => (
@@ -232,16 +345,7 @@ export function WaiterPanel() {
         <button className="btn block" style={{ marginTop: 16 }} onClick={doPrintShift}>🖨 {t('shift_print')}</button>
       </Sheet>
 
-      <Sheet open={!!preview} onClose={() => setPreview(null)}>
-        <h2 style={{ marginTop: 0 }}>{t('receipt_preview')}</h2>
-        <div className="muted" style={{ marginBottom: 10 }}>{t('printer_not_connected')}</div>
-        <pre style={{
-          whiteSpace: 'pre', overflowX: 'auto', fontFamily: 'ui-monospace, Menlo, monospace',
-          fontSize: 12, lineHeight: 1.45, background: 'var(--card, #111)', color: 'var(--fg, #eee)',
-          padding: 14, borderRadius: 12, border: '1px solid var(--line)',
-        }}>{preview}</pre>
-        <button className="btn sm" style={{ marginTop: 12 }} onClick={() => { setPreview(null); setPrinterOpen(true); }}>🖨 {t('printer')}</button>
-      </Sheet>
+      <PreviewSheet preview={preview} setPreview={setPreview} onPrinter={() => setPrinterOpen(true)} />
     </div>
   );
 }

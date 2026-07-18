@@ -64,6 +64,12 @@ export const STR = {
     shift_float: 'Разменный фонд (касса на сдачу)', shift_float_hint: 'Сумма наличных, заложенная в кассу на сдачу в начале смены',
     shift_in_drawer: 'Должно быть в кассе', shift_print: 'Печать отчёта смены',
     shift_items: 'Что заказывали (позиции)', shift_by_order: 'По заказам (кто что заказал)',
+    // POS официанта
+    nav_tables: 'Столики', nav_new_order: 'Новый заказ', new_order: 'Новый заказ',
+    no_open_tables: 'Нет открытых столов', pick_table: 'Выберите стол', table_free: 'свободен',
+    add_items: 'Добавить', checkout_print: 'Рассчитать и печать', leave_open: 'Оставить открытым',
+    order_saved: 'Заказ сохранён',
+    cab_shift: 'За смену (сегодня)', cab_total: 'За всё время', cab_orders: 'Заказов', cab_revenue: 'Выручка', cab_tools: 'Инструменты',
     preorder: 'Предзаказ', guests: 'гостей',
     // курьер
     courier: 'Курьер', active: 'Активные', history: 'История',
@@ -187,6 +193,12 @@ export const STR = {
     shift_float: 'Cash float (change fund)', shift_float_hint: 'Cash placed in the drawer for change at the start of the shift',
     shift_in_drawer: 'Expected in drawer', shift_print: 'Print shift report',
     shift_items: 'Items ordered', shift_by_order: 'By order (who ordered what)',
+    // waiter POS
+    nav_tables: 'Tables', nav_new_order: 'New order', new_order: 'New order',
+    no_open_tables: 'No open tables', pick_table: 'Pick a table', table_free: 'free',
+    add_items: 'Add', checkout_print: 'Checkout & print', leave_open: 'Leave open',
+    order_saved: 'Order saved',
+    cab_shift: 'This shift (today)', cab_total: 'All time', cab_orders: 'Orders', cab_revenue: 'Revenue', cab_tools: 'Tools',
     preorder: 'Pre-order', guests: 'guests',
     courier: 'Courier', active: 'Active', history: 'History',
     take_order: 'Take order', delivered: 'Delivered', ready_pickup: 'ready for pickup',
