@@ -307,6 +307,19 @@ app.patch('/api/orders/:id/items', auth, requireRole('waiter', 'admin', 'owner')
 app.post('/api/orders/:id/close', auth, requireRole('waiter', 'admin', 'owner'), (req, res) => {
   const order = db.orders.find((o) => o.id === Number(req.params.id));
   if (!order) return res.status(404).json({ error: 'Заказ не найден' });
+  const subtotal = order.items.reduce((s, i) => s + i.price * i.qty, 0);
+  const d = req.body.discount || {};
+  let discountAmount = 0;
+  if (Number(d.value) > 0) {
+    discountAmount = d.type === 'percent'
+      ? Math.round(subtotal * Math.min(100, Number(d.value)) / 100)
+      : Math.min(Math.round(Number(d.value)), subtotal);
+  }
+  order.subtotal = subtotal;
+  order.discount = discountAmount;
+  order.discountType = d.type || null;
+  order.discountValue = Number(d.value) || 0;
+  order.total = subtotal - discountAmount;
   order.paid = true;
   order.payment = ['cash', 'card'].includes(req.body.payment) ? req.body.payment : 'cash';
   order.status = 'handed';

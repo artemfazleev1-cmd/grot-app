@@ -177,11 +177,22 @@ export function WaiterTables() {
   const open = orders.data.filter((o) => o.type === 'dinein' && !o.paid);
   const selOrder = sel && orders.data.find((o) => o.id === sel);
 
+  // Скидка: пересчёт по текущему выбору
+  const discOf = (p) => {
+    const sub = p.order.total;
+    const v = Number(p.discVal) || 0;
+    if (v <= 0) return 0;
+    return p.discType === 'percent' ? Math.round(sub * Math.min(100, v) / 100) : Math.min(Math.round(v), sub);
+  };
+
   const doCheckout = async () => {
     const o = pay.order;
+    const discAmt = discOf(pay);
+    const finalTotal = o.total - discAmt;
     const cashNum = pay.method === 'cash' && pay.cash ? Number(pay.cash) : null;
-    const ok = await printBill(o, { payment: pay.method, cash: cashNum, openDrawer: pay.method === 'cash' });
-    if (ok) { await api.post(`/orders/${o.id}/close`, { payment: pay.method }).catch(() => {}); setPay(null); orders.reload(); }
+    const enriched = { ...o, discount: discAmt };
+    const ok = await printBill(enriched, { payment: pay.method, cash: cashNum, openDrawer: pay.method === 'cash' });
+    if (ok) { await api.post(`/orders/${o.id}/close`, { payment: pay.method, discount: { type: pay.discType, value: Number(pay.discVal) || 0 } }).catch(() => {}); setPay(null); orders.reload(); }
   };
 
   const setQty = async (orderId, menuId, qty) => {
@@ -223,29 +234,46 @@ export function WaiterTables() {
           </div>
           <div className="row" style={{ gap: 8, marginTop: 14 }}>
             <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, orderId: selOrder.id })}>➕ {t('add_items')}</button>
-            <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
+            <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '', discType: 'percent', discVal: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
           </div>
         </Sheet>
       )}
 
-      {pay && (
+      {pay && (() => {
+        const discAmt = discOf(pay);
+        const finalTotal = pay.order.total - discAmt;
+        return (
         <Sheet open onClose={() => setPay(null)}>
           <h2 style={{ marginTop: 0 }}>{t('checkout_title2')} · {t('table')} {pay.order.tableNumber}</h2>
-          <div className="between" style={{ padding: '6px 0' }}><b>{t('total')}</b><b className="gold" style={{ fontSize: 22 }}>{money(pay.order.total)}</b></div>
-          <div className="row" style={{ gap: 8, marginTop: 12 }}>
+
+          <div className="card tight">
+            <div className="between" style={{ padding: '3px 0' }}><span className="muted">{t('subtotal')}</span><b>{money(pay.order.total)}</b></div>
+            {discAmt > 0 && <div className="between" style={{ padding: '3px 0' }}><span className="muted">{t('discount')}</span><b style={{ color: 'var(--green, #5c9)' }}>−{money(discAmt)}</b></div>}
+            <div className="between" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><b>{t('total')}</b><b className="gold" style={{ fontSize: 22 }}>{money(finalTotal)}</b></div>
+          </div>
+
+          <label style={{ display: 'block', margin: '14px 0 6px' }}>{t('discount')}</label>
+          <div className="row" style={{ gap: 8 }}>
+            <button className={`btn sm ${pay.discType === 'percent' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, discType: 'percent' }))}>%</button>
+            <button className={`btn sm ${pay.discType === 'amount' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, discType: 'amount' }))}>฿</button>
+            <input type="number" inputMode="numeric" value={pay.discVal} onChange={(e) => setPay((p) => ({ ...p, discVal: e.target.value }))} placeholder="0" style={{ flex: 1 }} />
+          </div>
+
+          <div className="row" style={{ gap: 8, marginTop: 14 }}>
             <button className={`btn ${pay.method === 'cash' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setPay((p) => ({ ...p, method: 'cash' }))}>💵 {t('pay_cash')}</button>
             <button className={`btn ${pay.method === 'card' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setPay((p) => ({ ...p, method: 'card' }))}>💳 {t('pay_card')}</button>
           </div>
           {pay.method === 'cash' && (<>
             <label style={{ display: 'block', margin: '14px 0 6px' }}>{t('pay_received')}</label>
-            <input type="number" inputMode="numeric" value={pay.cash} onChange={(e) => setPay((p) => ({ ...p, cash: e.target.value }))} placeholder={String(pay.order.total)} style={{ width: '100%' }} />
-            {Number(pay.cash) > pay.order.total && (
-              <div className="between" style={{ marginTop: 8 }}><span>{t('pay_change')}</span><b style={{ fontSize: 18 }}>{money(Number(pay.cash) - pay.order.total)}</b></div>
+            <input type="number" inputMode="numeric" value={pay.cash} onChange={(e) => setPay((p) => ({ ...p, cash: e.target.value }))} placeholder={String(finalTotal)} style={{ width: '100%' }} />
+            {Number(pay.cash) > finalTotal && (
+              <div className="between" style={{ marginTop: 8 }}><span>{t('pay_change')}</span><b style={{ fontSize: 18 }}>{money(Number(pay.cash) - finalTotal)}</b></div>
             )}
           </>)}
           <button className="btn block" style={{ marginTop: 16 }} onClick={doCheckout}>🖨 {t('checkout_print')}</button>
         </Sheet>
-      )}
+        );
+      })()}
 
       {picker && <ItemPicker tableNumber={picker.tableNumber} orderId={picker.orderId} onClose={() => setPicker(null)} onSaved={() => { setPicker(null); orders.reload(); }} />}
       <PreviewSheet preview={preview} setPreview={setPreview} />
