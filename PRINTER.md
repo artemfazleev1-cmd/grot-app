@@ -13,24 +13,25 @@
 - **В Android-сборке** печать идёт на реальный принтер по Bluetooth Classic (SPP).
 - ⚠️ **iOS не поддерживается** для этого принтера (дешёвые POS58 без MFi). Касса — только Android.
 
-## Включить реальную печать (один раз)
+## Нативная часть — УЖЕ настроена ✅
+Сделано в репозитории и коммитится:
+- установлен плагин **`cordova-plugin-bluetooth-serial`** (Bluetooth Classic SPP → `window.bluetoothSerial`)
+- создан Android-проект (`android/`), плагин подхвачен Capacitor
+- в `AndroidManifest.xml` прописаны разрешения Bluetooth (legacy + Android 12+)
+- веб собран с боевым API (`VITE_API_BASE=grot-app.onrender.com`) и синхронизирован
+
+## Собрать APK (нужен Android Studio / JDK + Android SDK)
+На машине с Android Studio:
 ```bash
 cd grot-app
-
-# 1) Bluetooth-плагин (Bluetooth Classic SPP, отдаёт window.bluetoothSerial)
-cd frontend && npm i cordova-plugin-bluetooth-serial && cd ..
-
-# 2) добавить Android-платформу (её ещё нет в проекте)
-npx cap add android
-
-# 3) собрать веб и синхронизировать в нативный проект
-npm run sync:app        # = build фронта + npx cap sync
-
-# 4) открыть в Android Studio и собрать APK на планшет
-npx cap open android
+npm install                 # подтянет cordova-plugin-bluetooth-serial
+npm run sync:app            # пересборка фронта (боевой API) + cap sync
+npx cap open android        # откроется Android Studio → Build APK → на планшет
 ```
-В `AndroidManifest.xml` должны быть разрешения Bluetooth
-(`BLUETOOTH`, `BLUETOOTH_CONNECT`, `BLUETOOTH_SCAN` для Android 12+).
+> ⚠️ **Android 12+**: старый плагин может не запросить разрешение `BLUETOOTH_CONNECT`
+> в рантайме. Если на планшете Android 12+ подключение не идёт — выдай приложению
+> разрешение «Устройства поблизости» вручную в настройках приложения, либо добавь
+> рантайм-запрос. На большинстве бюджетных POS-планшетов (Android ≤ 11) работает сразу.
 
 ## Подключение принтера на планшете
 1. Android → Настройки → Bluetooth → спарить **Printer001** (PIN `0000`).

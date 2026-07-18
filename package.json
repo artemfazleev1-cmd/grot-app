@@ -19,5 +19,8 @@
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1"
+  },
+  "dependencies": {
+    "cordova-plugin-bluetooth-serial": "^0.4.7"
   }
 }

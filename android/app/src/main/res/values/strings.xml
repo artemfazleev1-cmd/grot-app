@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GROT</string>
+    <string name="title_activity_main">GROT</string>
+    <string name="package_name">com.grot.app</string>
+    <string name="custom_url_scheme">com.grot.app</string>
+</resources>
