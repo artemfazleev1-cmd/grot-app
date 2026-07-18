@@ -183,7 +183,16 @@ function Staff() {
 }
 
 function Analytics() {
-  const { data, loading } = useFetch(() => api.get('/analytics'));
+  const { toast } = useStore();
+  const { data, loading, reload } = useFetch(() => api.get('/analytics'));
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const clearOps = async () => {
+    setBusy(true);
+    try { await api.post('/admin/reset-operations', { confirm: 'RESET' }); toast('Заказы очищены — чистый старт'); setConfirming(false); reload(); }
+    catch (e) { toast(e.message); }
+    setBusy(false);
+  };
   if (loading || !data) return <Loader />;
   const maxTop = Math.max(...data.topDishes.map((d) => d[1]), 1);
   const reg = data.registrations, ord = data.orders, rev = data.revenue;
@@ -235,6 +244,20 @@ function Analytics() {
           <div className="bar-track"><div className="bar-fill" style={{ width: `${(qty / maxTop) * 100}%` }} /></div>
           <b>{qty}</b></div>
       ))}
+    </div>
+
+    <div className="section-title"><h2>Обслуживание</h2></div>
+    <div className="card">
+      <div className="muted" style={{ marginBottom: 10 }}>
+        Очистить все заказы, брони, вызовы и уведомления (чистый старт перед открытием).
+        Пользователи, меню и склад останутся.
+      </div>
+      {!confirming
+        ? <button className="btn ghost sm" onClick={() => setConfirming(true)}>🧹 Очистить заказы</button>
+        : <div className="row" style={{ gap: 8 }}>
+            <button className="btn sm" disabled={busy} onClick={clearOps}>{busy ? 'Очистка…' : 'Да, очистить всё'}</button>
+            <button className="btn ghost sm" disabled={busy} onClick={() => setConfirming(false)}>Отмена</button>
+          </div>}
     </div>
   </>);
 }
