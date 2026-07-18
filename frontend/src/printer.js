@@ -307,24 +307,16 @@ export function buildShiftReport(r, opts = {}) {
   line(lr('Printed', r.printedStr));
   line(rule());
 
+  // Заказы по отдельности: под каждым — что заказали (позиции)
   put(CMD.boldOn); line('ORDERS'); put(CMD.boldOff);
   if (!r.orders.length) line('No orders today');
-  for (const o of r.orders) line(lr(`#${o.id} ${o.label}`, money(o.total)));
-  line(rule());
-
-  // Что заказывали — агрегат по позициям (кухня / бар)
-  const sold = r.items || { food: [], drinks: [] };
-  if ((sold.food?.length || 0) + (sold.drinks?.length || 0) > 0) {
-    put(CMD.boldOn); line('ITEMS SOLD'); put(CMD.boldOff);
-    const soldSection = (title, arr) => {
-      if (!arr || !arr.length) return;
-      line(title);
-      for (const it of arr) line(lr(`${it.name}`, `${it.qty}x ${money(it.amount)}`));
-    };
-    soldSection('KITCHEN', sold.food);
-    soldSection('BAR', sold.drinks);
+  for (const o of r.orders) {
     line(rule());
+    put(CMD.boldOn); line(`#${o.id}  ${o.label}`); put(CMD.boldOff);
+    for (const it of (o.items || [])) line(lr(`${it.qty}x ${it.name}`, money(it.amount)));
+    line(lr('Order total', money(o.total)));
   }
+  line(rule());
 
   line(lr('Orders', String(r.count)));
   line(lr('Kitchen sales', `${money(r.kitchen)} ${cur}`));

@@ -63,7 +63,7 @@ export const STR = {
     shift_kitchen: 'Кухня (еда)', shift_bar: 'Бар (напитки)', shift_revenue: 'Выручка за день',
     shift_float: 'Разменный фонд (касса на сдачу)', shift_float_hint: 'Сумма наличных, заложенная в кассу на сдачу в начале смены',
     shift_in_drawer: 'Должно быть в кассе', shift_print: 'Печать отчёта смены',
-    shift_items: 'Что заказывали (позиции)',
+    shift_items: 'Что заказывали (позиции)', shift_by_order: 'По заказам (кто что заказал)',
     preorder: 'Предзаказ', guests: 'гостей',
     // курьер
     courier: 'Курьер', active: 'Активные', history: 'История',
@@ -186,7 +186,7 @@ export const STR = {
     shift_kitchen: 'Kitchen (food)', shift_bar: 'Bar (drinks)', shift_revenue: 'Revenue today',
     shift_float: 'Cash float (change fund)', shift_float_hint: 'Cash placed in the drawer for change at the start of the shift',
     shift_in_drawer: 'Expected in drawer', shift_print: 'Print shift report',
-    shift_items: 'Items ordered',
+    shift_items: 'Items ordered', shift_by_order: 'By order (who ordered what)',
     preorder: 'Pre-order', guests: 'guests',
     courier: 'Courier', active: 'Active', history: 'History',
     take_order: 'Take order', delivered: 'Delivered', ready_pickup: 'ready for pickup',

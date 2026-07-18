@@ -117,18 +117,10 @@ export function WaiterPanel() {
   const todayOrders = orders.data.filter((o) => isToday2(o.createdAt));
   const revenue = todayOrders.reduce((s, o) => s + o.total, 0);
   let kitchen = 0, bar = 0;
-  const agg = {};   // агрегат по позициям: что и сколько заказали за день
   todayOrders.forEach((o) => (o.items || []).forEach((i) => {
     const g = i.group || groupMap[i.menuId] || 'food';
-    const amt = i.price * i.qty;
-    (g === 'drinks' ? (bar += amt) : (kitchen += amt));
-    const name = i.nameEn || i.name;
-    const k = name + '|' + g;
-    if (!agg[k]) agg[k] = { name, qty: 0, amount: 0, group: g };
-    agg[k].qty += i.qty; agg[k].amount += amt;
+    (g === 'drinks' ? (bar += i.price * i.qty) : (kitchen += i.price * i.qty));
   }));
-  const soldFood = Object.values(agg).filter((x) => x.group !== 'drinks').sort((a, b) => b.qty - a.qty);
-  const soldDrinks = Object.values(agg).filter((x) => x.group === 'drinks').sort((a, b) => b.qty - a.qty);
   const floatNum = Number(floatVal) || 0;
 
   const doPrintShift = async () => {
@@ -136,9 +128,11 @@ export function WaiterPanel() {
     const r = {
       dateStr: new Date().toLocaleDateString('en-GB'),
       printedStr: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-      orders: todayOrders.map((o) => ({ id: o.id, label: orderLabel(o), total: o.total })),
+      orders: todayOrders.map((o) => ({
+        id: o.id, label: orderLabel(o), total: o.total,
+        items: (o.items || []).map((i) => ({ qty: i.qty, name: i.nameEn || i.name, amount: i.price * i.qty })),
+      })),
       count: todayOrders.length, revenue, kitchen, bar, float: floatNum,
-      items: { food: soldFood, drinks: soldDrinks },
     };
     try { await printShiftReport(r); toast(t('print_ok')); setShiftOpen(false); }
     catch (e) {
@@ -214,12 +208,17 @@ export function WaiterPanel() {
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_bar')}</span><b>{money(bar)}</b></div>
           <div className="between" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><span>{t('shift_revenue')}</span><b className="gold" style={{ fontSize: 18 }}>{money(revenue)}</b></div>
         </div>
-        {(soldFood.length + soldDrinks.length) > 0 && (
-          <div className="card tight" style={{ marginTop: 10, maxHeight: 190, overflowY: 'auto' }}>
-            <div className="muted" style={{ marginBottom: 6 }}>{t('shift_items')}</div>
-            {[...soldFood, ...soldDrinks].map((it) => (
-              <div key={it.name} className="between" style={{ padding: '2px 0', fontSize: 14 }}>
-                <span>{it.name}</span><b>×{it.qty} · {money(it.amount)}</b>
+        {todayOrders.length > 0 && (
+          <div className="card tight" style={{ marginTop: 10, maxHeight: 240, overflowY: 'auto' }}>
+            <div className="muted" style={{ marginBottom: 6 }}>{t('shift_by_order')}</div>
+            {todayOrders.map((o) => (
+              <div key={o.id} style={{ padding: '6px 0', borderTop: '1px solid var(--line)' }}>
+                <div className="between"><b>#{o.id} · {orderLabel(o)}</b><b>{money(o.total)}</b></div>
+                {(o.items || []).map((i, idx) => (
+                  <div key={idx} className="between muted" style={{ fontSize: 13, paddingLeft: 8 }}>
+                    <span>{i.qty}× {i.nameEn || i.name}</span><span>{money(i.price * i.qty)}</span>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
