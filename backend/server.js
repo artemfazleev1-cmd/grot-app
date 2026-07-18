@@ -453,7 +453,17 @@ app.post('/api/staff', auth, requireRole('owner', 'admin'), (req, res) => {
   if (!name || !phone || !password) return res.status(400).json({ error: 'Заполните имя, телефон и пароль' });
   if (!STAFF_ROLES.includes(role)) return res.status(400).json({ error: 'Выберите роль' });
   if (String(password).length < 4) return res.status(400).json({ error: 'Пароль минимум 4 символа' });
-  if (db.users.find((u) => u.phone === phone)) return res.status(409).json({ error: 'Этот телефон уже используется' });
+  const existing = db.users.find((u) => u.phone === phone);
+  if (existing) {
+    // Телефон уже в базе. Если это клиент — повышаем его до сотрудника,
+    // сохраняя id и историю/статистику. Иначе телефон занят другим сотрудником.
+    if (existing.role !== 'client') return res.status(409).json({ error: 'Этот телефон уже используется сотрудником' });
+    existing.role = role;
+    existing.name = String(name).slice(0, 60);
+    existing.password = hashPassword(password);
+    existing.active = true;
+    return res.json({ id: existing.id, name: existing.name, phone: existing.phone, role: existing.role, active: true, upgraded: true });
+  }
   const u = { id: db.id(), phone: String(phone), password: hashPassword(password), name: String(name).slice(0, 60),
     role, active: true, createdAt: db.now() };
   db.users.push(u);

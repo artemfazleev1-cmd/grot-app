@@ -9,15 +9,15 @@ const now = () => new Date().toISOString();
 
 // ---------- Пользователи (все роли) ----------
 export const users = [
-  { id: id(), phone: '0000000000', password: 'owner',  name: 'Владелец GROT', role: 'owner',   createdAt: now() },
-  { id: id(), phone: '1111111111', password: 'admin',  name: 'Администратор', role: 'admin',   createdAt: now() },
-  { id: id(), phone: '2222222222', password: 'waiter', name: 'Сомчай (офиц.)', role: 'waiter', createdAt: now() },
-  { id: id(), phone: '3333333333', password: 'cook',   name: 'Пхрак (повар)',  role: 'cook',   createdAt: now() },
-  { id: id(), phone: '4444444444', password: 'courier',name: 'Нанг (курьер)',  role: 'courier',createdAt: now() },
-  { id: id(), phone: '5555555555', password: 'client', name: 'Артём',          role: 'client', createdAt: '2024-11-02T10:00:00Z',
+  { id: id(), phone: '+66800000000', password: 'owner',  name: 'Владелец GROT', role: 'owner',   createdAt: now() },
+  { id: id(), phone: '+66811111111', password: 'admin',  name: 'Администратор', role: 'admin',   createdAt: now() },
+  { id: id(), phone: '+66822222222', password: 'waiter', name: 'Сомчай (офиц.)', role: 'waiter', createdAt: now() },
+  { id: id(), phone: '+66833333333', password: 'cook',   name: 'Пхрак (повар)',  role: 'cook',   createdAt: now() },
+  { id: id(), phone: '+66844444444', password: 'courier',name: 'Нанг (курьер)',  role: 'courier',createdAt: now() },
+  { id: id(), phone: '+66855555555', password: 'client', name: 'Артём',          role: 'client', createdAt: '2024-11-02T10:00:00Z',
     stats: { totalSpent: 48200, ordersCount: 37, visits: 41, lastVisit: '2026-06-18T19:30:00Z' },
     favDishes: ['Smash Burger (говядина)', 'Свиной шашлык'], favDrinks: ['Erdinger Weissbier'] },
-  { id: id(), phone: '6666666666', password: 'client', name: 'Елена (VIP)',    role: 'client', createdAt: '2024-06-10T10:00:00Z',
+  { id: id(), phone: '+66866666666', password: 'client', name: 'Елена (VIP)',    role: 'client', createdAt: '2024-06-10T10:00:00Z',
     stats: { totalSpent: 127500, ordersCount: 88, visits: 95, lastVisit: '2026-06-21T20:10:00Z' },
     favDishes: ['Купаты'], favDrinks: ['Moose Craft Cider'] },
 ];

@@ -1,8 +1,64 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
-import { Loader, useFetch, money, Empty } from '../components/ui.jsx';
+import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
 import OrderChat from '../components/OrderChat.jsx';
+import {
+  printReceipt, openDrawer, isNativePrintingAvailable, listPrinters,
+  connectPrinter, disconnectPrinter, isConnected, printerStore,
+} from '../printer.js';
+
+// ---------------- ПОДКЛЮЧЕНИЕ ПРИНТЕРА ----------------
+// Экран выбора Bluetooth-принтера (только в Android-сборке). В вебе показывает,
+// что печать доступна лишь в приложении, но превью чека работает и тут.
+function PrinterSheet({ open, onClose }) {
+  const { toast, t } = useStore();
+  const [devices, setDevices] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const saved = printerStore.get();
+  const native = isNativePrintingAvailable();
+
+  const scan = async () => {
+    setBusy(true);
+    try { setDevices(await listPrinters()); }
+    catch { toast(t('print_fail')); setDevices([]); }
+    setBusy(false);
+  };
+  useEffect(() => { if (open && native) scan(); /* eslint-disable-next-line */ }, [open]);
+
+  const pick = async (d) => {
+    setBusy(true);
+    try { await connectPrinter(d); toast(t('printer_connected')); onClose(); }
+    catch { toast(t('print_fail')); }
+    setBusy(false);
+  };
+  const forget = async () => { await disconnectPrinter(); printerStore.clear(); toast(t('printer_forgotten')); onClose(); };
+
+  return (
+    <Sheet open={open} onClose={onClose}>
+      <h2 style={{ marginTop: 0 }}>🖨 {t('printer')}</h2>
+      {!native && <div className="muted" style={{ marginBottom: 12 }}>{t('printer_app_only')}</div>}
+      {saved && (
+        <div className="card tight between" style={{ marginBottom: 10 }}>
+          <span>{t('printer_saved')}: <b>{saved.name || saved.address}</b></span>
+          <button className="btn ghost sm" onClick={forget}>{t('printer_forget')}</button>
+        </div>
+      )}
+      {native && (<>
+        <button className="btn sm" onClick={scan} disabled={busy}>{busy ? t('printing') : t('printer_scan')}</button>
+        <div className="list" style={{ marginTop: 12 }}>
+          {(devices || []).map((d) => (
+            <div key={d.address} className="card tight between">
+              <span>{d.name || t('printer_unknown')}<div className="muted" style={{ fontSize: 12 }}>{d.address}</div></span>
+              <button className="btn sm" onClick={() => pick(d)} disabled={busy}>{t('printer_use')}</button>
+            </div>
+          ))}
+          {devices && devices.length === 0 && <Empty icon="📭" text={t('printer_none')} />}
+        </div>
+      </>)}
+    </Sheet>
+  );
+}
 
 // ---------------- ОФИЦИАНТ ----------------
 export function WaiterPanel() {
@@ -10,17 +66,43 @@ export function WaiterPanel() {
   const orders = useFetch(() => api.get('/orders'));
   const calls = useFetch(() => api.get('/calls'));
   const resv = useFetch(() => api.get('/reservations'));
+  const [printerOpen, setPrinterOpen] = useState(false);
+  const [preview, setPreview] = useState(null);   // текст чека для превью
+  const [ready, setReady] = useState(false);       // принтер подключён?
+  // Периодически проверяем связь с принтером для индикатора статуса.
+  useEffect(() => {
+    let alive = true;
+    const check = async () => { const r = await isConnected(); if (alive) setReady(r); };
+    check(); const iv = setInterval(check, 5000);
+    return () => { alive = false; clearInterval(iv); };
+  }, []);
   if (orders.loading) return <Loader />;
 
   const setStatus = async (o, status) => { await api.patch(`/orders/${o.id}/status`, { status }); toast(`№${o.id}: ${t('st_' + status)}`); orders.reload(); };
   const closeCall = async (c) => { await api.patch(`/calls/${c.id}`, { status: 'done' }); calls.reload(); };
   const confirmResv = async (r) => { await api.patch(`/reservations/${r.id}`, { status: 'confirmed' }); toast('OK'); resv.reload(); };
 
+  // Печать чека по заказу. Есть принтер → печатает; нет → показывает превью формата.
+  const printBill = async (o, opts = {}) => {
+    try {
+      await printReceipt(o, opts);
+      toast(t('print_ok'));
+    } catch (e) {
+      if (e.preview) setPreview(e.preview);
+      toast(e.message === 'NO_PRINTER' || e.message === 'NO_NATIVE' ? t('printer_not_connected') : t('print_fail'));
+    }
+  };
+
   const active = orders.data.filter((o) => !['delivered', 'handed'].includes(o.status));
 
   return (
     <div className="screen">
-      <h1>{t('waiter_panel')}</h1>
+      <div className="between">
+        <h1>{t('waiter_panel')}</h1>
+        <button className={`chip ${ready ? 'active' : ''}`} onClick={() => setPrinterOpen(true)}>
+          🖨 {ready ? t('printer_on') : t('printer_off')}
+        </button>
+      </div>
 
       <div className="section-title"><h2>{t('calls')}</h2></div>
       <div className="list">
@@ -41,12 +123,14 @@ export function WaiterPanel() {
               <span className="badge gold">{t('st_' + o.status)}</span></div>
             <div className="muted">{o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')}</div>
             {o.comment && <div className="muted">{t('comment')}: {o.comment}</div>}
-            <div className="row" style={{ marginTop: 10 }}>
+            <div className="row" style={{ marginTop: 10, gap: 8, flexWrap: 'wrap' }}>
               {o.status === 'new' && <button className="btn sm" onClick={() => setStatus(o, 'accepted')}>{t('accept')}</button>}
               {o.status === 'accepted' && <button className="btn sm" onClick={() => setStatus(o, 'cooking')}>{t('to_kitchen')}</button>}
               {o.status === 'cooking' && <button className="btn sm" onClick={() => setStatus(o, 'ready')}>{t('ready')}</button>}
               {o.status === 'ready' && o.type === 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'delivering')}>{t('to_courier')}</button>}
               {o.status === 'ready' && o.type !== 'delivery' && <button className="btn sm" onClick={() => setStatus(o, 'handed')}>{t('hand_over')}</button>}
+              <button className="btn ghost sm" onClick={() => printBill(o)}>🖨 {t('print_receipt')}</button>
+              <button className="btn ghost sm" onClick={() => printBill(o, { openDrawer: true })}>💵 {t('print_cash')}</button>
             </div>
           </div>
         ))}
@@ -63,6 +147,19 @@ export function WaiterPanel() {
           </div>
         ))}
       </div>
+
+      <PrinterSheet open={printerOpen} onClose={() => setPrinterOpen(false)} />
+
+      <Sheet open={!!preview} onClose={() => setPreview(null)}>
+        <h2 style={{ marginTop: 0 }}>{t('receipt_preview')}</h2>
+        <div className="muted" style={{ marginBottom: 10 }}>{t('printer_not_connected')}</div>
+        <pre style={{
+          whiteSpace: 'pre', overflowX: 'auto', fontFamily: 'ui-monospace, Menlo, monospace',
+          fontSize: 12, lineHeight: 1.45, background: 'var(--card, #111)', color: 'var(--fg, #eee)',
+          padding: 14, borderRadius: 12, border: '1px solid var(--line)',
+        }}>{preview}</pre>
+        <button className="btn sm" style={{ marginTop: 12 }} onClick={() => { setPreview(null); setPrinterOpen(true); }}>🖨 {t('printer')}</button>
+      </Sheet>
     </div>
   );
 }
