@@ -15,14 +15,21 @@
 // принтера) — для Паттайи это ок. Для тайского/кириллицы нужно переключение
 // кодовой страницы принтера (см. заметку внизу файла).
 export const RECEIPT_CONFIG = {
-  name: 'GROT BAR & GRILL',
+  name: 'GROT',
+  tagline: 'GRILL - DRAFT BEER - BAR',
   address: 'Pattaya, Thailand',
-  phone: '+66 00 000 0000',
-  footer: 'THANK YOU! SEE YOU AGAIN',
-  qrUrl: 'https://grot.bar',   // QR внизу чека (меню / отзыв / лояльность)
+  slogan: 'Grilled over fire. Poured on tap.',
+  whatsapp: '+66 98 503 0375',
+  instagram: '@GROT.BAR',
+  qrUrl: 'https://instagram.com/GROT.BAR', // QR -> Instagram
   serviceChargePct: 0,          // 0 = без сервисного сбора; напр. 10 = +10%
-  currency: 'THB',
+  currency: '฿',           // тайский бат ฿
 };
+
+// Логотип — пламя (Option 1). Приложение само рендерит его в 1-битный растр
+// на устройстве (в webview есть canvas), поэтому в коде только путь фигуры.
+const LOGO_PATH = 'M80 16 C96 44 104 62 96 82 C106 74 110 60 108 48 C124 72 120 112 84 132 C94 120 98 106 93 94 C88 110 74 114 68 107 C77 98 73 87 65 83 C69 95 58 102 52 96 C42 86 46 62 66 50 C62 64 68 74 76 75 C64 56 68 36 80 16 Z';
+const LOGO_W = 128, LOGO_H = 128, LOGO_SCALE = 0.8;
 
 const WIDTH = 32;                 // символов в строке для 58мм
 const STORE_KEY = 'grot_printer'; // сохранённый принтер {address,name}
@@ -51,9 +58,33 @@ function textBytes(str) {
   const out = [];
   for (const ch of String(str)) {
     const c = ch.codePointAt(0);
+    if (c === 0x0e3f) { out.push(0xdf); continue; } // ฿ — позиция бата в тайской кодовой странице
     out.push(c > 0x7f ? 0x3f : c);
   }
   return out;
+}
+
+// Рендер логотипа-пламени в ESC/POS растр (GS v 0). Работает в webview/браузере
+// (нужен canvas). Возвращает массив байт команды или null, если canvas недоступен.
+function logoRaster() {
+  try {
+    if (typeof document === 'undefined') return null;
+    const W = LOGO_W, H = LOGO_H, BPR = W / 8;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+    ctx.setTransform(LOGO_SCALE, 0, 0, LOGO_SCALE, 0, 0);
+    ctx.fillStyle = '#000'; ctx.fill(new Path2D(LOGO_PATH));
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const img = ctx.getImageData(0, 0, W, H).data;
+    const data = [];
+    for (let y = 0; y < H; y++) for (let bx = 0; bx < BPR; bx++) {
+      let b = 0;
+      for (let bit = 0; bit < 8; bit++) { const x = bx * 8 + bit; if (img[(y * W + x) * 4] < 128) b |= (0x80 >> bit); }
+      data.push(b);
+    }
+    return [GS, 0x76, 0x30, 0x00, BPR & 0xff, (BPR >> 8) & 0xff, H & 0xff, (H >> 8) & 0xff, ...data];
+  } catch { return null; }
 }
 
 // QR-код (модель 2) — стандартная ESC/POS последовательность GS ( k.
@@ -101,17 +132,22 @@ export function buildReceipt(order, opts = {}) {
   const line = (str = '') => { put(textBytes(str)); put([0x0a]); text.push(str); };
   const center = (str) => { put(CMD.alignC); line(str); put(CMD.alignL); };
 
+  const cur = cfg.currency;
   put(CMD.init);
 
-  // Шапка
+  // Логотип — пламя (растр), по центру
+  const logo = logoRaster();
+  if (logo) { put(CMD.alignC); put(logo); put([0x0a]); put(CMD.alignL); text.push('[ flame ]'); }
+
+  // Шапка: название крупно + тэглайн + город
   put(CMD.alignC);
-  put(CMD.boldOn); put(CMD.sizeTall); line(cfg.name); put(CMD.sizeNormal); put(CMD.boldOff);
-  line(cfg.address);
-  if (cfg.phone) line('Tel: ' + cfg.phone);
+  put(CMD.boldOn); put(CMD.sizeBig); line(cfg.name); put(CMD.sizeNormal); put(CMD.boldOff);
+  if (cfg.tagline) line(cfg.tagline);
+  if (cfg.address) line(cfg.address);
   put(CMD.alignL);
   line(rule());
 
-  // Мета: стол/тип + номер заказа + дата
+  // Мета: стол/тип + номер заказа + дата и время
   const where = order.type === 'delivery' ? 'Delivery'
     : order.tableNumber ? `Table ${order.tableNumber}`
     : order.type === 'pickup' ? 'Pickup' : 'Dine-in';
@@ -119,34 +155,49 @@ export function buildReceipt(order, opts = {}) {
   line(fmtDate(order.createdAt));
   line(rule());
 
-  // Позиции
-  for (const i of items) {
-    const name = i.nameEn || i.name;
-    line(lr(`${i.qty}x ${name}`, money(i.price * i.qty)));
+  // Позиции — раздельно КУХНЯ / БАР, если в заказе есть и еда, и напитки
+  const itemLine = (i) => line(lr(`${i.qty}x ${i.nameEn || i.name}`, money(i.price * i.qty)));
+  const food = items.filter((i) => (i.group || 'food') !== 'drinks');
+  const drinks = items.filter((i) => i.group === 'drinks');
+  const section = (title, arr) => {
+    if (!arr.length) return;
+    put(CMD.boldOn); line(title); put(CMD.boldOff);
+    arr.forEach(itemLine);
+    line(rule());
+  };
+  if (food.length && drinks.length) {
+    section('KITCHEN', food);
+    section('BAR', drinks);
+  } else {
+    items.forEach(itemLine);
+    line(rule());
   }
-  line(rule());
 
   // Итоги
-  line(lr('Subtotal', money(subtotal)));
-  if (service) line(lr(`Service ${cfg.serviceChargePct}%`, money(service)));
+  line(lr('Subtotal', `${money(subtotal)} ${cur}`));
+  if (service) line(lr(`Service ${cfg.serviceChargePct}%`, `${money(service)} ${cur}`));
   put(CMD.boldOn); put(CMD.sizeTall);
-  line(lr('TOTAL', `${money(total)} ${cfg.currency}`));
+  line(lr('TOTAL', `${money(total)} ${cur}`));
   put(CMD.sizeNormal); put(CMD.boldOff);
   if (opts.cash != null) {
-    line(rule());
-    line(lr('Cash', money(opts.cash)));
-    line(lr('Change', money(opts.cash - total)));
+    line(lr('Cash', `${money(opts.cash)} ${cur}`));
+    line(lr('Change', `${money(opts.cash - total)} ${cur}`));
   }
   line(rule());
 
-  // Подвал + QR
-  center(cfg.footer);
+  // Подвал: спасибо + слоган + соцсети + QR на Instagram
+  center('THANK YOU');
+  if (cfg.slogan) center(cfg.slogan);
+  put([0x0a]);
+  if (cfg.whatsapp) center('WhatsApp ' + cfg.whatsapp);
+  if (cfg.instagram) center('Instagram ' + cfg.instagram);
   if (cfg.qrUrl) {
     put([0x0a]);
     put(CMD.alignC);
-    put(qrBytes(`${cfg.qrUrl}?o=${order.id}`));
+    put(qrBytes(cfg.qrUrl));
     put([0x0a]);
     put(CMD.alignL);
+    center('Follow us on Instagram');
     text.push('[QR] ' + cfg.qrUrl);
   }
 

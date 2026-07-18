@@ -244,7 +244,7 @@ app.post('/api/orders', auth, (req, res) => {
     if (!dish) return res.status(400).json({ error: 'Позиция не найдена' });
     if (!dish.available) return res.status(409).json({ error: `«${dish.name}» сейчас недоступна` });
     const qty = Math.min(50, Math.max(1, Math.floor(Number(it.qty) || 1)));
-    items.push({ menuId: dish.id, name: dish.name, nameEn: dish.nameEn || null, price: dish.price, qty });
+    items.push({ menuId: dish.id, name: dish.name, nameEn: dish.nameEn || null, price: dish.price, qty, group: dish.group || 'food' });
     total += dish.price * qty;
   }
   const allowedTypes = ['delivery', 'pickup', 'dinein'];
