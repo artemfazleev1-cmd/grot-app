@@ -312,6 +312,20 @@ export function buildShiftReport(r, opts = {}) {
   for (const o of r.orders) line(lr(`#${o.id} ${o.label}`, money(o.total)));
   line(rule());
 
+  // Что заказывали — агрегат по позициям (кухня / бар)
+  const sold = r.items || { food: [], drinks: [] };
+  if ((sold.food?.length || 0) + (sold.drinks?.length || 0) > 0) {
+    put(CMD.boldOn); line('ITEMS SOLD'); put(CMD.boldOff);
+    const soldSection = (title, arr) => {
+      if (!arr || !arr.length) return;
+      line(title);
+      for (const it of arr) line(lr(`${it.name}`, `${it.qty}x ${money(it.amount)}`));
+    };
+    soldSection('KITCHEN', sold.food);
+    soldSection('BAR', sold.drinks);
+    line(rule());
+  }
+
   line(lr('Orders', String(r.count)));
   line(lr('Kitchen sales', `${money(r.kitchen)} ${cur}`));
   line(lr('Bar sales', `${money(r.bar)} ${cur}`));

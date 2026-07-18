@@ -117,10 +117,18 @@ export function WaiterPanel() {
   const todayOrders = orders.data.filter((o) => isToday2(o.createdAt));
   const revenue = todayOrders.reduce((s, o) => s + o.total, 0);
   let kitchen = 0, bar = 0;
+  const agg = {};   // агрегат по позициям: что и сколько заказали за день
   todayOrders.forEach((o) => (o.items || []).forEach((i) => {
     const g = i.group || groupMap[i.menuId] || 'food';
-    (g === 'drinks' ? (bar += i.price * i.qty) : (kitchen += i.price * i.qty));
+    const amt = i.price * i.qty;
+    (g === 'drinks' ? (bar += amt) : (kitchen += amt));
+    const name = i.nameEn || i.name;
+    const k = name + '|' + g;
+    if (!agg[k]) agg[k] = { name, qty: 0, amount: 0, group: g };
+    agg[k].qty += i.qty; agg[k].amount += amt;
   }));
+  const soldFood = Object.values(agg).filter((x) => x.group !== 'drinks').sort((a, b) => b.qty - a.qty);
+  const soldDrinks = Object.values(agg).filter((x) => x.group === 'drinks').sort((a, b) => b.qty - a.qty);
   const floatNum = Number(floatVal) || 0;
 
   const doPrintShift = async () => {
@@ -130,6 +138,7 @@ export function WaiterPanel() {
       printedStr: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
       orders: todayOrders.map((o) => ({ id: o.id, label: orderLabel(o), total: o.total })),
       count: todayOrders.length, revenue, kitchen, bar, float: floatNum,
+      items: { food: soldFood, drinks: soldDrinks },
     };
     try { await printShiftReport(r); toast(t('print_ok')); setShiftOpen(false); }
     catch (e) {
@@ -205,6 +214,16 @@ export function WaiterPanel() {
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_bar')}</span><b>{money(bar)}</b></div>
           <div className="between" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><span>{t('shift_revenue')}</span><b className="gold" style={{ fontSize: 18 }}>{money(revenue)}</b></div>
         </div>
+        {(soldFood.length + soldDrinks.length) > 0 && (
+          <div className="card tight" style={{ marginTop: 10, maxHeight: 190, overflowY: 'auto' }}>
+            <div className="muted" style={{ marginBottom: 6 }}>{t('shift_items')}</div>
+            {[...soldFood, ...soldDrinks].map((it) => (
+              <div key={it.name} className="between" style={{ padding: '2px 0', fontSize: 14 }}>
+                <span>{it.name}</span><b>×{it.qty} · {money(it.amount)}</b>
+              </div>
+            ))}
+          </div>
+        )}
         <label style={{ display: 'block', margin: '14px 0 6px' }}>{t('shift_float')}</label>
         <input type="number" inputMode="numeric" value={floatVal} onChange={(e) => setFloatVal(e.target.value)} placeholder="0" style={{ width: '100%' }} />
         <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{t('shift_float_hint')}</div>
