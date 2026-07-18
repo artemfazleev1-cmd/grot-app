@@ -184,6 +184,11 @@ export function WaiterTables() {
     if (ok) { await api.post(`/orders/${o.id}/close`, { payment: pay.method }).catch(() => {}); setPay(null); orders.reload(); }
   };
 
+  const setQty = async (orderId, menuId, qty) => {
+    try { const r = await api.patch(`/orders/${orderId}/items`, { menuId, qty }); if (r.deleted) setSel(null); orders.reload(); }
+    catch (e) {}
+  };
+
   return (
     <div className="screen">
       <h1>{t('nav_tables')}</h1>
@@ -202,8 +207,14 @@ export function WaiterTables() {
           <h2 style={{ marginTop: 0 }}>{t('table')} {selOrder.tableNumber}</h2>
           <div className="list">
             {selOrder.items.map((i, idx) => (
-              <div key={idx} className="between" style={{ padding: '4px 0' }}>
-                <span>{i.qty}× {i.nameEn || i.name}</span><b>{money(i.price * i.qty)}</b>
+              <div key={idx} className="between" style={{ padding: '6px 0', gap: 8 }}>
+                <span style={{ flex: 1, minWidth: 0 }}>{i.nameEn || i.name}</span>
+                <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+                  <button className="btn ghost sm" onClick={() => setQty(selOrder.id, i.menuId, i.qty - 1)}>−</button>
+                  <b style={{ minWidth: 18, textAlign: 'center' }}>{i.qty}</b>
+                  <button className="btn ghost sm" onClick={() => setQty(selOrder.id, i.menuId, i.qty + 1)}>+</button>
+                  <b style={{ minWidth: 54, textAlign: 'right' }}>{money(i.price * i.qty)}</b>
+                </div>
               </div>
             ))}
           </div>
@@ -278,9 +289,10 @@ export function WaiterCabinet() {
   const { t, user, logout, toast } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const { groupMap } = useGroupMap();
-  const { preview, setPreview } = usePrintBill(groupMap);
+  const { printBill, preview, setPreview } = usePrintBill(groupMap);
   const [printerOpen, setPrinterOpen] = useState(false);
   const [shiftOpen, setShiftOpen] = useState(false);
+  const [reprintOpen, setReprintOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [floatVal, setFloatVal] = useState(() => localStorage.getItem('grot_float') || '');
   useEffect(() => { let a = true; const c = async () => { const r = await isConnected(); if (a) setReady(r); }; c(); const iv = setInterval(c, 5000); return () => { a = false; clearInterval(iv); }; }, []);
@@ -331,8 +343,23 @@ export function WaiterCabinet() {
       <div className="section-title"><h2>{t('cab_tools')}</h2></div>
       <div className="list">
         <button className="btn block" onClick={() => setShiftOpen(true)}>🧾 {t('shift_report')}</button>
-        <button className={`btn ghost block`} onClick={() => setPrinterOpen(true)}>🖨 {ready ? t('printer_connected') : t('printer_not_connected')}</button>
+        <button className="btn ghost block" onClick={() => setReprintOpen(true)}>🔁 {t('reprint')}</button>
+        <button className="btn ghost block" onClick={() => setPrinterOpen(true)}>🖨 {ready ? t('printer_connected') : t('printer_not_connected')}</button>
       </div>
+
+      <Sheet open={reprintOpen} onClose={() => setReprintOpen(false)}>
+        <h2 style={{ marginTop: 0 }}>🔁 {t('reprint_title')}</h2>
+        <div className="muted" style={{ marginBottom: 10 }}>{t('reprint_hint')}</div>
+        <div className="list" style={{ maxHeight: 340, overflowY: 'auto' }}>
+          {todayAll.filter((o) => o.paid).slice().reverse().map((o) => (
+            <div key={o.id} className="card tight between">
+              <div><b>#{o.id} · {orderLabel(o)}</b><div className="muted" style={{ fontSize: 12 }}>{money(o.total)} · {o.payment === 'card' ? t('pay_card') : t('pay_cash')}</div></div>
+              <button className="btn sm" onClick={() => printBill(o, { payment: o.payment })}>🖨 {t('reprint')}</button>
+            </div>
+          ))}
+          {todayAll.filter((o) => o.paid).length === 0 && <Empty icon="🧾" text={t('no_recent_bills')} />}
+        </div>
+      </Sheet>
 
       <PrinterSheet open={printerOpen} onClose={() => setPrinterOpen(false)} />
 

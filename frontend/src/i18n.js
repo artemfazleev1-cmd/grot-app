@@ -72,6 +72,7 @@ export const STR = {
     cab_shift: 'За смену (сегодня)', cab_total: 'За всё время', cab_orders: 'Заказов', cab_revenue: 'Выручка', cab_tools: 'Инструменты',
     checkout_title2: 'Расчёт', pay_cash: 'Наличные', pay_card: 'Карта', pay_received: 'Получено наличными', pay_change: 'Сдача',
     shift_drawer_hint: 'Разменный фонд + оплаты наличными (карты в кассе нет)',
+    reprint: 'Перепечатать', reprint_title: 'Перепечать чека', reprint_hint: 'Оплаченные счета за сегодня — нажмите, чтобы перепечатать', no_recent_bills: 'Сегодня ещё не было оплат',
     preorder: 'Предзаказ', guests: 'гостей',
     // курьер
     courier: 'Курьер', active: 'Активные', history: 'История',
@@ -203,6 +204,7 @@ export const STR = {
     cab_shift: 'This shift (today)', cab_total: 'All time', cab_orders: 'Orders', cab_revenue: 'Revenue', cab_tools: 'Tools',
     checkout_title2: 'Checkout', pay_cash: 'Cash', pay_card: 'Card', pay_received: 'Cash received', pay_change: 'Change',
     shift_drawer_hint: 'Cash float + cash payments (card is not in the drawer)',
+    reprint: 'Reprint', reprint_title: 'Reprint a bill', reprint_hint: "Today's paid bills — tap to reprint", no_recent_bills: 'No payments yet today',
     preorder: 'Pre-order', guests: 'guests',
     courier: 'Courier', active: 'Active', history: 'History',
     take_order: 'Take order', delivered: 'Delivered', ready_pickup: 'ready for pickup',

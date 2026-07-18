@@ -283,6 +283,26 @@ app.post('/api/orders/:id/items', auth, requireRole('waiter', 'admin', 'owner'),
   res.json(order);
 });
 
+// Изменить количество позиции (qty=0 — удалить). Если счёт опустел — удаляем его.
+app.patch('/api/orders/:id/items', auth, requireRole('waiter', 'admin', 'owner'), (req, res) => {
+  const order = db.orders.find((o) => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ error: 'Заказ не найден' });
+  if (order.paid) return res.status(409).json({ error: 'Счёт уже закрыт' });
+  const idx = order.items.findIndex((x) => x.menuId === Number(req.body.menuId));
+  if (idx < 0) return res.status(404).json({ error: 'Позиция не найдена' });
+  const line = order.items[idx];
+  const newQty = Math.max(0, Math.min(50, Math.floor(Number(req.body.qty) || 0)));
+  order.total += (newQty - line.qty) * line.price;
+  if (newQty === 0) order.items.splice(idx, 1); else line.qty = newQty;
+  if (order.items.length === 0) {
+    const i = db.orders.findIndex((o) => o.id === order.id);
+    if (i >= 0) db.orders.splice(i, 1);
+    if (order.tableNumber) { const tb = db.tables.find((x) => x.number === order.tableNumber); if (tb) tb.status = 'free'; }
+    return res.json({ deleted: true });
+  }
+  res.json(order);
+});
+
 // Закрыть счёт (расчёт): пометить оплаченным. Стол освобождается.
 app.post('/api/orders/:id/close', auth, requireRole('waiter', 'admin', 'owner'), (req, res) => {
   const order = db.orders.find((o) => o.id === Number(req.params.id));
