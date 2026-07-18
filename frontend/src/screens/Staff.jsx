@@ -73,6 +73,7 @@ export function WaiterPanel() {
   const orders = useFetch(() => api.get('/orders'));
   const calls = useFetch(() => api.get('/calls'));
   const resv = useFetch(() => api.get('/reservations'));
+  const menu = useFetch(() => api.get('/menu'));   // для определения еда/напиток по позиции
   const [printerOpen, setPrinterOpen] = useState(false);
   const [preview, setPreview] = useState(null);   // текст чека для превью
   const [ready, setReady] = useState(false);       // принтер подключён?
@@ -89,10 +90,16 @@ export function WaiterPanel() {
   const closeCall = async (c) => { await api.patch(`/calls/${c.id}`, { status: 'done' }); calls.reload(); };
   const confirmResv = async (r) => { await api.patch(`/reservations/${r.id}`, { status: 'confirmed' }); toast('OK'); resv.reload(); };
 
+  // Карта menuId -> group (food/drinks) из меню — чтобы делить KITCHEN/BAR даже
+  // для заказов, где у позиции ещё нет метки group.
+  const groupMap = {};
+  (menu.data?.items || []).forEach((m) => { groupMap[m.id] = m.group || 'food'; });
+
   // Печать чека по заказу. Есть принтер → печатает; нет → показывает превью формата.
   const printBill = async (o, opts = {}) => {
+    const enriched = { ...o, items: (o.items || []).map((i) => ({ ...i, group: i.group || groupMap[i.menuId] || 'food' })) };
     try {
-      await printReceipt(o, opts);
+      await printReceipt(enriched, opts);
       toast(t('print_ok'));
     } catch (e) {
       if (e.preview) setPreview(e.preview);
