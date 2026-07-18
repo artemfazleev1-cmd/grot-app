@@ -171,14 +171,17 @@ export function WaiterTables() {
   const { printBill, preview, setPreview } = usePrintBill(groupMap);
   const [sel, setSel] = useState(null);       // id выбранного счёта
   const [picker, setPicker] = useState(null); // {tableNumber, orderId}
+  const [pay, setPay] = useState(null);       // {order, method:'cash'|'card', cash:''}
   useEffect(() => { const iv = setInterval(orders.reload, 5000); return () => clearInterval(iv); }, []);
   if (orders.loading) return <Loader />;
   const open = orders.data.filter((o) => o.type === 'dinein' && !o.paid);
   const selOrder = sel && orders.data.find((o) => o.id === sel);
 
-  const checkout = async (o) => {
-    const ok = await printBill(o, { openDrawer: true });
-    if (ok) { await api.post(`/orders/${o.id}/close`).catch(() => {}); setSel(null); orders.reload(); }
+  const doCheckout = async () => {
+    const o = pay.order;
+    const cashNum = pay.method === 'cash' && pay.cash ? Number(pay.cash) : null;
+    const ok = await printBill(o, { payment: pay.method, cash: cashNum, openDrawer: pay.method === 'cash' });
+    if (ok) { await api.post(`/orders/${o.id}/close`, { payment: pay.method }).catch(() => {}); setPay(null); orders.reload(); }
   };
 
   return (
@@ -209,8 +212,27 @@ export function WaiterTables() {
           </div>
           <div className="row" style={{ gap: 8, marginTop: 14 }}>
             <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, orderId: selOrder.id })}>➕ {t('add_items')}</button>
-            <button className="btn" onClick={() => checkout(selOrder)}>💵 {t('checkout_print')}</button>
+            <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
           </div>
+        </Sheet>
+      )}
+
+      {pay && (
+        <Sheet open onClose={() => setPay(null)}>
+          <h2 style={{ marginTop: 0 }}>{t('checkout_title2')} · {t('table')} {pay.order.tableNumber}</h2>
+          <div className="between" style={{ padding: '6px 0' }}><b>{t('total')}</b><b className="gold" style={{ fontSize: 22 }}>{money(pay.order.total)}</b></div>
+          <div className="row" style={{ gap: 8, marginTop: 12 }}>
+            <button className={`btn ${pay.method === 'cash' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setPay((p) => ({ ...p, method: 'cash' }))}>💵 {t('pay_cash')}</button>
+            <button className={`btn ${pay.method === 'card' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setPay((p) => ({ ...p, method: 'card' }))}>💳 {t('pay_card')}</button>
+          </div>
+          {pay.method === 'cash' && (<>
+            <label style={{ display: 'block', margin: '14px 0 6px' }}>{t('pay_received')}</label>
+            <input type="number" inputMode="numeric" value={pay.cash} onChange={(e) => setPay((p) => ({ ...p, cash: e.target.value }))} placeholder={String(pay.order.total)} style={{ width: '100%' }} />
+            {Number(pay.cash) > pay.order.total && (
+              <div className="between" style={{ marginTop: 8 }}><span>{t('pay_change')}</span><b style={{ fontSize: 18 }}>{money(Number(pay.cash) - pay.order.total)}</b></div>
+            )}
+          </>)}
+          <button className="btn block" style={{ marginTop: 16 }} onClick={doCheckout}>🖨 {t('checkout_print')}</button>
         </Sheet>
       )}
 
@@ -273,6 +295,8 @@ export function WaiterCabinet() {
   const revenue = sumRev(todayAll);
   let kitchen = 0, bar = 0;
   todayAll.forEach((o) => (o.items || []).forEach((i) => { const g = i.group || groupMap[i.menuId] || 'food'; (g === 'drinks' ? (bar += i.price * i.qty) : (kitchen += i.price * i.qty)); }));
+  const cash = todayAll.filter((o) => o.payment === 'cash').reduce((s, o) => s + o.total, 0);
+  const card = todayAll.filter((o) => o.payment === 'card').reduce((s, o) => s + o.total, 0);
   const floatNum = Number(floatVal) || 0;
 
   const doPrintShift = async () => {
@@ -281,7 +305,7 @@ export function WaiterCabinet() {
       dateStr: new Date().toLocaleDateString('en-GB'),
       printedStr: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
       orders: todayAll.map((o) => ({ id: o.id, label: orderLabel(o), total: o.total, items: (o.items || []).map((i) => ({ qty: i.qty, name: i.nameEn || i.name, amount: i.price * i.qty })) })),
-      count: todayAll.length, revenue, kitchen, bar, float: floatNum,
+      count: todayAll.length, revenue, kitchen, bar, cash, card, float: floatNum,
     };
     try { await printShiftReport(r); toast(t('print_ok')); setShiftOpen(false); }
     catch (e) { if (e.preview) { setShiftOpen(false); setPreview(e.preview); } }
@@ -319,6 +343,8 @@ export function WaiterCabinet() {
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_orders')}</span><b>{todayAll.length}</b></div>
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_kitchen')}</span><b>{money(kitchen)}</b></div>
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_bar')}</span><b>{money(bar)}</b></div>
+          <div className="between" style={{ padding: '4px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><span className="muted">💵 {t('pay_cash')}</span><b>{money(cash)}</b></div>
+          <div className="between" style={{ padding: '4px 0' }}><span className="muted">💳 {t('pay_card')}</span><b>{money(card)}</b></div>
           <div className="between" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><span>{t('shift_revenue')}</span><b className="gold" style={{ fontSize: 18 }}>{money(revenue)}</b></div>
         </div>
         {todayAll.length > 0 && (
@@ -340,7 +366,8 @@ export function WaiterCabinet() {
         <input type="number" inputMode="numeric" value={floatVal} onChange={(e) => setFloatVal(e.target.value)} placeholder="0" style={{ width: '100%' }} />
         <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{t('shift_float_hint')}</div>
         <div className="card tight" style={{ marginTop: 12 }}>
-          <div className="between" style={{ padding: '6px 0' }}><span>{t('shift_in_drawer')}</span><b style={{ fontSize: 18 }}>{money(floatNum + revenue)}</b></div>
+          <div className="between" style={{ padding: '6px 0' }}><span>{t('shift_in_drawer')}</span><b style={{ fontSize: 18 }}>{money(floatNum + cash)}</b></div>
+          <div className="muted" style={{ fontSize: 12 }}>{t('shift_drawer_hint')}</div>
         </div>
         <button className="btn block" style={{ marginTop: 16 }} onClick={doPrintShift}>🖨 {t('shift_print')}</button>
       </Sheet>

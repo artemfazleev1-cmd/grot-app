@@ -288,6 +288,7 @@ app.post('/api/orders/:id/close', auth, requireRole('waiter', 'admin', 'owner'),
   const order = db.orders.find((o) => o.id === Number(req.params.id));
   if (!order) return res.status(404).json({ error: 'Заказ не найден' });
   order.paid = true;
+  order.payment = ['cash', 'card'].includes(req.body.payment) ? req.body.payment : 'cash';
   order.status = 'handed';
   order.closedAt = db.now();
   if (order.tableNumber) { const tb = db.tables.find((x) => x.number === order.tableNumber); if (tb) tb.status = 'free'; }

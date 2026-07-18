@@ -179,9 +179,13 @@ export function buildReceipt(order, opts = {}) {
   put(CMD.boldOn); put(CMD.sizeTall);
   line(lr('TOTAL', `${money(total)} ${cur}`));
   put(CMD.sizeNormal); put(CMD.boldOff);
-  if (opts.cash != null) {
+  if (opts.payment === 'card') {
+    line(lr('Paid', 'CARD'));
+  } else if (opts.cash != null) {
     line(lr('Cash', `${money(opts.cash)} ${cur}`));
     line(lr('Change', `${money(opts.cash - total)} ${cur}`));
+  } else if (opts.payment === 'cash') {
+    line(lr('Paid', 'CASH'));
   }
   line(rule());
 
@@ -326,9 +330,14 @@ export function buildShiftReport(r, opts = {}) {
   put(CMD.sizeNormal); put(CMD.boldOff);
   line(rule());
 
+  line(lr('Cash sales', `${money(r.cash || 0)} ${cur}`));
+  line(lr('Card sales', `${money(r.card || 0)} ${cur}`));
+  const openAmt = r.revenue - (r.cash || 0) - (r.card || 0);
+  if (openAmt > 0) line(lr('Open / unpaid', `${money(openAmt)} ${cur}`));
+  line(rule());
   line(lr('Cash float', `${money(r.float)} ${cur}`));
   put(CMD.boldOn);
-  line(lr('IN DRAWER', `${money((r.float || 0) + r.revenue)} ${cur}`));
+  line(lr('IN DRAWER', `${money((r.float || 0) + (r.cash || 0))} ${cur}`));
   put(CMD.boldOff);
   line(rule());
   center('END OF SHIFT');
