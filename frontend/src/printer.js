@@ -148,6 +148,13 @@ export function buildReceipt(order, opts = {}) {
   put(CMD.alignL);
   line(rule());
 
+  // Пре-чек (счёт до оплаты) — крупная пометка
+  if (opts.preBill) {
+    put(CMD.alignC); put(CMD.boldOn); put(CMD.sizeTall);
+    line('PRE-BILL'); put(CMD.sizeNormal); put(CMD.boldOff); put(CMD.alignL);
+    line(rule());
+  }
+
   // Мета: стол/тип + номер заказа + дата и время
   const where = order.type === 'delivery' ? 'Delivery'
     : order.tableNumber ? `Table ${order.tableNumber}`
@@ -192,7 +199,7 @@ export function buildReceipt(order, opts = {}) {
   line(rule());
 
   // Подвал: спасибо + слоган + соцсети + QR на Instagram
-  center('THANK YOU');
+  center(opts.preBill ? 'NOT PAID - PLEASE PAY AT THE BAR' : 'THANK YOU');
   if (cfg.slogan) center(cfg.slogan);
   put([0x0a]);
   if (cfg.whatsapp) center('WhatsApp ' + cfg.whatsapp);

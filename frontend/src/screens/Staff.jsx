@@ -238,7 +238,8 @@ export function WaiterTables() {
           <div className="between" style={{ marginTop: 8, borderTop: '1px solid var(--line)', paddingTop: 8 }}>
             <b>{t('total')}</b><b className="gold" style={{ fontSize: 18 }}>{money(selOrder.total)}</b>
           </div>
-          <div className="row" style={{ gap: 8, marginTop: 14 }}>
+          <button className="btn ghost block" style={{ marginTop: 14 }} onClick={() => printBill(selOrder, { preBill: true })}>🧾 {t('prebill')}</button>
+          <div className="row" style={{ gap: 8, marginTop: 8 }}>
             <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, orderId: selOrder.id })}>➕ {t('add_items')}</button>
             <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '', discType: 'percent', discVal: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
           </div>
