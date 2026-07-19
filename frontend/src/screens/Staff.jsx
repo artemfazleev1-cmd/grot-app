@@ -183,22 +183,25 @@ export function WaiterTables() {
   const open = orders.data.filter((o) => o.type === 'dinein' && !o.paid);
   const selOrder = sel && orders.data.find((o) => o.id === sel);
 
-  // Скидка: пересчёт по текущему выбору
-  const discOf = (p) => {
-    const sub = p.order.total;
-    const v = Number(p.discVal) || 0;
-    if (v <= 0) return 0;
-    return p.discType === 'percent' ? Math.round(sub * Math.min(100, v) / 100) : Math.min(Math.round(v), sub);
-  };
+  // Подытог по категории (для раздельных скидок еда/напитки)
+  const catSub = (o, drinks) => (o.items || []).filter((i) => ((i.group || groupMap[i.menuId] || 'food') === 'drinks') === drinks).reduce((s, i) => s + i.price * i.qty, 0);
+  const discCalc = (type, val, base) => { const v = Number(val) || 0; if (v <= 0) return 0; return type === 'percent' ? Math.round(base * Math.min(100, v) / 100) : Math.min(Math.round(v), base); };
 
   const doCheckout = async () => {
     const o = pay.order;
-    const discAmt = discOf(pay);
-    const finalTotal = o.total - discAmt;
+    const discFood = discCalc(pay.foodType, pay.foodVal, catSub(o, false));
+    const discDrinks = discCalc(pay.drinkType, pay.drinkVal, catSub(o, true));
     const cashNum = pay.method === 'cash' && pay.cash ? Number(pay.cash) : null;
-    const enriched = { ...o, discount: discAmt };
+    const enriched = { ...o, discountFood: discFood, discountDrinks: discDrinks };
     const ok = await printBill(enriched, { payment: pay.method, cash: cashNum, openDrawer: pay.method === 'cash' });
-    if (ok) { await api.post(`/orders/${o.id}/close`, { payment: pay.method, discount: { type: pay.discType, value: Number(pay.discVal) || 0 } }).catch(() => {}); setPay(null); orders.reload(); }
+    if (ok) {
+      await api.post(`/orders/${o.id}/close`, {
+        payment: pay.method,
+        discountFood: { type: pay.foodType, value: Number(pay.foodVal) || 0 },
+        discountDrinks: { type: pay.drinkType, value: Number(pay.drinkVal) || 0 },
+      }).catch(() => {});
+      setPay(null); orders.reload();
+    }
   };
 
   const setQty = async (orderId, menuId, qty) => {
@@ -241,30 +244,48 @@ export function WaiterTables() {
           <button className="btn ghost block" style={{ marginTop: 14 }} onClick={() => printBill(selOrder, { preBill: true })}>🧾 {t('prebill')}</button>
           <div className="row" style={{ gap: 8, marginTop: 8 }}>
             <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, orderId: selOrder.id })}>➕ {t('add_items')}</button>
-            <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '', discType: 'percent', discVal: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
+            <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '', foodType: 'percent', foodVal: '', drinkType: 'percent', drinkVal: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
           </div>
         </Sheet>
       )}
 
       {pay && (() => {
-        const discAmt = discOf(pay);
-        const finalTotal = pay.order.total - discAmt;
+        const foodSub = catSub(pay.order, false);
+        const drinkSub = catSub(pay.order, true);
+        const discFood = discCalc(pay.foodType, pay.foodVal, foodSub);
+        const discDrinks = discCalc(pay.drinkType, pay.drinkVal, drinkSub);
+        const finalTotal = pay.order.total - discFood - discDrinks;
         return (
         <Sheet open onClose={() => setPay(null)}>
           <h2 style={{ marginTop: 0 }}>{t('checkout_title2')} · {t('table')} {pay.order.tableNumber}</h2>
 
           <div className="card tight">
             <div className="between" style={{ padding: '3px 0' }}><span className="muted">{t('subtotal')}</span><b>{money(pay.order.total)}</b></div>
-            {discAmt > 0 && <div className="between" style={{ padding: '3px 0' }}><span className="muted">{t('discount')}</span><b style={{ color: 'var(--green, #5c9)' }}>−{money(discAmt)}</b></div>}
+            {discFood > 0 && <div className="between" style={{ padding: '3px 0' }}><span className="muted">{t('discount_food')}</span><b style={{ color: 'var(--green, #5c9)' }}>−{money(discFood)}</b></div>}
+            {discDrinks > 0 && <div className="between" style={{ padding: '3px 0' }}><span className="muted">{t('discount_drinks')}</span><b style={{ color: 'var(--green, #5c9)' }}>−{money(discDrinks)}</b></div>}
             <div className="between" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', marginTop: 4 }}><b>{t('total')}</b><b className="gold" style={{ fontSize: 22 }}>{money(finalTotal)}</b></div>
           </div>
 
-          <label style={{ display: 'block', margin: '14px 0 6px' }}>{t('discount')}</label>
-          <div className="row" style={{ gap: 8 }}>
-            <button className={`btn sm ${pay.discType === 'percent' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, discType: 'percent' }))}>%</button>
-            <button className={`btn sm ${pay.discType === 'amount' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, discType: 'amount' }))}>฿</button>
-            <input type="number" inputMode="numeric" value={pay.discVal} onChange={(e) => setPay((p) => ({ ...p, discVal: e.target.value }))} placeholder="0" style={{ flex: 1 }} />
-          </div>
+          {foodSub > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <label style={{ display: 'block', marginBottom: 6 }}>🍽 {t('discount_food')} <span className="muted">({money(foodSub)})</span></label>
+              <div className="row" style={{ gap: 8 }}>
+                <button className={`btn sm ${pay.foodType === 'percent' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, foodType: 'percent' }))}>%</button>
+                <button className={`btn sm ${pay.foodType === 'amount' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, foodType: 'amount' }))}>฿</button>
+                <input type="number" inputMode="numeric" value={pay.foodVal} onChange={(e) => setPay((p) => ({ ...p, foodVal: e.target.value }))} placeholder="0" style={{ flex: 1 }} />
+              </div>
+            </div>
+          )}
+          {drinkSub > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <label style={{ display: 'block', marginBottom: 6 }}>🍺 {t('discount_drinks')} <span className="muted">({money(drinkSub)})</span></label>
+              <div className="row" style={{ gap: 8 }}>
+                <button className={`btn sm ${pay.drinkType === 'percent' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, drinkType: 'percent' }))}>%</button>
+                <button className={`btn sm ${pay.drinkType === 'amount' ? '' : 'ghost'}`} onClick={() => setPay((p) => ({ ...p, drinkType: 'amount' }))}>฿</button>
+                <input type="number" inputMode="numeric" value={pay.drinkVal} onChange={(e) => setPay((p) => ({ ...p, drinkVal: e.target.value }))} placeholder="0" style={{ flex: 1 }} />
+              </div>
+            </div>
+          )}
 
           <div className="row" style={{ gap: 8, marginTop: 14 }}>
             <button className={`btn ${pay.method === 'cash' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setPay((p) => ({ ...p, method: 'cash' }))}>💵 {t('pay_cash')}</button>

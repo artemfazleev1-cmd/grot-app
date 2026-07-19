@@ -341,19 +341,21 @@ app.patch('/api/orders/:id/items', auth, requireRole('waiter', 'admin', 'owner')
 app.post('/api/orders/:id/close', auth, requireRole('waiter', 'admin', 'owner'), (req, res) => {
   const order = db.orders.find((o) => o.id === Number(req.params.id));
   if (!order) return res.status(404).json({ error: 'Заказ не найден' });
-  const subtotal = order.items.reduce((s, i) => s + i.price * i.qty, 0);
-  const d = req.body.discount || {};
-  let discountAmount = 0;
-  if (Number(d.value) > 0) {
-    discountAmount = d.type === 'percent'
-      ? Math.round(subtotal * Math.min(100, Number(d.value)) / 100)
-      : Math.min(Math.round(Number(d.value)), subtotal);
-  }
-  order.subtotal = subtotal;
-  order.discount = discountAmount;
-  order.discountType = d.type || null;
-  order.discountValue = Number(d.value) || 0;
-  order.total = subtotal - discountAmount;
+  const foodSub = order.items.filter((i) => (i.group || 'food') !== 'drinks').reduce((s, i) => s + i.price * i.qty, 0);
+  const drinkSub = order.items.filter((i) => i.group === 'drinks').reduce((s, i) => s + i.price * i.qty, 0);
+  const calcDisc = (d, base) => {
+    if (!d || Number(d.value) <= 0) return 0;
+    return d.type === 'percent'
+      ? Math.round(base * Math.min(100, Number(d.value)) / 100)
+      : Math.min(Math.round(Number(d.value)), base);
+  };
+  const discFood = calcDisc(req.body.discountFood, foodSub);
+  const discDrinks = calcDisc(req.body.discountDrinks, drinkSub);
+  order.subtotal = foodSub + drinkSub;
+  order.discountFood = discFood;
+  order.discountDrinks = discDrinks;
+  order.discount = discFood + discDrinks;
+  order.total = order.subtotal - order.discount;
   order.paid = true;
   order.payment = ['cash', 'card'].includes(req.body.payment) ? req.body.payment : 'cash';
   order.status = 'handed';

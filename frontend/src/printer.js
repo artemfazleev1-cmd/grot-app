@@ -124,8 +124,9 @@ export function buildReceipt(order, opts = {}) {
   const items = order.items || [];
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const service = cfg.serviceChargePct ? Math.round(subtotal * cfg.serviceChargePct / 100) : 0;
-  const discount = Math.round(order.discount || 0);
-  const total = subtotal + service - discount;
+  const discFood = Math.round(order.discountFood || 0);
+  const discDrinks = Math.round(order.discountDrinks || 0);
+  const total = subtotal + service - discFood - discDrinks;
 
   const bytes = [];
   const text = [];
@@ -183,7 +184,8 @@ export function buildReceipt(order, opts = {}) {
 
   // Итоги
   line(lr('Subtotal', `${money(subtotal)} ${cur}`));
-  if (discount) line(lr('Discount', `-${money(discount)} ${cur}`));
+  if (discFood) line(lr('Discount food', `-${money(discFood)} ${cur}`));
+  if (discDrinks) line(lr('Discount drinks', `-${money(discDrinks)} ${cur}`));
   if (service) line(lr(`Service ${cfg.serviceChargePct}%`, `${money(service)} ${cur}`));
   put(CMD.boldOn); put(CMD.sizeTall);
   line(lr('TOTAL', `${money(total)} ${cur}`));
