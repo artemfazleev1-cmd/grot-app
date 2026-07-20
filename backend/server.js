@@ -285,7 +285,9 @@ app.post('/api/orders', auth, (req, res) => {
     address: address ? String(address).slice(0, 300) : null,
     geo: (geo && typeof geo.lat === 'number' && typeof geo.lng === 'number') ? { lat: geo.lat, lng: geo.lng, mapUrl: String(geo.mapUrl || '').slice(0, 300) } : null,
     comment: comment ? String(comment).slice(0, 500) : '',
-    tableNumber: tableNumber ? Number(tableNumber) : null, total, status: 'new',
+    tableNumber: tableNumber ? Number(tableNumber) : null,
+    zone: (tableNumber && db.tables.find((x) => x.number === Number(tableNumber))?.zone) || 'table',
+    total, status: 'new',
     paid: false, waiterId: req.user.role === 'waiter' ? req.user.id : null,
     createdAt: db.now(), messages: [] };
   db.orders.push(order);

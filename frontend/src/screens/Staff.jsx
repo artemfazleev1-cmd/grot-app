@@ -5,7 +5,7 @@ import { catLabel } from '../i18n.js';
 import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
 import OrderChat from '../components/OrderChat.jsx';
 import {
-  printReceipt, printShiftReport, openDrawer, isNativePrintingAvailable, listPrinters,
+  printReceipt, printShiftReport, printKitchenTicket, openDrawer, isNativePrintingAvailable, listPrinters,
   connectPrinter, disconnectPrinter, isConnected, printerStore,
 } from '../printer.js';
 
@@ -68,8 +68,14 @@ function PrinterSheet({ open, onClose }) {
   );
 }
 
-// ---------------- ОФИЦИАНТ (POS: открытые столы) ----------------
-const orderLabel = (o) => o.type === 'delivery' ? 'Delivery' : o.tableNumber ? `Table ${o.tableNumber}` : o.type === 'pickup' ? 'Pickup' : 'Dine-in';
+// ---------------- ОФИЦИАНТ (POS: открытые столы + бар) ----------------
+const seatNo = (o) => (o.zone === 'bar' && o.tableNumber ? o.tableNumber - 100 : o.tableNumber);
+// Английская метка (для отчётов/чеков)
+const orderLabel = (o) => o.type === 'delivery' ? 'Delivery' : o.type === 'pickup' ? 'Pickup'
+  : o.zone === 'bar' && o.tableNumber ? `Bar ${seatNo(o)}` : o.tableNumber ? `Table ${o.tableNumber}` : 'Dine-in';
+// Локализованная метка (для UI официанта)
+const placeLabel = (o, t) => o.type === 'delivery' ? t('delivery') : o.type === 'pickup' ? t('pickup')
+  : o.zone === 'bar' && o.tableNumber ? `${t('bar')} ${seatNo(o)}` : o.tableNumber ? `${t('table')} ${o.tableNumber}` : t('dinein');
 const isTodayIso = (iso) => new Date(iso).toDateString() === new Date().toDateString();
 
 // Меню + карта menuId -> group (еда/напиток)
@@ -93,7 +99,18 @@ function usePrintBill(groupMap) {
       return false;
     }
   };
-  return { printBill, preview, setPreview };
+  // Кухонный тикет: печатает ТОЛЬКО переданные (новые) позиции, без сумм.
+  const printKitchen = async (o, added, opts = {}) => {
+    const items = (added || []).map((i) => ({ ...i, group: i.group || groupMap[i.menuId] || 'food' }));
+    if (!items.length) return true;
+    try { await printKitchenTicket(o, items, opts); toast(t('ticket_sent')); return true; }
+    catch (e) {
+      if (e.preview) setPreview(e.preview);
+      toast(e.message === 'NO_PRINTER' || e.message === 'NO_NATIVE' ? t('printer_not_connected') : t('print_fail'));
+      return false;
+    }
+  };
+  return { printBill, printKitchen, preview, setPreview };
 }
 
 function PreviewSheet({ preview, setPreview, onPrinter }) {
@@ -109,7 +126,7 @@ function PreviewSheet({ preview, setPreview, onPrinter }) {
 }
 
 // Выбор позиций из меню → создать заказ или дописать в открытый счёт.
-function ItemPicker({ tableNumber, orderId, onClose, onSaved }) {
+function ItemPicker({ tableNumber, zone, orderId, onClose, onSaved }) {
   const { t, toast, L } = useStore();
   const menu = useFetch(() => api.get('/menu'));
   const kitchen = useFetch(() => api.get('/kitchen'));
@@ -125,20 +142,24 @@ function ItemPicker({ tableNumber, orderId, onClose, onSaved }) {
   const lines = Object.entries(cart).map(([id, q]) => ({ m: items.find((x) => x.id === +id), q })).filter((x) => x.m);
   const total = lines.reduce((s, x) => s + x.m.price * x.q, 0);
   const count = lines.reduce((s, x) => s + x.q, 0);
+  const placeTitle = zone === 'bar' ? `${t('bar')} ${tableNumber - 100}` : `${t('table')} ${tableNumber}`;
   const save = async () => {
     if (!lines.length) return;
     setBusy(true);
     try {
       const payload = { items: lines.map((x) => ({ menuId: x.m.id, qty: x.q })) };
-      if (orderId) await api.post(`/orders/${orderId}/items`, payload);
-      else await api.post('/orders', { type: 'dinein', tableNumber, items: payload.items });
-      toast(t('order_saved')); onSaved();
+      const added = lines.map((x) => ({ menuId: x.m.id, qty: x.q, name: x.m.nameEn || x.m.name, group: x.m.group || 'food' }));
+      const order = orderId
+        ? await api.post(`/orders/${orderId}/items`, payload)
+        : await api.post('/orders', { type: 'dinein', tableNumber, items: payload.items });
+      toast(t('order_saved'));
+      onSaved(order, added, !!orderId);
     } catch (e) { toast(e.message); }
     setBusy(false);
   };
   return (
     <Sheet open onClose={onClose}>
-      <h2 style={{ marginTop: 0 }}>{orderId ? t('add_items') : t('new_order')} · {t('table')} {tableNumber}</h2>
+      <h2 style={{ marginTop: 0 }}>{orderId ? t('add_items') : t('new_order')} · {placeTitle}</h2>
       {menu.loading ? <Loader /> : (<>
         {!kOpen && <div className="card tight" style={{ marginBottom: 8, border: '1px solid var(--gold, #d4a017)', color: 'var(--gold, #d4a017)' }}>🍳 {t('kitchen_closed_banner')}</div>}
         <div className="chips" style={{ margin: '8px 0', flexWrap: 'wrap' }}>
@@ -175,9 +196,9 @@ export function WaiterTables() {
   const { t } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const { groupMap } = useGroupMap();
-  const { printBill, preview, setPreview } = usePrintBill(groupMap);
+  const { printBill, printKitchen, preview, setPreview } = usePrintBill(groupMap);
   const [sel, setSel] = useState(null);       // id выбранного счёта
-  const [picker, setPicker] = useState(null); // {tableNumber, orderId}
+  const [picker, setPicker] = useState(null); // {tableNumber, zone, orderId}
   const [pay, setPay] = useState(null);       // {order, method:'cash'|'card', cash:''}
   useEffect(() => { const iv = setInterval(orders.reload, 5000); return () => clearInterval(iv); }, []);
   if (orders.loading) return <Loader />;
@@ -216,7 +237,7 @@ export function WaiterTables() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginTop: 14 }}>
         {open.map((o) => (
           <div key={o.id} className="card" onClick={() => setSel(o.id)} style={{ cursor: 'pointer' }}>
-            <div className="between"><b style={{ fontSize: 18 }}>{t('table')} {o.tableNumber}</b><span className="badge gold">{o.items.reduce((s, i) => s + i.qty, 0)}</span></div>
+            <div className="between"><b style={{ fontSize: 18 }}>{placeLabel(o, t)}</b><span className="badge gold">{o.items.reduce((s, i) => s + i.qty, 0)}</span></div>
             <div className="gold" style={{ fontSize: 20, fontWeight: 700, marginTop: 6 }}>{money(o.total)}</div>
           </div>
         ))}
@@ -225,7 +246,7 @@ export function WaiterTables() {
 
       {selOrder && (
         <Sheet open onClose={() => setSel(null)}>
-          <h2 style={{ marginTop: 0 }}>{t('table')} {selOrder.tableNumber}</h2>
+          <h2 style={{ marginTop: 0 }}>{placeLabel(selOrder, t)}</h2>
           <div className="list">
             {selOrder.items.map((i, idx) => (
               <div key={idx} className="between" style={{ padding: '6px 0', gap: 8 }}>
@@ -244,7 +265,7 @@ export function WaiterTables() {
           </div>
           <button className="btn ghost block" style={{ marginTop: 14 }} onClick={() => printBill(selOrder, { preBill: true })}>🧾 {t('prebill')}</button>
           <div className="row" style={{ gap: 8, marginTop: 8 }}>
-            <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, orderId: selOrder.id })}>➕ {t('add_items')}</button>
+            <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, zone: selOrder.zone, orderId: selOrder.id })}>➕ {t('add_items')}</button>
             <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '', foodType: 'percent', foodVal: '', drinkType: 'percent', drinkVal: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
           </div>
         </Sheet>
@@ -258,7 +279,7 @@ export function WaiterTables() {
         const finalTotal = pay.order.total - discFood - discDrinks;
         return (
         <Sheet open onClose={() => setPay(null)}>
-          <h2 style={{ marginTop: 0 }}>{t('checkout_title2')} · {t('table')} {pay.order.tableNumber}</h2>
+          <h2 style={{ marginTop: 0 }}>{t('checkout_title2')} · {placeLabel(pay.order, t)}</h2>
 
           <div className="card tight">
             <div className="between" style={{ padding: '3px 0' }}><span className="muted">{t('subtotal')}</span><b>{money(pay.order.total)}</b></div>
@@ -304,39 +325,57 @@ export function WaiterTables() {
         );
       })()}
 
-      {picker && <ItemPicker tableNumber={picker.tableNumber} orderId={picker.orderId} onClose={() => setPicker(null)} onSaved={() => { setPicker(null); orders.reload(); }} />}
+      {picker && <ItemPicker tableNumber={picker.tableNumber} zone={picker.zone} orderId={picker.orderId}
+        onClose={() => setPicker(null)}
+        onSaved={(order, added, isAdd) => { setPicker(null); orders.reload(); printKitchen(order, added, { addOn: isAdd }); }} />}
       <PreviewSheet preview={preview} setPreview={setPreview} />
     </div>
   );
 }
 
-// ── Экран 2: Новый заказ (выбор стола → позиции) ──
+// ── Экран 2: Новый заказ (выбор стола/бара → позиции) ──
 export function WaiterNewOrder() {
   const { t } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const tables = useFetch(() => api.get('/tables'));
+  const { groupMap } = useGroupMap();
+  const { printKitchen, preview, setPreview } = usePrintBill(groupMap);
   const [picker, setPicker] = useState(null);
   if (orders.loading || tables.loading) return <Loader />;
   const openByTable = {};
   orders.data.filter((o) => o.type === 'dinein' && !o.paid).forEach((o) => { openByTable[o.tableNumber] = o; });
-  const pick = (n) => { const ex = openByTable[n]; setPicker({ tableNumber: n, orderId: ex ? ex.id : null }); };
+  const pick = (tb) => { const ex = openByTable[tb.number]; setPicker({ tableNumber: tb.number, zone: tb.zone, orderId: ex ? ex.id : null }); };
+
+  const Grid = ({ items, cols, seatOf }) => (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},1fr)`, gap: 10 }}>
+      {items.map((tb) => {
+        const busy = openByTable[tb.number];
+        return (
+          <button key={tb.id} onClick={() => pick(tb)}
+            style={{ padding: '16px 0', borderRadius: 12, border: `1px solid ${busy ? 'var(--gold, #d4a017)' : 'var(--line)'}`, background: busy ? 'rgba(212,160,23,.10)' : 'transparent', color: 'inherit', cursor: 'pointer' }}>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{seatOf(tb)}</div>
+            {busy ? <div className="gold" style={{ fontSize: 12 }}>{money(busy.total)}</div> : <div className="muted" style={{ fontSize: 11 }}>{t('table_free')}</div>}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const zoneTables = tables.data.filter((tb) => tb.zone !== 'bar');
+  const barSeats = tables.data.filter((tb) => tb.zone === 'bar');
+
   return (
     <div className="screen">
       <h1>{t('new_order')}</h1>
-      <div className="muted" style={{ margin: '4px 0 12px' }}>{t('pick_table')}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-        {tables.data.map((tb) => {
-          const busy = openByTable[tb.number];
-          return (
-            <button key={tb.id} onClick={() => pick(tb.number)}
-              style={{ padding: '18px 0', borderRadius: 12, border: `1px solid ${busy ? 'var(--gold, #d4a017)' : 'var(--line)'}`, background: busy ? 'rgba(212,160,23,.10)' : 'transparent', color: 'inherit', cursor: 'pointer' }}>
-              <div style={{ fontSize: 22, fontWeight: 700 }}>{tb.number}</div>
-              {busy ? <div className="gold" style={{ fontSize: 12 }}>{money(busy.total)}</div> : <div className="muted" style={{ fontSize: 11 }}>{t('table_free')}</div>}
-            </button>
-          );
-        })}
-      </div>
-      {picker && <ItemPicker tableNumber={picker.tableNumber} orderId={picker.orderId} onClose={() => setPicker(null)} onSaved={() => { setPicker(null); orders.reload(); }} />}
+      <div className="section-title"><h2>🍽 {t('tables_hall')}</h2></div>
+      <Grid items={zoneTables} cols={4} seatOf={(tb) => tb.number} />
+      <div className="section-title"><h2>🍺 {t('bar_counter')}</h2></div>
+      <Grid items={barSeats} cols={4} seatOf={(tb) => tb.number - 100} />
+
+      {picker && <ItemPicker tableNumber={picker.tableNumber} zone={picker.zone} orderId={picker.orderId}
+        onClose={() => setPicker(null)}
+        onSaved={(order, added, isAdd) => { setPicker(null); orders.reload(); printKitchen(order, added, { addOn: isAdd }); }} />}
+      <PreviewSheet preview={preview} setPreview={setPreview} />
     </div>
   );
 }

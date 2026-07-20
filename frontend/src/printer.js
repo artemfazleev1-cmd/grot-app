@@ -127,6 +127,14 @@ const fmtDate = (iso) => {
   const p = (x) => String(x).padStart(2, '0');
   return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 };
+// Английская метка места для чека (Table N / Bar N / Delivery / Pickup)
+const placeOf = (o) => {
+  if (o.type === 'delivery') return 'Delivery';
+  if (o.type === 'pickup') return 'Pickup';
+  if (o.zone === 'bar' && o.tableNumber) return `Bar ${o.tableNumber - 100}`;
+  if (o.tableNumber) return `Table ${o.tableNumber}`;
+  return 'Dine-in';
+};
 
 // Собрать чек: возвращает { bytes:[…ESC/POS], text:'превью' }.
 // opts.cash — сумма наличных (для строки «Сдача»); opts.openDrawer — открыть ящик.
@@ -167,11 +175,8 @@ export function buildReceipt(order, opts = {}) {
     line(rule());
   }
 
-  // Мета: стол/тип + номер заказа + дата и время
-  const where = order.type === 'delivery' ? 'Delivery'
-    : order.tableNumber ? `Table ${order.tableNumber}`
-    : order.type === 'pickup' ? 'Pickup' : 'Dine-in';
-  line(lr(where, `Order #${order.id}`));
+  // Мета: стол/бар/тип + номер заказа + дата и время
+  line(lr(placeOf(order), `Order #${order.id}`));
   line(fmtDate(order.createdAt));
   line(rule());
 
@@ -373,6 +378,52 @@ export function buildShiftReport(r, opts = {}) {
 // Напечатать отчёт смены. Без принтера → бросает NO_PRINTER с .preview.
 export async function printShiftReport(r, opts = {}) {
   const { bytes, text } = buildShiftReport(r, opts);
+  if (!isNativePrintingAvailable()) {
+    const e = new Error('NO_PRINTER'); e.preview = text; throw e;
+  }
+  try { await writeBytes(bytes); return { ok: true, text }; }
+  catch (err) { err.preview = text; throw err; }
+}
+
+// ── Кухонный тикет (только новые позиции, без сумм) ─────────────────────────────
+// items = [{ qty, name, group }]. Печатается при каждом заказе/дозаказе.
+export function buildKitchenTicket(order, items, opts = {}) {
+  const bytes = []; const text = [];
+  const put = (a) => bytes.push(...a);
+  const line = (s = '') => { put(textBytes(s)); put([0x0a]); text.push(s); };
+
+  put(CMD.init);
+  put(CMD.alignC); put(CMD.boldOn); put(CMD.sizeBig);
+  line(RECEIPT_CONFIG.name); put(CMD.sizeNormal);
+  line(opts.addOn ? 'ADD-ON ORDER' : 'ORDER TICKET');
+  put(CMD.boldOff); put(CMD.alignL);
+  line(rule());
+  put(CMD.boldOn); put(CMD.sizeTall);
+  line(lr(placeOf(order), `#${order.id}`));
+  put(CMD.sizeNormal); put(CMD.boldOff);
+  line(fmtDate(order.createdAt || new Date().toISOString()));
+  line(rule());
+
+  const food = (items || []).filter((i) => (i.group || 'food') !== 'drinks');
+  const drinks = (items || []).filter((i) => i.group === 'drinks');
+  const section = (title, arr) => {
+    if (!arr.length) return;
+    put(CMD.boldOn); line(title); put(CMD.boldOff);
+    put(CMD.sizeTall);
+    for (const i of arr) line(`${i.qty}x ${i.name}`);
+    put(CMD.sizeNormal);
+  };
+  if (food.length && drinks.length) { section('KITCHEN', food); line(rule()); section('BAR', drinks); }
+  else { put(CMD.sizeTall); for (const i of (items || [])) line(`${i.qty}x ${i.name}`); put(CMD.sizeNormal); }
+  line(rule());
+
+  put(CMD.feed(3));
+  put(CMD.cut);
+  return { bytes, text: text.join('\n') };
+}
+
+export async function printKitchenTicket(order, items, opts = {}) {
+  const { bytes, text } = buildKitchenTicket(order, items, opts);
   if (!isNativePrintingAvailable()) {
     const e = new Error('NO_PRINTER'); e.preview = text; throw e;
   }

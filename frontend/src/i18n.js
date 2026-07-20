@@ -76,6 +76,7 @@ export const STR = {
     // POS официанта
     nav_tables: 'Столики', nav_new_order: 'Новый заказ', new_order: 'Новый заказ',
     no_open_tables: 'Нет открытых столов', pick_table: 'Выберите стол', table_free: 'свободен',
+    bar: 'Бар', dinein: 'В зале', tables_hall: 'Столы (зал)', bar_counter: 'Барная стойка', ticket_sent: 'Тикет на печать',
     add_items: 'Добавить', checkout_print: 'Рассчитать и печать', leave_open: 'Оставить открытым',
     order_saved: 'Заказ сохранён',
     cab_shift: 'За смену (сегодня)', cab_total: 'За всё время', cab_orders: 'Заказов', cab_revenue: 'Выручка', cab_tools: 'Инструменты',
@@ -212,6 +213,7 @@ export const STR = {
     // waiter POS
     nav_tables: 'Tables', nav_new_order: 'New order', new_order: 'New order',
     no_open_tables: 'No open tables', pick_table: 'Pick a table', table_free: 'free',
+    bar: 'Bar', dinein: 'Dine-in', tables_hall: 'Tables (hall)', bar_counter: 'Bar counter', ticket_sent: 'Ticket sent to printer',
     add_items: 'Add', checkout_print: 'Checkout & print', leave_open: 'Leave open',
     order_saved: 'Order saved',
     cab_shift: 'This shift (today)', cab_total: 'All time', cab_orders: 'Orders', cab_revenue: 'Revenue', cab_tools: 'Tools',

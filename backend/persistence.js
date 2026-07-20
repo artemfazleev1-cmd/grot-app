@@ -13,7 +13,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'store.json');
 
 // Коллекции-массивы, которые мы сохраняем «как есть»
-const ARRAYS = ['users', 'menu', 'ingredients', 'tables', 'orders', 'reservations',
+// tables НЕ персистим — это конфиг зала (берётся из сидов при старте),
+// а занятость столов вычисляется по открытым заказам.
+const ARRAYS = ['users', 'menu', 'ingredients', 'orders', 'reservations',
   'events', 'promos', 'news', 'calls', 'notifications', 'broadcasts'];
 // Объекты-синглтоны
 const OBJECTS = ['intro', 'settings'];

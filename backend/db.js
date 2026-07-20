@@ -138,15 +138,20 @@ for (const d of menu.filter((x) => x.group === 'drinks')) {
 }
 
 // ---------- Столы (с QR) ----------
-export const tables = Array.from({ length: 12 }, (_, i) => ({
-  id: id(),
-  number: i + 1,
-  seats: [2, 2, 4, 4, 4, 6, 6, 2, 4, 8, 4, 6][i],
-  qr: `GROT-TABLE-${i + 1}`,
-  status: i === 5 ? 'occupied' : i === 8 ? 'reserved' : 'free', // free|reserved|occupied
-  x: (i % 4) * 25 + 8,   // позиция на карте зала, %
-  y: Math.floor(i / 4) * 30 + 10,
-}));
+// 8 столов в зале (number 1..8, zone 'table') + барная стойка на 8 мест
+// (number 101..108, zone 'bar', отображается как «Бар 1..8»).
+export const tables = [
+  ...Array.from({ length: 8 }, (_, i) => ({
+    id: id(), number: i + 1, zone: 'table', seats: [2, 2, 4, 4, 4, 6, 6, 4][i],
+    qr: `GROT-TABLE-${i + 1}`, status: 'free',
+    x: (i % 4) * 22 + 8, y: Math.floor(i / 4) * 26 + 10,
+  })),
+  ...Array.from({ length: 8 }, (_, i) => ({
+    id: id(), number: 101 + i, zone: 'bar', seats: 1,
+    qr: `GROT-BAR-${i + 1}`, status: 'free',
+    x: (i % 8) * 11 + 6, y: 78,
+  })),
+];
 
 // ---------- Настройки заведения ----------
 // Кухня работает по графику (местное время бара). Вне графика официант может
