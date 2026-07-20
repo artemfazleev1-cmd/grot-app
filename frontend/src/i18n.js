@@ -100,7 +100,8 @@ export const STR = {
     k_total_orders: 'Всего заказов', k_dish_types: 'Видов блюд',
     k_cooked_by_item: 'Приготовлено сегодня по позициям', k_nothing_cooked: 'Сегодня ещё ничего не приготовлено',
     // категории меню
-    'cat_Горячие блюда': 'Горячие блюда', 'cat_Разливное пиво': 'Разливное пиво',
+    'cat_Горячие блюда': 'Горячие блюда', 'cat_Закуски к пиву': 'Закуски к пиву',
+    'cat_Разливное пиво': 'Разливное пиво',
     'cat_Бутылочное пиво': 'Бутылочное пиво', 'cat_Безалкогольные': 'Безалкогольные',
     // вход / регистрация
     auth_login: 'Вход', auth_register: 'Регистрация',
@@ -232,7 +233,8 @@ export const STR = {
     k_orders_today: 'Orders today', k_items_cooked: 'Items cooked',
     k_total_orders: 'Total orders', k_dish_types: 'Dish types',
     k_cooked_by_item: 'Cooked today by item', k_nothing_cooked: 'Nothing cooked yet today',
-    'cat_Горячие блюда': 'Hot Dishes', 'cat_Разливное пиво': 'Draft Beer',
+    'cat_Горячие блюда': 'Hot Dishes', 'cat_Закуски к пиву': 'Beer Snacks',
+    'cat_Разливное пиво': 'Draft Beer',
     'cat_Бутылочное пиво': 'Bottled Beer', 'cat_Безалкогольные': 'Soft Drinks',
     auth_login: 'Sign in', auth_register: 'Sign up',
     phone_label: 'Phone number', password_label: 'Password',

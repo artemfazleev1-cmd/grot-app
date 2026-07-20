@@ -13,42 +13,47 @@ const PHONE = process.argv[3] || '+66800000000';
 const PASS = process.argv[4] || 'owner';
 const DRY = process.argv.includes('--dry');
 
-const FOOD = 'Горячие блюда', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', SOFT = 'Безалкогольные';
+const FOOD = 'Горячие блюда', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', SOFT = 'Безалкогольные';
 
 // match — как позиция называется сейчас в базе (если отличается от нового названия)
 const TARGET = [
   // 🔥 ГОРЯЧИЕ БЛЮДА
   { name: 'Smash Burger', nameEn: 'Smash Burger', price: 300, category: FOOD, group: 'food', match: 'Smash Burger (говядина)' },
-  { name: 'Плов из австралийской говядины', nameEn: 'Beef Pilaf (Australian)', price: 350, category: FOOD, group: 'food' },
-  { name: 'Плов из новозеландской баранины', nameEn: 'Lamb Pilaf (New Zealand)', price: 350, category: FOOD, group: 'food' },
-  { name: 'Шашлык из свинины (200 г)', nameEn: 'Pork Skewer', price: 250, category: FOOD, group: 'food', match: 'Свиной шашлык' },
-  { name: 'Шашлык из утки (200 г)', nameEn: 'Duck Skewer', price: 300, category: FOOD, group: 'food', match: 'Утиный шашлык' },
-  { name: 'Куриные крылышки (6 шт.)', nameEn: 'Chicken Wings', price: 250, category: FOOD, group: 'food', match: 'Куриные крылышки' },
-  { name: 'Купаты из курицы', nameEn: 'Chicken Kupaty', price: 250, category: FOOD, group: 'food', match: 'Купаты' },
-  { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Kupaty', price: 250, category: FOOD, group: 'food' },
+  { name: 'Плов из австралийской говядины', nameEn: 'Australian Beef Pilaf', price: 350, category: FOOD, group: 'food' },
+  { name: 'Плов из новозеландской баранины', nameEn: 'New Zealand Lamb Pilaf', price: 350, category: FOOD, group: 'food' },
+  { name: 'Шашлык из свинины (200 г)', nameEn: 'Pork Shashlik (200 g)', price: 250, category: FOOD, group: 'food', match: 'Свиной шашлык' },
+  { name: 'Шашлык из утки (200 г)', nameEn: 'Duck Shashlik (200 g)', price: 300, category: FOOD, group: 'food', match: 'Утиный шашлык' },
+  { name: 'Куриные крылышки (6 шт.)', nameEn: 'Chicken Wings (6 pcs)', price: 250, category: FOOD, group: 'food', match: 'Куриные крылышки' },
+  { name: 'Купаты из курицы', nameEn: 'Chicken Sausages', price: 250, category: FOOD, group: 'food', match: 'Купаты' },
+  { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
 
+  // 🥩 ЗАКУСКИ К ПИВУ
+  { name: 'Свиные уши', nameEn: 'Pork Ears', price: 200, category: SNACKS, group: 'food' },
+  { name: 'Домашние ржаные гренки', nameEn: 'Homemade Rye Croutons', price: 120, category: SNACKS, group: 'food' },
+  { name: 'Домашняя вяленая говядина (50 г)', nameEn: 'Homemade Beef Jerky (50 g)', price: 200, category: SNACKS, group: 'food' },
+
   // 🍺 РАЗЛИВНОЕ ПИВО
-  { name: 'Erdinger Weissbier (0.4 L)', nameEn: 'Erdinger Weissbier 0.4L', price: 230, category: DRAFT, group: 'drinks' },
-  { name: 'Erdinger Dunkel (0.4 L)', nameEn: 'Erdinger Dunkel 0.4L', price: 230, category: DRAFT, group: 'drinks' },
-  { name: 'Arcobrau Weissbier (0.5 L)', nameEn: 'Arcobrau Weissbier 0.5L', price: 230, category: DRAFT, group: 'drinks' },
-  { name: 'Paulaner Hefe Weissbier (0.5 L)', nameEn: 'Paulaner Hefe Weissbier 0.5L', price: 240, category: DRAFT, group: 'drinks' },
-  { name: 'Paulaner Dunkel (0.5 L)', nameEn: 'Paulaner Dunkel 0.5L', price: 240, category: DRAFT, group: 'drinks' },
-  { name: 'Бельгийское нефильтрованное (0.4 L)', nameEn: 'Belgian Unfiltered 0.4L', price: 190, category: DRAFT, group: 'drinks' },
-  { name: 'Жигулёвское (0.4 L)', nameEn: 'Zhigulevskoe 0.4L', price: 160, category: DRAFT, group: 'drinks' },
-  { name: 'Ирландский эль (0.4 L)', nameEn: 'Irish Ale 0.4L', price: 180, category: DRAFT, group: 'drinks' },
+  { name: 'Erdinger Weissbier (0.4 L)', nameEn: 'Erdinger Weissbier (0.4 L)', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Erdinger Dunkel (0.4 L)', nameEn: 'Erdinger Dunkel (0.4 L)', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Arcobrau Weissbier (0.5 L)', nameEn: 'Arcobrau Weissbier (0.5 L)', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Paulaner Hefe Weissbier (0.5 L)', nameEn: 'Paulaner Hefe Weissbier (0.5 L)', price: 240, category: DRAFT, group: 'drinks' },
+  { name: 'Paulaner Dunkel (0.5 L)', nameEn: 'Paulaner Dunkel (0.5 L)', price: 240, category: DRAFT, group: 'drinks' },
+  { name: 'Бельгийское нефильтрованное (0.4 L)', nameEn: 'Belgian Unfiltered Wheat Ale (0.4 L)', price: 190, category: DRAFT, group: 'drinks' },
+  { name: 'Жигулёвское (0.4 L)', nameEn: 'Zhigulevskoe Lager (0.4 L)', price: 160, category: DRAFT, group: 'drinks' },
+  { name: 'Ирландский эль (0.4 L)', nameEn: 'Irish Ale (0.4 L)', price: 180, category: DRAFT, group: 'drinks' },
 
   // 🍾 БУТЫЛОЧНОЕ ПИВО
   { name: 'Weihenstephaner Original Helles', nameEn: 'Weihenstephaner Original Helles', price: 190, category: BOTTLE, group: 'drinks' },
   { name: 'Weihenstephaner Hefe Weissbier', nameEn: 'Weihenstephaner Hefe Weissbier', price: 190, category: BOTTLE, group: 'drinks' },
   { name: 'Weihenstephaner Hefeweissbier Dunkel', nameEn: 'Weihenstephaner Hefeweissbier Dunkel', price: 190, category: BOTTLE, group: 'drinks' },
   { name: 'Paulaner Hefe Weissbier', nameEn: 'Paulaner Hefe Weissbier', price: 230, category: BOTTLE, group: 'drinks' },
-  { name: 'Paulaner Münchner Hell Lager', nameEn: 'Paulaner Munchner Hell Lager', price: 230, category: BOTTLE, group: 'drinks' },
+  { name: 'Paulaner Münchner Hell Lager', nameEn: 'Paulaner Münchner Hell Lager', price: 230, category: BOTTLE, group: 'drinks' },
   { name: 'Paulaner Weissbier Dunkel', nameEn: 'Paulaner Weissbier Dunkel', price: 230, category: BOTTLE, group: 'drinks' },
   { name: 'Erdinger Weissbier', nameEn: 'Erdinger Weissbier', price: 220, category: BOTTLE, group: 'drinks' },
   { name: 'Erdinger Dunkel', nameEn: 'Erdinger Dunkel', price: 220, category: BOTTLE, group: 'drinks' },
-  { name: 'Hofbräu Münchner Weisse', nameEn: 'Hofbrau Munchner Weisse', price: 210, category: BOTTLE, group: 'drinks' },
-  { name: 'Hofbräu Schwarze Weisse', nameEn: 'Hofbrau Schwarze Weisse', price: 210, category: BOTTLE, group: 'drinks' },
+  { name: 'Hofbräu Münchner Weisse', nameEn: 'Hofbräu Münchner Weisse', price: 210, category: BOTTLE, group: 'drinks' },
+  { name: 'Hofbräu Schwarze Weisse', nameEn: 'Hofbräu Schwarze Weisse', price: 210, category: BOTTLE, group: 'drinks' },
   { name: 'Franziskaner Weissbier', nameEn: 'Franziskaner Weissbier', price: 190, category: BOTTLE, group: 'drinks' },
   { name: 'Franziskaner Dunkel', nameEn: 'Franziskaner Dunkel', price: 190, category: BOTTLE, group: 'drinks' },
   { name: 'Arcobrau Urfass Lager', nameEn: 'Arcobrau Urfass Lager', price: 210, category: BOTTLE, group: 'drinks' },
@@ -56,12 +61,12 @@ const TARGET = [
   { name: 'Bitburger Beer 0.0%', nameEn: 'Bitburger Beer 0.0%', price: 180, category: BOTTLE, group: 'drinks' },
 
   // 🥤 БЕЗАЛКОГОЛЬНЫЕ
-  { name: 'Сода', nameEn: 'Soda', price: 20, category: SOFT, group: 'drinks' },
-  { name: 'Вода', nameEn: 'Water', price: 15, category: SOFT, group: 'drinks' },
+  { name: 'Сода', nameEn: 'Sparkling Water', price: 20, category: SOFT, group: 'drinks' },
+  { name: 'Вода', nameEn: 'Drinking Water', price: 15, category: SOFT, group: 'drinks' },
   { name: 'Coca-Cola', nameEn: 'Coca-Cola', price: 50, category: SOFT, group: 'drinks' },
   { name: 'Cream Soda', nameEn: 'Cream Soda', price: 70, category: SOFT, group: 'drinks' },
-  { name: 'Домашний клюквенный морс 0.33 L', nameEn: 'Cranberry Drink 0.33L', price: 60, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.33 л' },
-  { name: 'Домашний клюквенный морс 0.22 L', nameEn: 'Cranberry Drink 0.22L', price: 40, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.2 л' },
+  { name: 'Домашний клюквенный морс 0.33 L', nameEn: 'Homemade Cranberry Morse (0.33 L)', price: 60, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.33 л' },
+  { name: 'Домашний клюквенный морс 0.22 L', nameEn: 'Homemade Cranberry Morse (0.22 L)', price: 40, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.2 л' },
 ];
 
 // Фото позиций (файлы лежат в frontend/public/menu/<slug>.jpg)

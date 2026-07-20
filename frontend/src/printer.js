@@ -54,12 +54,23 @@ const CMD = {
 };
 
 // Строку → байты (латиница/цифры). Всё, что вне ASCII, → '?', чтобы не было мусора.
+// Латиница с диакритикой → ASCII, чтобы «Hofbräu» не печаталось как «Hofbr?u».
+const TRANSLIT = {
+  'ä': 'a', 'ö': 'o', 'ü': 'u', 'Ä': 'A', 'Ö': 'O', 'Ü': 'U', 'ß': 'ss',
+  'á': 'a', 'à': 'a', 'â': 'a', 'å': 'a', 'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+  'í': 'i', 'ì': 'i', 'î': 'i', 'ó': 'o', 'ò': 'o', 'ô': 'o', 'ø': 'o',
+  'ú': 'u', 'ù': 'u', 'û': 'u', 'ñ': 'n', 'ç': 'c', 'æ': 'ae', '№': 'No',
+};
+
 function textBytes(str) {
   const out = [];
   for (const ch of String(str)) {
     const c = ch.codePointAt(0);
-    if (c === 0x0e3f) { out.push(0xdf); continue; } // ฿ — позиция бата в тайской кодовой странице
-    out.push(c > 0x7f ? 0x3f : c);
+    if (c === 0x0e3f) { out.push(0xdf); continue; }  // ฿ — бат в тайской кодовой странице
+    if (c <= 0x7f) { out.push(c); continue; }
+    const tr = TRANSLIT[ch];
+    if (tr) { for (const a of tr) out.push(a.charCodeAt(0)); continue; }
+    out.push(0x3f); // всё остальное — «?»
   }
   return out;
 }
