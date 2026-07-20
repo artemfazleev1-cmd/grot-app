@@ -431,6 +431,60 @@ export async function printKitchenTicket(order, items, opts = {}) {
   catch (err) { err.preview = text; throw err; }
 }
 
+// ── Чек доли при разделении счёта ───────────────────────────────────────────────
+// sub = { orderId, place, createdAt, index, of, items:[{qty,name,amount}], total }
+export function buildSplitReceipt(sub, opts = {}) {
+  const cfg = RECEIPT_CONFIG; const cur = cfg.currency;
+  const bytes = []; const text = [];
+  const put = (a) => bytes.push(...a);
+  const line = (s = '') => { put(textBytes(s)); put([0x0a]); text.push(s); };
+  const center = (s) => { put(CMD.alignC); line(s); put(CMD.alignL); };
+
+  put(CMD.init);
+  const logo = logoRaster();
+  if (logo) { put(CMD.alignC); put(logo); put([0x0a]); put(CMD.alignL); text.push('[ flame ]'); }
+  put(CMD.alignC);
+  put(CMD.boldOn); put(CMD.sizeBig); line(cfg.name); put(CMD.sizeNormal); put(CMD.boldOff);
+  if (cfg.tagline) line(cfg.tagline);
+  if (cfg.address) line(cfg.address);
+  put(CMD.alignL);
+  line(rule());
+  put(CMD.alignC); put(CMD.boldOn); put(CMD.sizeTall);
+  line(`SPLIT ${sub.index}/${sub.of}`);
+  put(CMD.sizeNormal); put(CMD.boldOff); put(CMD.alignL);
+  line(rule());
+  line(lr(sub.place, `Order #${sub.orderId}`));
+  line(fmtDate(sub.createdAt));
+  line(rule());
+  for (const i of (sub.items || [])) line(lr(`${i.qty}x ${i.name}`, money(i.amount)));
+  if (sub.items && sub.items.length) line(rule());
+  put(CMD.boldOn); put(CMD.sizeTall);
+  line(lr('TOTAL', `${money(sub.total)} ${cur}`));
+  put(CMD.sizeNormal); put(CMD.boldOff);
+  if (opts.payment === 'card') line(lr('Paid', 'CARD'));
+  else if (opts.payment === 'cash') line(lr('Paid', 'CASH'));
+  line(rule());
+  center('THANK YOU');
+  if (cfg.slogan) center(cfg.slogan);
+  put([0x0a]);
+  if (cfg.whatsapp) center('WhatsApp ' + cfg.whatsapp);
+  if (cfg.instagram) center('Instagram ' + cfg.instagram);
+  if (cfg.qrUrl) { put([0x0a]); put(CMD.alignC); put(qrBytes(cfg.qrUrl)); put([0x0a]); put(CMD.alignL); text.push('[QR] ' + cfg.qrUrl); }
+
+  put(CMD.feed(3)); put(CMD.cut);
+  if (opts.openDrawer) put(CMD.drawer);
+  return { bytes, text: text.join('\n') };
+}
+
+export async function printSplitReceipt(sub, opts = {}) {
+  const { bytes, text } = buildSplitReceipt(sub, opts);
+  if (!isNativePrintingAvailable()) {
+    const e = new Error('NO_PRINTER'); e.preview = text; throw e;
+  }
+  try { await writeBytes(bytes); return { ok: true, text }; }
+  catch (err) { err.preview = text; throw err; }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ЗАМЕТКА по кириллице/тайскому:
 // Принтер печатает латиницу из коробки. Для тайского — переключить кодовую

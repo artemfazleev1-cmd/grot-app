@@ -5,7 +5,7 @@ import { catLabel } from '../i18n.js';
 import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
 import OrderChat from '../components/OrderChat.jsx';
 import {
-  printReceipt, printShiftReport, printKitchenTicket, openDrawer, isNativePrintingAvailable, listPrinters,
+  printReceipt, printShiftReport, printKitchenTicket, printSplitReceipt, openDrawer, isNativePrintingAvailable, listPrinters,
   connectPrinter, disconnectPrinter, isConnected, printerStore,
 } from '../printer.js';
 
@@ -110,7 +110,16 @@ function usePrintBill(groupMap) {
       return false;
     }
   };
-  return { printBill, printKitchen, preview, setPreview };
+  // Чек доли при разделении счёта.
+  const printSplit = async (sub, opts = {}) => {
+    try { await printSplitReceipt(sub, opts); toast(t('print_ok')); return true; }
+    catch (e) {
+      if (e.preview) setPreview(e.preview);
+      toast(e.message === 'NO_PRINTER' || e.message === 'NO_NATIVE' ? t('printer_not_connected') : t('print_fail'));
+      return false;
+    }
+  };
+  return { printBill, printKitchen, printSplit, preview, setPreview };
 }
 
 function PreviewSheet({ preview, setPreview, onPrinter }) {
@@ -121,6 +130,127 @@ function PreviewSheet({ preview, setPreview, onPrinter }) {
       <div className="muted" style={{ marginBottom: 10 }}>{t('printer_not_connected')}</div>
       <pre style={{ whiteSpace: 'pre', overflowX: 'auto', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12, lineHeight: 1.45, background: 'var(--card, #111)', color: 'var(--fg, #eee)', padding: 14, borderRadius: 12, border: '1px solid var(--line)' }}>{preview}</pre>
       {onPrinter && <button className="btn sm" style={{ marginTop: 12 }} onClick={() => { setPreview(null); onPrinter(); }}>🖨 {t('printer')}</button>}
+    </Sheet>
+  );
+}
+
+// Разделение счёта: поровну на N или по позициям, с отдельной оплатой на гостя.
+function SplitSheet({ order, printSplit, onClose, onClosed }) {
+  const { t, toast } = useStore();
+  const items = order.items || [];
+  const total = order.total;
+  const [n, setN] = useState(2);
+  const [mode, setMode] = useState('even');
+  const [assign, setAssign] = useState({});   // itemIdx -> guest idx (0..n-1); нет = «общее»
+  const [paid, setPaid] = useState([]);        // [{ index, method, amount }]
+  const [payGuest, setPayGuest] = useState(null);
+
+  const guests = Array.from({ length: n }, (_, i) => ({ index: i, items: [], amount: 0 }));
+  if (mode === 'even') {
+    const base = Math.floor(total / n);
+    guests.forEach((g) => { g.amount = base; });
+    guests[0].amount += total - base * n;
+  } else {
+    const shared = [];
+    items.forEach((it, idx) => {
+      const a = assign[idx];
+      if (a == null || a >= n) shared.push(it);
+      else { guests[a].items.push(it); guests[a].amount += it.price * it.qty; }
+    });
+    const sharedTotal = shared.reduce((s, it) => s + it.price * it.qty, 0);
+    const per = Math.floor(sharedTotal / n);
+    guests.forEach((g) => { g.amount += per; });
+    guests[0].amount += sharedTotal - per * n;
+  }
+
+  const isPaid = (i) => paid.some((p) => p.index === i);
+  const needPay = guests.filter((g) => g.amount > 0);
+  const allDone = needPay.length > 0 && needPay.every((g) => isPaid(g.index));
+
+  const cycleAssign = (idx) => setAssign((a) => {
+    const cur = a[idx];
+    const next = cur == null ? 0 : cur + 1 >= n ? undefined : cur + 1;
+    const na = { ...a };
+    if (next === undefined) delete na[idx]; else na[idx] = next;
+    return na;
+  });
+
+  const doPayGuest = async () => {
+    const g = guests[payGuest.index];
+    const sub = {
+      orderId: order.id, place: orderLabel(order), createdAt: order.createdAt,
+      index: g.index + 1, of: n,
+      items: g.items.map((i) => ({ qty: i.qty, name: i.nameEn || i.name, amount: i.price * i.qty })),
+      total: g.amount,
+    };
+    const ok = await printSplit(sub, { payment: payGuest.method, openDrawer: payGuest.method === 'cash' });
+    if (ok) { setPaid((p) => [...p, { index: g.index, method: payGuest.method, amount: g.amount }]); setPayGuest(null); }
+  };
+
+  const finish = async () => {
+    try { await api.post(`/orders/${order.id}/close`, { payments: paid.map((p) => ({ method: p.method, amount: p.amount })) }); toast(t('order_saved')); onClosed(); }
+    catch (e) { toast(e.message); }
+  };
+
+  return (
+    <Sheet open onClose={onClose}>
+      <h2 style={{ marginTop: 0 }}>{t('split_title')} · {placeLabel(order, t)}</h2>
+      <div className="between"><span className="muted">{t('total')}</span><b className="gold" style={{ fontSize: 18 }}>{money(total)}</b></div>
+
+      <div className="row" style={{ gap: 8, marginTop: 12 }}>
+        <button className={`btn sm ${mode === 'even' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setMode('even')} disabled={paid.length > 0}>{t('split_even')}</button>
+        <button className={`btn sm ${mode === 'items' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setMode('items')} disabled={paid.length > 0}>{t('split_items')}</button>
+      </div>
+
+      <div className="between" style={{ marginTop: 12 }}>
+        <span>{t('split_guests')}</span>
+        <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+          <button className="btn ghost sm" onClick={() => setN((v) => Math.max(2, v - 1))} disabled={paid.length > 0}>−</button>
+          <b style={{ minWidth: 20, textAlign: 'center' }}>{n}</b>
+          <button className="btn ghost sm" onClick={() => setN((v) => Math.min(12, v + 1))} disabled={paid.length > 0}>+</button>
+        </div>
+      </div>
+
+      {mode === 'items' && (
+        <div className="card tight" style={{ marginTop: 12, maxHeight: 200, overflowY: 'auto' }}>
+          <div className="muted" style={{ marginBottom: 6 }}>{t('split_assign_hint')}</div>
+          {items.map((it, idx) => (
+            <div key={idx} className="between" style={{ padding: '4px 0', gap: 8 }}>
+              <span style={{ flex: 1, minWidth: 0 }}>{it.qty}× {it.nameEn || it.name}</span>
+              <button className="chip active" onClick={() => cycleAssign(idx)}>
+                {assign[idx] == null ? t('split_shared') : `${t('guest')} ${assign[idx] + 1}`}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="list" style={{ marginTop: 12 }}>
+        {guests.map((g) => (
+          <div key={g.index} className="card tight between">
+            <div><b>{t('guest')} {g.index + 1}</b>{mode === 'items' && g.items.length > 0 && <div className="muted" style={{ fontSize: 12 }}>{g.items.map((i) => `${i.qty}× ${i.nameEn || i.name}`).join(', ')}</div>}</div>
+            <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+              <b className="gold">{money(g.amount)}</b>
+              {isPaid(g.index) ? <span className="badge green">✓</span>
+                : g.amount > 0 ? <button className="btn sm" onClick={() => setPayGuest({ index: g.index, method: 'cash' })}>{t('split_pay')}</button>
+                : <span className="muted">—</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {allDone && <button className="btn block" style={{ marginTop: 12 }} onClick={finish}>✓ {t('split_finish')}</button>}
+
+      {payGuest && (
+        <Sheet open onClose={() => setPayGuest(null)}>
+          <h2 style={{ marginTop: 0 }}>{t('guest')} {payGuest.index + 1} · {money(guests[payGuest.index].amount)}</h2>
+          <div className="row" style={{ gap: 8, marginTop: 12 }}>
+            <button className={`btn ${payGuest.method === 'cash' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setPayGuest((p) => ({ ...p, method: 'cash' }))}>💵 {t('pay_cash')}</button>
+            <button className={`btn ${payGuest.method === 'card' ? '' : 'ghost'}`} style={{ flex: 1 }} onClick={() => setPayGuest((p) => ({ ...p, method: 'card' }))}>💳 {t('pay_card')}</button>
+          </div>
+          <button className="btn block" style={{ marginTop: 16 }} onClick={doPayGuest}>🖨 {t('split_pay')}</button>
+        </Sheet>
+      )}
     </Sheet>
   );
 }
@@ -196,10 +326,11 @@ export function WaiterTables() {
   const { t } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const { groupMap } = useGroupMap();
-  const { printBill, printKitchen, preview, setPreview } = usePrintBill(groupMap);
+  const { printBill, printKitchen, printSplit, preview, setPreview } = usePrintBill(groupMap);
   const [sel, setSel] = useState(null);       // id выбранного счёта
   const [picker, setPicker] = useState(null); // {tableNumber, zone, orderId}
   const [pay, setPay] = useState(null);       // {order, method:'cash'|'card', cash:''}
+  const [split, setSplit] = useState(null);   // заказ для разделения счёта
   useEffect(() => { const iv = setInterval(orders.reload, 5000); return () => clearInterval(iv); }, []);
   if (orders.loading) return <Loader />;
   const open = orders.data.filter((o) => o.type === 'dinein' && !o.paid);
@@ -263,7 +394,10 @@ export function WaiterTables() {
           <div className="between" style={{ marginTop: 8, borderTop: '1px solid var(--line)', paddingTop: 8 }}>
             <b>{t('total')}</b><b className="gold" style={{ fontSize: 18 }}>{money(selOrder.total)}</b>
           </div>
-          <button className="btn ghost block" style={{ marginTop: 14 }} onClick={() => printBill(selOrder, { preBill: true })}>🧾 {t('prebill')}</button>
+          <div className="row" style={{ gap: 8, marginTop: 14 }}>
+            <button className="btn ghost" style={{ flex: 1 }} onClick={() => printBill(selOrder, { preBill: true })}>🧾 {t('prebill')}</button>
+            <button className="btn ghost" style={{ flex: 1 }} onClick={() => { setSplit(selOrder); setSel(null); }}>👥 {t('split')}</button>
+          </div>
           <div className="row" style={{ gap: 8, marginTop: 8 }}>
             <button className="btn ghost" onClick={() => setPicker({ tableNumber: selOrder.tableNumber, zone: selOrder.zone, orderId: selOrder.id })}>➕ {t('add_items')}</button>
             <button className="btn" onClick={() => { setPay({ order: selOrder, method: 'cash', cash: '', foodType: 'percent', foodVal: '', drinkType: 'percent', drinkVal: '' }); setSel(null); }}>💵 {t('checkout_print')}</button>
@@ -328,6 +462,7 @@ export function WaiterTables() {
       {picker && <ItemPicker tableNumber={picker.tableNumber} zone={picker.zone} orderId={picker.orderId}
         onClose={() => setPicker(null)}
         onSaved={(order, added, isAdd) => { setPicker(null); orders.reload(); printKitchen(order, added, { addOn: isAdd }); }} />}
+      {split && <SplitSheet order={split} printSplit={printSplit} onClose={() => setSplit(null)} onClosed={() => { setSplit(null); orders.reload(); }} />}
       <PreviewSheet preview={preview} setPreview={setPreview} />
     </div>
   );
@@ -403,8 +538,12 @@ export function WaiterCabinet() {
   const revenue = sumRev(todayAll);
   let kitchen = 0, bar = 0;
   todayAll.forEach((o) => (o.items || []).forEach((i) => { const g = i.group || groupMap[i.menuId] || 'food'; (g === 'drinks' ? (bar += i.price * i.qty) : (kitchen += i.price * i.qty)); }));
-  const cash = todayAll.filter((o) => o.payment === 'cash').reduce((s, o) => s + o.total, 0);
-  const card = todayAll.filter((o) => o.payment === 'card').reduce((s, o) => s + o.total, 0);
+  // Оплата по методу: учитываем и одиночную оплату, и доли при разделении счёта.
+  const paidBy = (o, method) => o.payments
+    ? o.payments.filter((p) => p.method === method).reduce((s, p) => s + p.amount, 0)
+    : (o.payment === method ? o.total : 0);
+  const cash = todayAll.reduce((s, o) => s + paidBy(o, 'cash'), 0);
+  const card = todayAll.reduce((s, o) => s + paidBy(o, 'card'), 0);
   const floatNum = Number(floatVal) || 0;
 
   const doPrintShift = async () => {

@@ -359,7 +359,17 @@ app.post('/api/orders/:id/close', auth, requireRole('waiter', 'admin', 'owner'),
   order.discount = discFood + discDrinks;
   order.total = order.subtotal - order.discount;
   order.paid = true;
-  order.payment = ['cash', 'card'].includes(req.body.payment) ? req.body.payment : 'cash';
+  // Оплата: одиночная (payment) или массив долей при разделении счёта (payments).
+  const pays = Array.isArray(req.body.payments)
+    ? req.body.payments.filter((p) => ['cash', 'card'].includes(p.method) && Number(p.amount) > 0).map((p) => ({ method: p.method, amount: Math.round(Number(p.amount)) }))
+    : null;
+  if (pays && pays.length) {
+    order.payments = pays;
+    order.payment = pays.every((p) => p.method === pays[0].method) ? pays[0].method : 'split';
+  } else {
+    order.payment = ['cash', 'card'].includes(req.body.payment) ? req.body.payment : 'cash';
+    delete order.payments;
+  }
   order.status = 'handed';
   order.closedAt = db.now();
   if (order.tableNumber) { const tb = db.tables.find((x) => x.number === order.tableNumber); if (tb) tb.status = 'free'; }
