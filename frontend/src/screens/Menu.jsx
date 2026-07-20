@@ -15,7 +15,12 @@ export function Menu() {
   const groupCats = data.categoryGroups?.[group] || [];
   const cats = ['Все', ...groupCats];
   const items = data.items.filter((i) => i.group === group && (cat === 'Все' || i.category === cat));
-  const catLabel = (c) => c === 'Все' ? t('all') : t('cat_' + c);
+  // Если перевода категории нет — показываем её название как есть (а не ключ «cat_…»)
+  const catLabel = (c) => {
+    if (c === 'Все') return t('all');
+    const key = 'cat_' + c, v = t(key);
+    return v === key ? c : v;
+  };
   const dishName = (d) => (lang === 'en' && d.nameEn) ? d.nameEn : d.name;
 
   const switchGroup = (g) => { setGroup(g); setCat('Все'); };

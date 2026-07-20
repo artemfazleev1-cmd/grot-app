@@ -64,6 +64,49 @@ const TARGET = [
   { name: 'Домашний клюквенный морс 0.22 L', nameEn: 'Cranberry Drink 0.22L', price: 40, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.2 л' },
 ];
 
+// Фото позиций (файлы лежат в frontend/public/menu/<slug>.jpg)
+const SLUGS = {
+  'Smash Burger': 'smash-burger',
+  'Плов из австралийской говядины': 'pilaf-beef',
+  'Плов из новозеландской баранины': 'pilaf-lamb',
+  'Шашлык из свинины (200 г)': 'pork-skewer',
+  'Шашлык из утки (200 г)': 'duck-skewer',
+  'Куриные крылышки (6 шт.)': 'chicken-wings',
+  'Купаты из курицы': 'kupaty-chicken',
+  'Купаты из курицы и свинины': 'kupaty-chicken-pork',
+  'Куриное бедро в сливочном соусе': 'chicken-thigh-cream',
+  'Erdinger Weissbier (0.4 L)': 'erdinger-weissbier-draft',
+  'Erdinger Dunkel (0.4 L)': 'erdinger-dunkel-draft',
+  'Arcobrau Weissbier (0.5 L)': 'arcobrau-weissbier-draft',
+  'Paulaner Hefe Weissbier (0.5 L)': 'paulaner-hefe-draft',
+  'Paulaner Dunkel (0.5 L)': 'paulaner-dunkel-draft',
+  'Бельгийское нефильтрованное (0.4 L)': 'belgian-unfiltered',
+  'Жигулёвское (0.4 L)': 'zhigulevskoe',
+  'Ирландский эль (0.4 L)': 'irish-ale',
+  'Weihenstephaner Original Helles': 'weihenstephaner-helles',
+  'Weihenstephaner Hefe Weissbier': 'weihenstephaner-hefe',
+  'Weihenstephaner Hefeweissbier Dunkel': 'weihenstephaner-hefe-dunkel',
+  'Paulaner Hefe Weissbier': 'paulaner-hefe-bottle',
+  'Paulaner Münchner Hell Lager': 'paulaner-munchner-hell',
+  'Paulaner Weissbier Dunkel': 'paulaner-weissbier-dunkel',
+  'Erdinger Weissbier': 'erdinger-weissbier-bottle',
+  'Erdinger Dunkel': 'erdinger-dunkel-bottle',
+  'Hofbräu Münchner Weisse': 'hofbrau-munchner-weisse',
+  'Hofbräu Schwarze Weisse': 'hofbrau-schwarze-weisse',
+  'Franziskaner Weissbier': 'franziskaner-weissbier',
+  'Franziskaner Dunkel': 'franziskaner-dunkel',
+  'Arcobrau Urfass Lager': 'arcobrau-urfass-lager',
+  'Moose Craft Cider': 'moose-craft-cider',
+  'Bitburger Beer 0.0%': 'bitburger-00',
+  'Сода': 'soda',
+  'Вода': 'water',
+  'Coca-Cola': 'coca-cola',
+  'Cream Soda': 'cream-soda',
+  'Домашний клюквенный морс 0.33 L': 'mors-033',
+  'Домашний клюквенный морс 0.22 L': 'mors-022',
+};
+for (const t of TARGET) if (SLUGS[t.name]) t.image = `/menu/${SLUGS[t.name]}.jpg`;
+
 const j = async (url, opts = {}) => {
   const r = await fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
   const data = await r.json().catch(() => ({}));
@@ -79,8 +122,10 @@ const run = async () => {
 
   const added = [], updated = [], same = [];
   for (const t of TARGET) {
-    const cur = byName.get((t.match || t.name).trim());
-    const body = { name: t.name, nameEn: t.nameEn, category: t.category, group: t.group, price: t.price };
+    // Сначала ищем по новому имени (повторный запуск), затем по старому (первый запуск).
+    // Иначе после переименования скрипт создаёт дубли.
+    const cur = byName.get(t.name.trim()) || (t.match ? byName.get(t.match.trim()) : null);
+    const body = { name: t.name, nameEn: t.nameEn, category: t.category, group: t.group, price: t.price, ...(t.image ? { image: t.image } : {}) };
     if (!cur) {
       added.push(`${t.category} | ${t.name} — ${t.price}฿`);
       if (!DRY) await j(`${API}/api/menu`, { method: 'POST', headers: auth, body: JSON.stringify({ ...body, available: true, description: '' }) });
@@ -90,13 +135,14 @@ const run = async () => {
       if (cur.category !== t.category) diffs.push(`категория ${cur.category}→${t.category}`);
       if ((cur.name || '') !== t.name) diffs.push(`имя «${cur.name}»→«${t.name}»`);
       if ((cur.nameEn || '') !== t.nameEn) diffs.push('англ. название');
+      if (t.image && cur.image !== t.image) diffs.push('фото');
       if (!diffs.length) { same.push(t.name); continue; }
       updated.push(`${t.name}: ${diffs.join(', ')}`);
       if (!DRY) await j(`${API}/api/menu/${cur.id}`, { method: 'PUT', headers: auth, body: JSON.stringify(body) });
     }
   }
 
-  const targetNames = new Set(TARGET.map((t) => (t.match || t.name).trim()));
+  const targetNames = new Set(TARGET.flatMap((t) => [t.name.trim(), ...(t.match ? [t.match.trim()] : [])]));
   const extra = menu.items.filter((m) => !targetNames.has(m.name.trim())).map((m) => `${m.name} — ${m.price}฿`);
 
   console.log(`\n${DRY ? '[ПЛАН, ничего не менялось]' : '[ПРИМЕНЕНО]'}  ${API}`);
