@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
+import { catLabel } from '../i18n.js';
 import { Loader, useFetch, money, Empty, Sheet } from '../components/ui.jsx';
 import OrderChat from '../components/OrderChat.jsx';
 import {
@@ -141,7 +142,7 @@ function ItemPicker({ tableNumber, orderId, onClose, onSaved }) {
       {menu.loading ? <Loader /> : (<>
         {!kOpen && <div className="card tight" style={{ marginBottom: 8, border: '1px solid var(--gold, #d4a017)', color: 'var(--gold, #d4a017)' }}>🍳 {t('kitchen_closed_banner')}</div>}
         <div className="chips" style={{ margin: '8px 0', flexWrap: 'wrap' }}>
-          {cats.map((c) => <button key={c} className={`chip ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{c === 'all' ? t('all') : c}</button>)}
+          {cats.map((c) => <button key={c} className={`chip ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{catLabel(t, c)}</button>)}
         </div>
         <div className="list" style={{ maxHeight: 320, overflowY: 'auto' }}>
           {shown.map((m) => {
@@ -342,7 +343,7 @@ export function WaiterNewOrder() {
 
 // ── Экран 3: Кабинет (статистика + принтер + отчёт смены) ──
 export function WaiterCabinet() {
-  const { t, user, logout, toast } = useStore();
+  const { t, user, logout, toast, lang } = useStore();
   const orders = useFetch(() => api.get('/orders'));
   const { groupMap } = useGroupMap();
   const { printBill, preview, setPreview } = usePrintBill(groupMap);
@@ -421,7 +422,7 @@ export function WaiterCabinet() {
 
       <Sheet open={shiftOpen} onClose={() => setShiftOpen(false)}>
         <h2 style={{ marginTop: 0 }}>🧾 {t('shift_title')}</h2>
-        <div className="muted" style={{ marginBottom: 12 }}>{new Date().toLocaleDateString('ru-RU')}</div>
+        <div className="muted" style={{ marginBottom: 12 }}>{new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'ru-RU')}</div>
         <div className="card tight">
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_orders')}</span><b>{todayAll.length}</b></div>
           <div className="between" style={{ padding: '4px 0' }}><span className="muted">{t('shift_kitchen')}</span><b>{money(kitchen)}</b></div>

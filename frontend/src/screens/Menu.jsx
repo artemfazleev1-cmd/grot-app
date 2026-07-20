@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useStore } from '../context/store.jsx';
 import { Loader, useFetch, money, Empty, FoodImg } from '../components/ui.jsx';
+import { catLabel as catLabelI18n } from '../i18n.js';
 
 export function Menu() {
   const { addToCart, cartCount, cartTotal, t, lang } = useStore();
@@ -15,12 +16,7 @@ export function Menu() {
   const groupCats = data.categoryGroups?.[group] || [];
   const cats = ['Все', ...groupCats];
   const items = data.items.filter((i) => i.group === group && (cat === 'Все' || i.category === cat));
-  // Если перевода категории нет — показываем её название как есть (а не ключ «cat_…»)
-  const catLabel = (c) => {
-    if (c === 'Все') return t('all');
-    const key = 'cat_' + c, v = t(key);
-    return v === key ? c : v;
-  };
+  const catLabel = (c) => catLabelI18n(t, c);
   const dishName = (d) => (lang === 'en' && d.nameEn) ? d.nameEn : d.name;
 
   const switchGroup = (g) => { setGroup(g); setCat('Все'); };
