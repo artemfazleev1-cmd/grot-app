@@ -44,10 +44,10 @@ export function ensureDemoUsers() {
 
 // ---------- Категории и меню ----------
 // Категории по группам: еда / напитки
-export const categories = ['Шашлык', 'Купаты', 'Бургеры', 'Немецкое пиво', 'Сидр', 'Морс'];
+export const categories = ['Горячие блюда', 'Разливное пиво', 'Бутылочное пиво', 'Безалкогольные'];
 export const categoryGroups = {
-  food: ['Шашлык', 'Купаты', 'Бургеры'],
-  drinks: ['Немецкое пиво', 'Сидр', 'Морс'],
+  food: ['Горячие блюда'],
+  drinks: ['Разливное пиво', 'Бутылочное пиво', 'Безалкогольные'],
 };
 
 // ---------- Склад / ингредиенты (ДО меню — рецепты ссылаются по id) ----------
@@ -91,42 +91,42 @@ const m = (name, category, price, description, opts = {}) => ({
 // Реальное меню GROT (Pattaya) + техкарты (расход сырья на порцию по картам шефа)
 export const menu = [
   // ----- ЕДА · Шашлык на вынос -----
-  m('Свиной шашлык', 'Шашлык', 250, 'Сочный и нежный свиной шашлык, идеально приготовленный на гриле.', {
+  m('Свиной шашлык', 'Горячие блюда', 250, 'Сочный и нежный свиной шашлык, идеально приготовленный на гриле.', {
     nameEn: 'Pork Skewer', weight: '200 г', composition: 'свиная шея, лук, специи', calories: 540, popular: true, image: '/menu/pork.jpg',
     recipe: { [ING.pork]: 250, [ING.onion]: 60 } }),
-  m('Утиный шашлык', 'Шашлык', 300, 'Премиальная утка с хрустящей корочкой и насыщенным вкусом.', {
+  m('Утиный шашлык', 'Горячие блюда', 300, 'Премиальная утка с хрустящей корочкой и насыщенным вкусом.', {
     nameEn: 'Duck Skewer', weight: '200 г', composition: 'утиное филе бедра, лук, соевый соус, специи', calories: 560, popular: true, image: '/menu/duck.jpg',
     recipe: { [ING.duck]: 250, [ING.onion]: 30 } }),
-  m('Куриные крылышки', 'Шашлык', 300, 'Сочные куриные крылышки, приготовленные на гриле до идеальной корочки.', {
+  m('Куриные крылышки', 'Горячие блюда', 300, 'Сочные куриные крылышки, приготовленные на гриле до идеальной корочки.', {
     nameEn: 'Chicken Wings', weight: '6 шт.', composition: 'куриные крылышки, специи, соус', calories: 620, popular: true, image: '/menu/wings.jpg',
     recipe: { [ING.chicken_wings]: 360 } }),
 
   // ----- ЕДА · Купаты -----
-  m('Купаты', 'Купаты', 300, 'Домашние купаты из свинины и курицы. Сочные и ароматные.', {
+  m('Купаты', 'Горячие блюда', 300, 'Домашние купаты из свинины и курицы. Сочные и ароматные.', {
     nameEn: 'Kupaty Sausages', weight: '200 г', composition: 'свиная шея, куриное бедро, специи', calories: 600, image: '/menu/kupaty.jpg',
     recipe: { [ING.pork]: 150, [ING.chicken_thigh]: 100 } }),
 
   // ----- ЕДА · Бургеры -----
-  m('Smash Burger (говядина)', 'Бургеры', 300, 'Фирменный рецепт нашего шеф-повара: две говяжьи котлеты Smash, расплавленный сыр, фирменный соус, мягкая булочка бриошь.', {
+  m('Smash Burger (говядина)', 'Горячие блюда', 300, 'Фирменный рецепт нашего шеф-повара: две говяжьи котлеты Smash, расплавленный сыр, фирменный соус, мягкая булочка бриошь.', {
     nameEn: 'Smash Burger (Beef)', weight: '380–420 г', composition: 'говядина 80/20, булочка бриошь, чеддер, фирменный соус, лук, огурцы', calories: 920, popular: true, image: '/menu/burger.jpg',
     recipe: { [ING.beef]: 180, [ING.bun]: 1, [ING.cheddar]: 40, [ING.red_onion]: 15 } }),
 
   // ----- НАПИТКИ · Немецкое пиво -----
-  m('Weihenstephaner Original Helles', 'Немецкое пиво', 190, 'Мягкое, лёгкое и освежающее.', { group: 'drinks', style: 'Pale Lager', composition: 'светлый солод, хмель', popular: true, image: '/menu/helles.jpg' }),
-  m('Weihenstephaner Hefe Weissbier', 'Немецкое пиво', 190, 'Натурально мутное с фруктовым ароматом.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/weihen-hefe.jpg' }),
-  m('Erdinger Weissbier', 'Немецкое пиво', 220, 'Освежающее, фруктовое и насыщенное.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', popular: true, image: '/menu/erdinger-weiss.jpg' }),
-  m('Paulaner Weissbier Dunkel', 'Немецкое пиво', 230, 'Солодовое, мягкое, с нотами карамели.', { group: 'drinks', style: 'Dark Wheat Beer', composition: 'тёмный пшеничный солод, хмель', image: '/menu/paulaner-dunkel.jpg' }),
-  m('Erdinger Dunkel', 'Немецкое пиво', 220, 'Солодовое и мягкое, с богатым вкусом.', { group: 'drinks', style: 'Dark Lager', composition: 'тёмный солод, хмель', image: '/menu/erdinger-dunkel.jpg' }),
-  m('Hofbräu Münchner Weisse', 'Немецкое пиво', 190, 'Яркое, мягкое и идеально сбалансированное.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/hofbrau-munchner.jpg' }),
-  m('Hofbräu Schwarze Weisse', 'Немецкое пиво', 190, 'Полнотелое, со вкусом солода и карамели.', { group: 'drinks', style: 'Dark Wheat Beer', composition: 'тёмный пшеничный солод, хмель', image: '/menu/hofbrau-schwarze.jpg' }),
-  m('Franziskaner Weissbier', 'Немецкое пиво', 190, 'Классическое немецкое пшеничное — мягкое и фруктовое.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/franziskaner-weiss.jpg' }),
-  m('Paulaner Hefe Weissbier', 'Немецкое пиво', 230, 'Лёгкое, фруктовое и натурально мутное.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/paulaner-hefe.jpg' }),
-  m('Franziskaner Dunkel', 'Немецкое пиво', 190, 'Солодовое, мягкое и насыщенное.', { group: 'drinks', style: 'Dark Lager', composition: 'тёмный солод, хмель', image: '/menu/franziskaner-dunkel.jpg' }),
+  m('Weihenstephaner Original Helles', 'Бутылочное пиво', 190, 'Мягкое, лёгкое и освежающее.', { group: 'drinks', style: 'Pale Lager', composition: 'светлый солод, хмель', popular: true, image: '/menu/helles.jpg' }),
+  m('Weihenstephaner Hefe Weissbier', 'Бутылочное пиво', 190, 'Натурально мутное с фруктовым ароматом.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/weihen-hefe.jpg' }),
+  m('Erdinger Weissbier', 'Бутылочное пиво', 220, 'Освежающее, фруктовое и насыщенное.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', popular: true, image: '/menu/erdinger-weiss.jpg' }),
+  m('Paulaner Weissbier Dunkel', 'Бутылочное пиво', 230, 'Солодовое, мягкое, с нотами карамели.', { group: 'drinks', style: 'Dark Wheat Beer', composition: 'тёмный пшеничный солод, хмель', image: '/menu/paulaner-dunkel.jpg' }),
+  m('Erdinger Dunkel', 'Бутылочное пиво', 220, 'Солодовое и мягкое, с богатым вкусом.', { group: 'drinks', style: 'Dark Lager', composition: 'тёмный солод, хмель', image: '/menu/erdinger-dunkel.jpg' }),
+  m('Hofbräu Münchner Weisse', 'Бутылочное пиво', 190, 'Яркое, мягкое и идеально сбалансированное.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/hofbrau-munchner.jpg' }),
+  m('Hofbräu Schwarze Weisse', 'Бутылочное пиво', 190, 'Полнотелое, со вкусом солода и карамели.', { group: 'drinks', style: 'Dark Wheat Beer', composition: 'тёмный пшеничный солод, хмель', image: '/menu/hofbrau-schwarze.jpg' }),
+  m('Franziskaner Weissbier', 'Бутылочное пиво', 190, 'Классическое немецкое пшеничное — мягкое и фруктовое.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/franziskaner-weiss.jpg' }),
+  m('Paulaner Hefe Weissbier', 'Бутылочное пиво', 230, 'Лёгкое, фруктовое и натурально мутное.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/paulaner-hefe.jpg' }),
+  m('Franziskaner Dunkel', 'Бутылочное пиво', 190, 'Солодовое, мягкое и насыщенное.', { group: 'drinks', style: 'Dark Lager', composition: 'тёмный солод, хмель', image: '/menu/franziskaner-dunkel.jpg' }),
   // ----- НАПИТКИ · Сидр -----
-  m('Moose Craft Cider', 'Сидр', 100, 'Хрустящий, освежающий и натурально вкусный.', { group: 'drinks', style: 'Apple Cider', composition: 'яблочный сидр', popular: true, image: '/menu/cider.jpg' }),
+  m('Moose Craft Cider', 'Бутылочное пиво', 100, 'Хрустящий, освежающий и натурально вкусный.', { group: 'drinks', style: 'Apple Cider', composition: 'яблочный сидр', popular: true, image: '/menu/cider.jpg' }),
   // ----- НАПИТКИ · Морс -----
-  m('Домашний клюквенный морс 0.33 л', 'Морс', 60, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.33 L', style: 'Клюквенный морс', weight: '0.33 л', composition: 'клюква, вода, сахар', image: '/menu/mors-033.jpg' }),
-  m('Домашний клюквенный морс 0.2 л', 'Морс', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.2 L', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-02.jpg' }),
+  m('Домашний клюквенный морс 0.33 л', 'Безалкогольные', 60, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.33 L', style: 'Клюквенный морс', weight: '0.33 л', composition: 'клюква, вода, сахар', image: '/menu/mors-033.jpg' }),
+  m('Домашний клюквенный морс 0.2 л', 'Безалкогольные', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.2 L', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-02.jpg' }),
 ];
 
 // Каждый напиток — складская позиция в бутылках; 1 заказанная единица = -1 бутылка

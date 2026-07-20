@@ -1,0 +1,110 @@
+// Синхронизация меню GROT с актуальным прайсом.
+// Добавляет недостающие позиции, обновляет цену/категорию/англ. название у существующих.
+// Ничего не удаляет. Техкарты (recipe) и картинки существующих позиций сохраняются.
+//
+// Запуск:
+//   node scripts/sync-menu.mjs                          # локально (localhost:4000)
+//   node scripts/sync-menu.mjs https://grot-app.onrender.com
+//   node scripts/sync-menu.mjs <API> <phone> <password>
+//   node scripts/sync-menu.mjs <API> <phone> <password> --dry   # только показать план
+
+const API = (process.argv[2] || 'http://localhost:4000').replace(/\/$/, '');
+const PHONE = process.argv[3] || '+66800000000';
+const PASS = process.argv[4] || 'owner';
+const DRY = process.argv.includes('--dry');
+
+const FOOD = 'Горячие блюда', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', SOFT = 'Безалкогольные';
+
+// match — как позиция называется сейчас в базе (если отличается от нового названия)
+const TARGET = [
+  // 🔥 ГОРЯЧИЕ БЛЮДА
+  { name: 'Smash Burger', nameEn: 'Smash Burger', price: 300, category: FOOD, group: 'food', match: 'Smash Burger (говядина)' },
+  { name: 'Плов из австралийской говядины', nameEn: 'Beef Pilaf (Australian)', price: 350, category: FOOD, group: 'food' },
+  { name: 'Плов из новозеландской баранины', nameEn: 'Lamb Pilaf (New Zealand)', price: 350, category: FOOD, group: 'food' },
+  { name: 'Шашлык из свинины (200 г)', nameEn: 'Pork Skewer', price: 250, category: FOOD, group: 'food', match: 'Свиной шашлык' },
+  { name: 'Шашлык из утки (200 г)', nameEn: 'Duck Skewer', price: 300, category: FOOD, group: 'food', match: 'Утиный шашлык' },
+  { name: 'Куриные крылышки (6 шт.)', nameEn: 'Chicken Wings', price: 250, category: FOOD, group: 'food', match: 'Куриные крылышки' },
+  { name: 'Купаты из курицы', nameEn: 'Chicken Kupaty', price: 250, category: FOOD, group: 'food', match: 'Купаты' },
+  { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Kupaty', price: 250, category: FOOD, group: 'food' },
+  { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
+
+  // 🍺 РАЗЛИВНОЕ ПИВО
+  { name: 'Erdinger Weissbier (0.4 L)', nameEn: 'Erdinger Weissbier 0.4L', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Erdinger Dunkel (0.4 L)', nameEn: 'Erdinger Dunkel 0.4L', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Arcobrau Weissbier (0.5 L)', nameEn: 'Arcobrau Weissbier 0.5L', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Paulaner Hefe Weissbier (0.5 L)', nameEn: 'Paulaner Hefe Weissbier 0.5L', price: 240, category: DRAFT, group: 'drinks' },
+  { name: 'Paulaner Dunkel (0.5 L)', nameEn: 'Paulaner Dunkel 0.5L', price: 240, category: DRAFT, group: 'drinks' },
+  { name: 'Бельгийское нефильтрованное (0.4 L)', nameEn: 'Belgian Unfiltered 0.4L', price: 190, category: DRAFT, group: 'drinks' },
+  { name: 'Жигулёвское (0.4 L)', nameEn: 'Zhigulevskoe 0.4L', price: 160, category: DRAFT, group: 'drinks' },
+  { name: 'Ирландский эль (0.4 L)', nameEn: 'Irish Ale 0.4L', price: 180, category: DRAFT, group: 'drinks' },
+
+  // 🍾 БУТЫЛОЧНОЕ ПИВО
+  { name: 'Weihenstephaner Original Helles', nameEn: 'Weihenstephaner Original Helles', price: 190, category: BOTTLE, group: 'drinks' },
+  { name: 'Weihenstephaner Hefe Weissbier', nameEn: 'Weihenstephaner Hefe Weissbier', price: 190, category: BOTTLE, group: 'drinks' },
+  { name: 'Weihenstephaner Hefeweissbier Dunkel', nameEn: 'Weihenstephaner Hefeweissbier Dunkel', price: 190, category: BOTTLE, group: 'drinks' },
+  { name: 'Paulaner Hefe Weissbier', nameEn: 'Paulaner Hefe Weissbier', price: 230, category: BOTTLE, group: 'drinks' },
+  { name: 'Paulaner Münchner Hell Lager', nameEn: 'Paulaner Munchner Hell Lager', price: 230, category: BOTTLE, group: 'drinks' },
+  { name: 'Paulaner Weissbier Dunkel', nameEn: 'Paulaner Weissbier Dunkel', price: 230, category: BOTTLE, group: 'drinks' },
+  { name: 'Erdinger Weissbier', nameEn: 'Erdinger Weissbier', price: 220, category: BOTTLE, group: 'drinks' },
+  { name: 'Erdinger Dunkel', nameEn: 'Erdinger Dunkel', price: 220, category: BOTTLE, group: 'drinks' },
+  { name: 'Hofbräu Münchner Weisse', nameEn: 'Hofbrau Munchner Weisse', price: 210, category: BOTTLE, group: 'drinks' },
+  { name: 'Hofbräu Schwarze Weisse', nameEn: 'Hofbrau Schwarze Weisse', price: 210, category: BOTTLE, group: 'drinks' },
+  { name: 'Franziskaner Weissbier', nameEn: 'Franziskaner Weissbier', price: 190, category: BOTTLE, group: 'drinks' },
+  { name: 'Franziskaner Dunkel', nameEn: 'Franziskaner Dunkel', price: 190, category: BOTTLE, group: 'drinks' },
+  { name: 'Arcobrau Urfass Lager', nameEn: 'Arcobrau Urfass Lager', price: 210, category: BOTTLE, group: 'drinks' },
+  { name: 'Moose Craft Cider', nameEn: 'Moose Craft Cider', price: 100, category: BOTTLE, group: 'drinks' },
+  { name: 'Bitburger Beer 0.0%', nameEn: 'Bitburger Beer 0.0%', price: 180, category: BOTTLE, group: 'drinks' },
+
+  // 🥤 БЕЗАЛКОГОЛЬНЫЕ
+  { name: 'Сода', nameEn: 'Soda', price: 20, category: SOFT, group: 'drinks' },
+  { name: 'Вода', nameEn: 'Water', price: 15, category: SOFT, group: 'drinks' },
+  { name: 'Coca-Cola', nameEn: 'Coca-Cola', price: 50, category: SOFT, group: 'drinks' },
+  { name: 'Cream Soda', nameEn: 'Cream Soda', price: 70, category: SOFT, group: 'drinks' },
+  { name: 'Домашний клюквенный морс 0.33 L', nameEn: 'Cranberry Drink 0.33L', price: 60, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.33 л' },
+  { name: 'Домашний клюквенный морс 0.22 L', nameEn: 'Cranberry Drink 0.22L', price: 40, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.2 л' },
+];
+
+const j = async (url, opts = {}) => {
+  const r = await fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`${r.status} ${data.error || ''} @ ${url}`);
+  return data;
+};
+
+const run = async () => {
+  const { token } = await j(`${API}/api/auth/login`, { method: 'POST', body: JSON.stringify({ phone: PHONE, password: PASS }) });
+  const auth = { Authorization: `Bearer ${token}` };
+  const menu = await j(`${API}/api/menu`);
+  const byName = new Map(menu.items.map((m) => [m.name.trim(), m]));
+
+  const added = [], updated = [], same = [];
+  for (const t of TARGET) {
+    const cur = byName.get((t.match || t.name).trim());
+    const body = { name: t.name, nameEn: t.nameEn, category: t.category, group: t.group, price: t.price };
+    if (!cur) {
+      added.push(`${t.category} | ${t.name} — ${t.price}฿`);
+      if (!DRY) await j(`${API}/api/menu`, { method: 'POST', headers: auth, body: JSON.stringify({ ...body, available: true, description: '' }) });
+    } else {
+      const diffs = [];
+      if (cur.price !== t.price) diffs.push(`цена ${cur.price}→${t.price}`);
+      if (cur.category !== t.category) diffs.push(`категория ${cur.category}→${t.category}`);
+      if ((cur.name || '') !== t.name) diffs.push(`имя «${cur.name}»→«${t.name}»`);
+      if ((cur.nameEn || '') !== t.nameEn) diffs.push('англ. название');
+      if (!diffs.length) { same.push(t.name); continue; }
+      updated.push(`${t.name}: ${diffs.join(', ')}`);
+      if (!DRY) await j(`${API}/api/menu/${cur.id}`, { method: 'PUT', headers: auth, body: JSON.stringify(body) });
+    }
+  }
+
+  const targetNames = new Set(TARGET.map((t) => (t.match || t.name).trim()));
+  const extra = menu.items.filter((m) => !targetNames.has(m.name.trim())).map((m) => `${m.name} — ${m.price}฿`);
+
+  console.log(`\n${DRY ? '[ПЛАН, ничего не менялось]' : '[ПРИМЕНЕНО]'}  ${API}`);
+  console.log(`\n➕ ДОБАВЛЕНО (${added.length}):`); added.forEach((s) => console.log('   ' + s));
+  console.log(`\n✏️  ОБНОВЛЕНО (${updated.length}):`); updated.forEach((s) => console.log('   ' + s));
+  console.log(`\n✅ БЕЗ ИЗМЕНЕНИЙ: ${same.length}`);
+  if (extra.length) { console.log(`\n⚠️  ЕСТЬ В БАЗЕ, НО НЕТ В НОВОМ СПИСКЕ (${extra.length}) — не тронуты:`); extra.forEach((s) => console.log('   ' + s)); }
+  console.log(`\nИтого в меню должно стать: ${TARGET.length} позиций\n`);
+};
+
+run().catch((e) => { console.error('Ошибка:', e.message); process.exit(1); });
