@@ -111,6 +111,16 @@ export const menu = [
     nameEn: 'Smash Burger (Beef)', weight: '380–420 г', composition: 'говядина 80/20, булочка бриошь, чеддер, фирменный соус, лук, огурцы', calories: 920, popular: true, image: '/menu/smash-burger.jpg',
     recipe: { [ING.beef]: 180, [ING.bun]: 1, [ING.cheddar]: 40, [ING.red_onion]: 15 } }),
 
+  // ----- ЕДА · Закуски к пиву -----
+  m('Свиные уши', 'Закуски к пиву', 200, 'Хрустящие свиные уши со специями — классическая закуска к пиву.', {
+    nameEn: 'Pork Ears', composition: 'свиные уши, специи', image: null }),
+  m('Домашние ржаные гренки', 'Закуски к пиву', 120, 'Ароматные ржаные гренки с чесноком, приготовленные по домашнему рецепту.', {
+    nameEn: 'Homemade Rye Croutons', composition: 'ржаной хлеб, чеснок, масло, специи', image: null }),
+  m('Домашняя вяленая говядина (50 г)', 'Закуски к пиву', 200, 'Домашняя вяленая говядина — насыщенный вкус, идеально к пиву.', {
+    nameEn: 'Homemade Beef Jerky (50 g)', weight: '50 г', composition: 'говядина, соль, специи', image: null }),
+  m('Картошка фри', 'Закуски к пиву', 100, 'Хрустящая золотистая картошка фри с солью.', {
+    nameEn: 'French Fries', composition: 'картофель, масло, соль', image: null }),
+
   // ----- НАПИТКИ · Немецкое пиво -----
   m('Weihenstephaner Original Helles', 'Бутылочное пиво', 190, 'Мягкое, лёгкое и освежающее.', { group: 'drinks', style: 'Pale Lager', composition: 'светлый солод, хмель', popular: true, image: '/menu/weihenstephaner-helles.jpg' }),
   m('Weihenstephaner Hefe Weissbier', 'Бутылочное пиво', 190, 'Натурально мутное с фруктовым ароматом.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/weihenstephaner-hefe.jpg' }),

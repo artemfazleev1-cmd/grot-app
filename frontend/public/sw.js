@@ -1,7 +1,7 @@
 // =====================================================================
 // GROT Service Worker — офлайн-оболочка PWA + приём Web Push.
 // =====================================================================
-const CACHE = 'grot-v3';
+const CACHE = 'grot-v4';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/logo.png'];
 
 self.addEventListener('install', (e) => {
@@ -37,15 +37,22 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // статика — cache-first с фоновым обновлением
+  // статика — stale-while-revalidate: отдаём кэш сразу, но всегда обновляем его
+  // сетью в фоне. Не кэшируем HTML-фолбэк SPA вместо файла (иначе картинка,
+  // закэшированная до заливки на сервер, «ломается» навсегда).
   e.respondWith(
-    caches.match(e.request).then((cached) =>
-      cached || fetch(e.request).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+    caches.match(e.request).then((cached) => {
+      const fresh = fetch(e.request).then((res) => {
+        const type = res.headers.get('content-type') || '';
+        const wantsHTML = e.request.destination === 'document';
+        if (res.ok && !(type.includes('text/html') && !wantsHTML)) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        }
         return res;
-      }).catch(() => cached)
-    )
+      });
+      return cached ? (fresh.catch(() => {}), cached) : fresh.catch(() => cached);
+    })
   );
 });
 

@@ -32,6 +32,7 @@ const TARGET = [
   { name: 'Свиные уши', nameEn: 'Pork Ears', price: 200, category: SNACKS, group: 'food' },
   { name: 'Домашние ржаные гренки', nameEn: 'Homemade Rye Croutons', price: 120, category: SNACKS, group: 'food' },
   { name: 'Домашняя вяленая говядина (50 г)', nameEn: 'Homemade Beef Jerky (50 g)', price: 200, category: SNACKS, group: 'food' },
+  { name: 'Картошка фри', nameEn: 'French Fries', price: 100, category: SNACKS, group: 'food' },
 
   // 🍺 РАЗЛИВНОЕ ПИВО
   { name: 'Erdinger Weissbier (0.4 L)', nameEn: 'Erdinger Weissbier (0.4 L)', price: 230, category: DRAFT, group: 'drinks' },
