@@ -29,10 +29,11 @@ const TARGET = [
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
 
   // 🥩 ЗАКУСКИ К ПИВУ
-  { name: 'Свиные уши', nameEn: 'Pork Ears', price: 200, category: SNACKS, group: 'food' },
-  { name: 'Домашние ржаные гренки', nameEn: 'Homemade Rye Croutons', price: 120, category: SNACKS, group: 'food' },
+  { name: 'Свиные уши', nameEn: 'Pork Ears', price: 300, category: SNACKS, group: 'food' },
+  { name: 'Домашние ржаные гренки', nameEn: 'Homemade Rye Croutons', price: 60, category: SNACKS, group: 'food' },
   { name: 'Домашняя вяленая говядина (50 г)', nameEn: 'Homemade Beef Jerky (50 g)', price: 200, category: SNACKS, group: 'food' },
   { name: 'Картошка фри', nameEn: 'French Fries', price: 100, category: SNACKS, group: 'food' },
+  { name: 'Лепёшка', nameEn: 'Flatbread', price: 60, category: SNACKS, group: 'food' },
 
   // 🍺 РАЗЛИВНОЕ ПИВО
   { name: 'Erdinger Weissbier (0.4 L)', nameEn: 'Erdinger Weissbier (0.4 L)', price: 230, category: DRAFT, group: 'drinks' },
@@ -65,7 +66,7 @@ const TARGET = [
   { name: 'Сода', nameEn: 'Sparkling Water', price: 20, category: SOFT, group: 'drinks' },
   { name: 'Вода', nameEn: 'Drinking Water', price: 15, category: SOFT, group: 'drinks' },
   { name: 'Coca-Cola', nameEn: 'Coca-Cola', price: 50, category: SOFT, group: 'drinks' },
-  { name: 'Cream Soda', nameEn: 'Cream Soda', price: 70, category: SOFT, group: 'drinks' },
+  { name: 'Cream Soda', nameEn: 'Cream Soda', price: 60, category: SOFT, group: 'drinks' },
   { name: 'Домашний клюквенный морс 0.33 L', nameEn: 'Homemade Cranberry Morse (0.33 L)', price: 60, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.33 л' },
   { name: 'Домашний клюквенный морс 0.22 L', nameEn: 'Homemade Cranberry Morse (0.22 L)', price: 40, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.2 л' },
 ];
