@@ -8,7 +8,12 @@ const id = () => _id++;
 const now = () => new Date().toISOString();
 
 // ---------- Пользователи (все роли) ----------
-export const users = [
+// БЕЗОПАСНОСТЬ: пароли ниже лежат в открытом виде в публичном репозитории,
+// поэтому это ТОЛЬКО демо-данные для локальной разработки. В продакшене список
+// стартует пустым: реальные пользователи приходят с диска (persistence),
+// а первый владелец заводится из OWNER_PHONE / OWNER_PASSWORD (см. ensureDemoUsers).
+const IS_PROD = process.env.NODE_ENV === 'production';
+const DEV_SEED_USERS = [
   { id: id(), phone: '+66800000000', password: 'owner',  name: 'Владелец GROT', role: 'owner',   createdAt: now() },
   { id: id(), phone: '+66811111111', password: 'admin',  name: 'Администратор', role: 'admin',   createdAt: now() },
   { id: id(), phone: '+66822222222', password: 'waiter', name: 'Сомчай (офиц.)', role: 'waiter', createdAt: now() },
@@ -21,6 +26,7 @@ export const users = [
     stats: { totalSpent: 127500, ordersCount: 88, visits: 95, lastVisit: '2026-06-21T20:10:00Z' },
     favDishes: ['Купаты'], favDrinks: ['Moose Craft Cider'] },
 ];
+export const users = IS_PROD ? [] : DEV_SEED_USERS;
 
 // Демо-аккаунты для входа (формат +66, совпадает с формой логина).
 // Вызывается при старте ПОСЛЕ загрузки состояния с диска: если такого телефона
@@ -31,8 +37,27 @@ export const DEMO_USERS = [
   { phone: '+66833333333', password: 'cook',    name: 'Повар (демо)',    role: 'cook'    },
   { phone: '+66844444444', password: 'courier', name: 'Курьер (демо)',   role: 'courier' },
 ];
+// ВАЖНО (безопасность): пароли демо-аккаунтов лежат в открытом коде публичного
+// репозитория, поэтому в продакшене они НЕ создаются — иначе любой желающий
+// зайдёт владельцем. В проде первый владелец заводится из переменных окружения
+// OWNER_PHONE / OWNER_PASSWORD (задать в дашборде хостинга) и только если
+// владельца в базе ещё нет. Уже существующие аккаунты никогда не трогаются.
 export function ensureDemoUsers() {
   let added = 0;
+  const isProd = process.env.NODE_ENV === 'production';
+
+  if (isProd) {
+    const phone = process.env.OWNER_PHONE, password = process.env.OWNER_PASSWORD;
+    const hasOwner = users.some((u) => u.role === 'owner');
+    if (!hasOwner && phone && password) {
+      users.push({ id: id(), phone: String(phone), password: String(password), name: 'Владелец', role: 'owner', active: true, createdAt: now() });
+      added++;
+    } else if (!hasOwner) {
+      console.warn('⚠️ Владельца нет в базе. Задайте OWNER_PHONE и OWNER_PASSWORD в переменных окружения.');
+    }
+    return added;
+  }
+
   for (const d of DEMO_USERS) {
     if (!users.find((u) => u.phone === d.phone)) {
       users.push({ id: id(), phone: d.phone, password: d.password, name: d.name, role: d.role, active: true, createdAt: now() });
@@ -40,6 +65,13 @@ export function ensureDemoUsers() {
     }
   }
   return added;
+}
+
+// Предупреждение при старте: аккаунты, у которых пароль совпадает с демо-паролем
+// из публичного репозитория. Такие учётки нужно перевести на свой пароль.
+export function weakDemoAccounts(verify) {
+  return users.filter((u) => DEMO_USERS.some((d) => verify(d.password, u.password)))
+    .map((u) => `${u.role}:${u.phone}`);
 }
 
 // ---------- Категории и меню ----------

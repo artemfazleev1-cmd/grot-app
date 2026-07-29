@@ -53,6 +53,13 @@ installShutdownHooks();
 // Миграция: хешируем все пароли, оставшиеся в открытом виде (демо-сид, старые данные)
 for (const u of db.users) { if (u.password && !isHashed(u.password)) u.password = hashPassword(u.password); }
 
+// Предупреждение о живых аккаунтах с публично известными демо-паролями.
+const _weak = db.weakDemoAccounts(verifyPassword);
+if (_weak.length) {
+  console.warn('🚨 ВНИМАНИЕ: аккаунты с демо-паролями из публичного репозитория:', _weak.join(', '));
+  console.warn('   Смените пароли в приложении (Кабинет → Персонал), иначе доступ открыт любому.');
+}
+
 // После любого изменяющего запроса — сохраняем состояние на диск
 app.use((req, res, next) => {
   if (req.method !== 'GET') res.on('finish', () => { if (res.statusCode < 400) persist(); });
@@ -625,10 +632,11 @@ app.post('/api/broadcasts', auth, (req, res) => {
   targets.forEach((u) => db.pushNotify({ userId: u.id, text }));
   res.json({ ...b, delivered: targets.length });
 });
-app.get('/api/broadcasts', auth, (req, res) => res.json(db.broadcasts.slice().reverse()));
+app.get('/api/broadcasts', auth, requireRole('owner', 'admin'), (req, res) => res.json(db.broadcasts.slice().reverse()));
 
 // ================= СКЛАД =================
-app.get('/api/inventory', auth, (req, res) => res.json(db.ingredients));
+// Остатки, себестоимость и поставщики — коммерческая тайна: только владелец/админ.
+app.get('/api/inventory', auth, requireRole('owner', 'admin'), (req, res) => res.json(db.ingredients));
 
 // Изменение остатка. {qty} — установить точное значение (инвентаризация),
 // {addQty} — прибавить (приход/закупка). Для владельца/админа.
