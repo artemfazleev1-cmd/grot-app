@@ -13,7 +13,7 @@ const PHONE = process.argv[3] || '+66800000000';
 const PASS = process.argv[4] || 'owner';
 const DRY = process.argv.includes('--dry');
 
-const FOOD = 'Горячие блюда', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', SOFT = 'Безалкогольные';
+const FOOD = 'Горячие блюда', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', WINE = 'Вино', SOFT = 'Безалкогольные';
 
 // match — как позиция называется сейчас в базе (если отличается от нового названия)
 const TARGET = [
@@ -61,6 +61,23 @@ const TARGET = [
   { name: 'Arcobrau Urfass Lager', nameEn: 'Arcobrau Urfass Lager', price: 210, category: BOTTLE, group: 'drinks' },
   { name: 'Moose Craft Cider', nameEn: 'Moose Craft Cider', price: 100, category: BOTTLE, group: 'drinks' },
   { name: 'Bitburger Beer 0.0%', nameEn: 'Bitburger Beer 0.0%', price: 180, category: BOTTLE, group: 'drinks' },
+
+  // 🍷 ВИННАЯ КАРТА (названия — марки, name = nameEn)
+  { name: 'Prosecco', nameEn: 'Prosecco', price: 1500, category: WINE, group: 'drinks' },
+  { name: 'Riesling', nameEn: 'Riesling', price: 1200, category: WINE, group: 'drinks' },
+  { name: 'Moscato d’Asti', nameEn: 'Moscato d’Asti', price: 1500, category: WINE, group: 'drinks' },
+  { name: 'Contarini Prosecco DOC Treviso Millesimato Extra Dry', nameEn: 'Contarini Prosecco DOC Treviso Millesimato Extra Dry', price: 1450, category: WINE, group: 'drinks' },
+  { name: 'Les Pins d’Aubane Rosé de France', nameEn: 'Les Pins d’Aubane Rosé de France', price: 700, category: WINE, group: 'drinks' },
+  { name: 'Les Solstices Blanc de France', nameEn: 'Les Solstices Blanc de France', price: 750, category: WINE, group: 'drinks' },
+  { name: 'Immortale Blanc de Blancs Organic Wine', nameEn: 'Immortale Blanc de Blancs Organic Wine', price: 1950, category: WINE, group: 'drinks' },
+  { name: 'Fournier Cidre de Normandie Doux 2.5%', nameEn: 'Fournier Cidre de Normandie Doux 2.5%', price: 550, category: WINE, group: 'drinks' },
+  { name: 'Grande Alberone Rosso Vino d’Italia', nameEn: 'Grande Alberone Rosso Vino d’Italia', price: 1300, category: WINE, group: 'drinks' },
+  { name: 'Les Solstices Rouge de France Cuvée Tradition', nameEn: 'Les Solstices Rouge de France Cuvée Tradition', price: 750, category: WINE, group: 'drinks' },
+  { name: 'Correa Familia Lisoni Sauvignon Blanc Estate Bottled', nameEn: 'Correa Familia Lisoni Sauvignon Blanc Estate Bottled', price: 750, category: WINE, group: 'drinks' },
+  { name: 'Birchgrove Bird’s Block Cuvée Inspiring Red', nameEn: 'Birchgrove Bird’s Block Cuvée Inspiring Red', price: 650, category: WINE, group: 'drinks' },
+  { name: '4 Diablos Carménère Central Valley', nameEn: '4 Diablos Carménère Central Valley', price: 650, category: WINE, group: 'drinks' },
+  { name: 'Puntí Ferrer Limited Edition Sauvignon Blanc', nameEn: 'Puntí Ferrer Limited Edition Sauvignon Blanc', price: 750, category: WINE, group: 'drinks' },
+  { name: 'Grande Alberone Moscato Spumante Dolce', nameEn: 'Grande Alberone Moscato Spumante Dolce', price: 1600, category: WINE, group: 'drinks' },
 
   // 🥤 БЕЗАЛКОГОЛЬНЫЕ
   { name: 'Сода', nameEn: 'Sparkling Water', price: 20, category: SOFT, group: 'drinks' },

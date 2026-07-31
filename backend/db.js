@@ -76,10 +76,10 @@ export function weakDemoAccounts(verify) {
 
 // ---------- Категории и меню ----------
 // Категории по группам: еда / напитки
-export const categories = ['Горячие блюда', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Безалкогольные'];
+export const categories = ['Горячие блюда', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Вино', 'Безалкогольные'];
 export const categoryGroups = {
   food: ['Горячие блюда', 'Закуски к пиву'],
-  drinks: ['Разливное пиво', 'Бутылочное пиво', 'Безалкогольные'],
+  drinks: ['Разливное пиво', 'Бутылочное пиво', 'Вино', 'Безалкогольные'],
 };
 
 // ---------- Склад / ингредиенты (ДО меню — рецепты ссылаются по id) ----------
@@ -168,6 +168,23 @@ export const menu = [
   m('Franziskaner Dunkel', 'Бутылочное пиво', 190, 'Солодовое, мягкое и насыщенное.', { group: 'drinks', style: 'Dark Lager', composition: 'тёмный солод, хмель', image: '/menu/franziskaner-dunkel.jpg' }),
   // ----- НАПИТКИ · Сидр -----
   m('Moose Craft Cider', 'Бутылочное пиво', 100, 'Хрустящий, освежающий и натурально вкусный.', { group: 'drinks', style: 'Apple Cider', composition: 'яблочный сидр', popular: true, image: '/menu/moose-craft-cider.jpg' }),
+  // ----- НАПИТКИ · Винная карта -----
+  // Названия — марки, поэтому name и nameEn совпадают (как у пива).
+  m('Prosecco', 'Вино', 1500, 'Игристое сухое — лёгкое, с тонкими пузырьками.', { group: 'drinks', nameEn: 'Prosecco', style: 'Sparkling', image: null }),
+  m('Riesling', 'Вино', 1200, 'Белое — ароматное, со свежей кислотностью.', { group: 'drinks', nameEn: 'Riesling', style: 'White', image: null }),
+  m('Moscato d’Asti', 'Вино', 1500, 'Игристое сладкое — лёгкое, с ароматом муската.', { group: 'drinks', nameEn: 'Moscato d’Asti', style: 'Sparkling Sweet', image: null }),
+  m('Contarini Prosecco DOC Treviso Millesimato Extra Dry', 'Вино', 1450, 'Игристое экстра-драй из Тревизо.', { group: 'drinks', nameEn: 'Contarini Prosecco DOC Treviso Millesimato Extra Dry', style: 'Sparkling', image: null }),
+  m('Les Pins d’Aubane Rosé de France', 'Вино', 700, 'Розовое сухое — свежее и лёгкое.', { group: 'drinks', nameEn: 'Les Pins d’Aubane Rosé de France', style: 'Rosé', image: null }),
+  m('Les Solstices Blanc de France', 'Вино', 750, 'Белое сухое — мягкое и сбалансированное.', { group: 'drinks', nameEn: 'Les Solstices Blanc de France', style: 'White', image: null }),
+  m('Immortale Blanc de Blancs Organic Wine', 'Вино', 1950, 'Органическое белое — чистый вкус и долгое послевкусие.', { group: 'drinks', nameEn: 'Immortale Blanc de Blancs Organic Wine', style: 'White Organic', image: null }),
+  m('Fournier Cidre de Normandie Doux 2.5%', 'Вино', 550, 'Нормандский сидр — сладкий, лёгкий, 2.5%.', { group: 'drinks', nameEn: 'Fournier Cidre de Normandie Doux 2.5%', style: 'Cider', image: null }),
+  m('Grande Alberone Rosso Vino d’Italia', 'Вино', 1300, 'Красное — насыщенное, с бархатистым телом.', { group: 'drinks', nameEn: 'Grande Alberone Rosso Vino d’Italia', style: 'Red', image: null }),
+  m('Les Solstices Rouge de France Cuvée Tradition', 'Вино', 750, 'Красное сухое — мягкие танины, ягодный тон.', { group: 'drinks', nameEn: 'Les Solstices Rouge de France Cuvée Tradition', style: 'Red', image: null }),
+  m('Correa Familia Lisoni Sauvignon Blanc Estate Bottled', 'Вино', 750, 'Белое сухое — цитрусовое и освежающее.', { group: 'drinks', nameEn: 'Correa Familia Lisoni Sauvignon Blanc Estate Bottled', style: 'White', image: null }),
+  m('Birchgrove Bird’s Block Cuvée Inspiring Red', 'Вино', 650, 'Красное — фруктовое, питкое.', { group: 'drinks', nameEn: 'Birchgrove Bird’s Block Cuvée Inspiring Red', style: 'Red', image: null }),
+  m('4 Diablos Carménère Central Valley', 'Вино', 650, 'Красное чилийское карменер — пряное и плотное.', { group: 'drinks', nameEn: '4 Diablos Carménère Central Valley', style: 'Red', image: null }),
+  m('Puntí Ferrer Limited Edition Sauvignon Blanc', 'Вино', 750, 'Белое сухое — яркое, с травяными нотами.', { group: 'drinks', nameEn: 'Puntí Ferrer Limited Edition Sauvignon Blanc', style: 'White', image: null }),
+  m('Grande Alberone Moscato Spumante Dolce', 'Вино', 1600, 'Игристое сладкое москато — десертное.', { group: 'drinks', nameEn: 'Grande Alberone Moscato Spumante Dolce', style: 'Sparkling Sweet', image: null }),
   // ----- НАПИТКИ · Морс -----
   m('Домашний клюквенный морс 0.33 л', 'Безалкогольные', 60, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.33 L', style: 'Клюквенный морс', weight: '0.33 л', composition: 'клюква, вода, сахар', image: '/menu/mors-033.jpg' }),
   m('Домашний клюквенный морс 0.2 л', 'Безалкогольные', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.2 L', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-022.jpg' }),
