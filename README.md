@@ -1,96 +1,193 @@
-# 🔥 GROT Bar & Grill — мобильное приложение (Pattaya)
+# GROT — Bar & Restaurant Operations App
 
-Премиальное приложение для бара и гриль-ресторана: доставка, бронирование,
-меню, лояльность, события, CRM, склад, управление персоналом и аналитика —
-в одном продукте с ролями **клиент / официант / повар / курьер / администратор / владелец**.
+A restaurant platform built for a real venue in Pattaya, Thailand: guest
+ordering, table service, kitchen display, delivery dispatch, inventory, CRM and
+analytics — one codebase, six roles, one API.
 
-Полноценный рабочий **MVP на тестовых данных**. Запускается сразу, без внешних сервисов.
+**~5,000 lines of application code on 5 runtime dependencies.** Authentication,
+password hashing, rate limiting, persistence and the receipt printer driver are
+written by hand rather than pulled in as packages.
+
+🔗 **Live demo:** https://grot-app.onrender.com · 🇷🇺 [Русская версия](README.ru.md)
+
+> Sign up with any phone number to explore the full guest experience. Staff and
+> management panels are credential-gated — demo accounts are deliberately not
+> seeded in production, for the reason described under [Security](#security).
 
 ---
 
-## 🚀 Запуск (2 терминала)
+## Screens
 
-**1. Backend (API, порт 4000):**
+| Sign in | Guest home | Menu |
+|:---:|:---:|:---:|
+| ![Sign in](docs/screenshots/01-auth.png) | ![Home](docs/screenshots/02-client-home.png) | ![Menu](docs/screenshots/03-client-menu.png) |
+
+| Waiter · open tables | Kitchen · live tickets | Courier · dispatch | Owner · analytics |
+|:---:|:---:|:---:|:---:|
+| ![Tables](docs/screenshots/06-waiter-tables.png) | ![Kitchen](docs/screenshots/08-kitchen.png) | ![Delivery](docs/screenshots/09-courier.png) | ![Dashboard](docs/screenshots/10-owner-dashboard.png) |
+
+---
+
+## What it does
+
+Six roles share one API, each with its own navigation and permission set.
+
+| Role | Capabilities |
+|---|---|
+| **Guest** | Menu, cart, delivery or pickup, table booking, QR table check-in, order chat with the courier, events, loyalty tiers |
+| **Waiter** | Open tabs by table, add items to a running order, split the bill, close with cash or card, guest call-ups |
+| **Kitchen** | Live ticket queue, per-item stop-list, shift report |
+| **Courier** | Assigned deliveries, route to address, chat with the guest, hand-off confirmation |
+| **Admin** | Orders, reservations, menu availability, staff, push broadcasts |
+| **Owner** | Revenue and average-cheque analytics, per-employee stats with CSV export, CRM, inventory, staff management |
+
+Beyond the obvious CRUD:
+
+- **Inventory tied to recipes.** Each dish declares its ingredients; completing
+  an order writes stock off automatically and flags items below their minimum.
+- **Bluetooth thermal printing.** Kitchen and receipt tickets print to an ESC/POS
+  printer directly from the Android build.
+- **Bilingual by design.** Guests get English — Pattaya is a tourist town —
+  while staff and management get Russian. This is a product decision, not an
+  oversight: translation is applied per role in `App.jsx`.
+- **Installable.** PWA with a service worker, plus native iOS and Android builds
+  via Capacitor from the same source.
+
+---
+
+## Stack
+
+**Backend** — Node.js, Express, ES modules. `express` and `cors` are the only
+runtime dependencies. 64 REST endpoints.
+
+**Frontend** — React, Vite, React Router. No UI kit, no state library, no CSS
+framework — hand-written CSS with design tokens, state through Context.
+
+**Mobile** — Capacitor (iOS + Android), service worker, Web Push.
+
+**Infrastructure** — Docker, Render Blueprint (`render.yaml`), persistent volume.
+
+---
+
+## Architecture
+
+```
+backend/
+  server.js        64 REST endpoints, request validation, business rules
+  db.js            in-memory domain state + development seed data
+  persistence.js   JSON snapshot to disk, atomic write + rotating backups
+  security.js      tokens, password hashing, rate limiting, RBAC
+  integrations/    maps, web push, SMS
+frontend/src/
+  screens/         one file per role-facing screen
+  components/      shared UI primitives
+  context/         global store — auth, cart, language, toasts
+  i18n.js          RU/EN dictionaries
+  printer.js       ESC/POS over Bluetooth serial
+```
+
+**Storage.** State lives in memory and is snapshotted to JSON on disk, so it
+survives restarts and redeploys. `persistence.js` is deliberately the only
+module that knows about storage — moving to PostgreSQL means replacing that one
+file, with no changes to the API layer. For a single venue this trades
+scalability for zero operational overhead, which was the right call here.
+
+**Order pricing.** The client sends only item IDs and quantities. The server
+looks up its own menu, recalculates the total, and rejects unavailable dishes or
+food ordered while the kitchen is closed. Client-supplied prices are never
+trusted.
+
+---
+
+## Security
+
+Written without auth libraries, so every decision is explicit:
+
+- **Tokens** — HMAC-SHA256 signed, verified with `crypto.timingSafeEqual` so the
+  comparison cannot leak through timing.
+- **Passwords** — scrypt with a per-user random salt, compared in constant time.
+- **Brute force** — sliding-window rate limit on auth endpoints, 10 requests per
+  minute per IP and path.
+- **Authorization** — `requireRole()` on every staff endpoint; the role comes
+  from the verified token, never from the request body.
+- **Mass assignment** — field whitelisting through `pick()`, with an explicit
+  `__proto__` guard against prototype pollution.
+- **Demo accounts** — seeded in development only. This repository is public, so
+  seeding them in production would hand anyone an owner account. The first
+  production owner comes from `OWNER_PHONE` / `OWNER_PASSWORD`, and the server
+  warns on startup about any account still using a demo password.
+- **Signing secret** — read from the environment, or generated once and stored
+  with `0600` permissions on the persistent volume.
+
+---
+
+## Running locally
+
+Requires Node.js 18+.
+
 ```bash
-cd grot-app/backend
-npm install
-npm start
+git clone https://github.com/artemfazleev1-cmd/grot-app.git
 ```
 
-**2. Frontend (UI, порт 5173):**
 ```bash
-cd grot-app/frontend
-npm install
-npm run dev
+cd grot-app && npm run install:all
 ```
 
-Откройте **http://localhost:5173**. Frontend проксирует `/api` на backend автоматически.
+Backend on `:4000`:
 
-> Требуется Node.js 18+. Браузер сам сужается до телефонной рамки; адаптивно под iPhone / Android / планшет.
+```bash
+npm run dev:backend
+```
+
+Frontend on `:5173`, proxying `/api` to the backend:
+
+```bash
+npm run dev:frontend
+```
+
+Open http://localhost:5173. Development seeds a full venue — 38 menu items, 41
+ingredients, 16 tables, sample orders — and these accounts:
+
+| Role | Phone | Password |
+|---|---|---|
+| Owner | `+66800000000` | `owner` |
+| Admin | `+66811111111` | `admin` |
+| Waiter | `+66822222222` | `waiter` |
+| Kitchen | `+66833333333` | `cook` |
+| Courier | `+66844444444` | `courier` |
+| Guest | `+66855555555` | `client` |
 
 ---
 
-## 👤 Демо-входы (кнопки на экране входа)
+## Deployment
 
-| Роль | Телефон | Пароль |
-|------|---------|--------|
-| Клиент | `5555555555` | `client` |
-| Официант | `2222222222` | `waiter` |
-| Повар | `3333333333` | `cook` |
-| Курьер | `4444444444` | `courier` |
-| Администратор | `1111111111` | `admin` |
-| Владелец | `0000000000` | `owner` |
+`render.yaml` is a Render Blueprint — point Render at the repository and it
+builds the Docker image, mounts a 1 GB volume for state, and generates the
+signing secret. Set `OWNER_PHONE` and `OWNER_PASSWORD` to create the first owner
+account. Web Push, SMS and Maps activate when their keys are present and degrade
+quietly when they are not.
 
-VIP-клиент: `6666666666` / `client`.
+Mobile builds via Capacitor:
+
+```bash
+npm run build:app
+```
 
 ---
 
-## ✅ Что демонстрирует бизнес-логику end-to-end
+## What I would do differently
 
-- **Интро-экран** (3 сек, управляется владельцем в разделе «Контент»).
-- **Авторизация**: вход/регистрация по телефону + паролю, восстановление, заготовки SMS/OTP.
-- **Главный экран**: событие недели, акции, популярные блюда/напитки, события, новости, повтор заказа.
-- **QR-столы**: «скан» QR → режим стола → заказ, **вызов официанта**, **просьба счёта** (официант получает push).
-- **Меню**: категории, карточка (фото, состав, калории, наличие), корзина, оформление (доставка / самовывоз / в зале).
-- **Жизненный цикл заказа**: `новый → принят → готовится → готов → выдан / курьеру → доставлен` с push-уведомлениями клиенту на каждом шаге.
-- **Бронирование**: карта зала (🟢🟡🔴), дата/время/гости + предзаказ.
-- **События**: календарь недели, «напомнить мне».
-- **Лояльность**: Bronze/Silver/Gold/Black, 1 бат = 1 бонус, оплата бонусами до 50%.
-- **Кабинет**: активные заказы с прогрессом, история, повтор, любимые позиции.
-- **Панели персонала**: официант (заказы/вызовы/брони), кухня (очередь + стоп-лист), курьер (адрес/статусы).
-- **Владелец**: аналитика (выручка/чек/топ/загрузка), CRM клиентов, склад с авто-списанием по тех. картам и алертами, push-рассылки по сегментам, редактирование интро и цен.
-
-Уведомления работают в реальном времени через polling (`/api/notifications`) — откройте два окна (клиент + официант) и проверьте вызов официанта.
+- **TypeScript from the start.** Orders, roles and statuses are exactly the
+  shapes a type system pays for. Retrofitting is on the list.
+- **Tests.** There are none. The honest reason is that this shipped under
+  deadline for a venue that needed it working. `security.js` and
+  `persistence.js` matter most and are where I would start.
+- **PostgreSQL.** The JSON snapshot is right for one venue and wrong for two.
+  The abstraction is in place; the migration is not.
+- **Split `server.js`.** At 861 lines it should be routers grouped by domain.
+- **Optimistic UI on the waiter screen.** Every action round-trips today, which
+  is noticeable on venue Wi-Fi.
 
 ---
 
-## 🏗 Архитектура и масштабирование
-
-```
-grot-app/
-├── backend/         # Express REST API, in-memory store (db.js)
-│   ├── server.js    # все эндпоинты + бизнес-правила
-│   └── db.js        # сид тестовых данных (заменяется на реальную БД)
-└── frontend/        # React + Vite, premium dark-luxury UI
-    └── src/
-        ├── api.js           # клиент REST
-        ├── context/store.jsx# auth, корзина, уведомления, тосты
-        ├── components/ui.jsx# переиспользуемые компоненты
-        └── screens/         # экраны по доменам
-```
-
-Слои изолированы и готовы к подключению (точки расширения уже размечены в коде):
-
-- **Реальная БД** — заменить `db.js` на Postgres/Prisma или Mongo, API не меняется.
-- **SMS / OTP** — эндпоинты `/api/auth/request-otp` уже зарезервированы.
-- **Push (FCM/APNs)** — функция `pushNotify()` в `db.js` — единая точка.
-- **Онлайн-оплата** — шаг оформления заказа подготовлен (Stripe/Omise).
-- **Google Maps** — адрес доставки/карта зала.
-- **WhatsApp / Telegram** — рассылки через `/api/broadcasts`.
-- **Аналитика** — `/api/analytics` отдаёт агрегаты.
-
-JWT, роли и валидация выделены в отдельный слой авторизации (`auth`, `tokenFor`) — заменяются на продакшен-решение без переписывания эндпоинтов.
-
-### Под мобильные платформы
-UI построен mobile-first и работает как PWA. Для нативных iPhone/Android тот же API
-переиспользуется React Native / Expo-клиентом — бизнес-логика и контракты остаются.
+Built by [Artem Fazleev](https://github.com/artemfazleev1-cmd).
