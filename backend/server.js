@@ -558,18 +558,73 @@ app.get('/api/staff', auth, requireRole('owner', 'admin'), (req, res) => {
   })));
 });
 
-// Личная статистика сотрудника (какие заказы вёл, сколько, на какую сумму)
+// Личная статистика сотрудника: сводка + разбивка по дням.
+// Необязательные параметры периода: ?from=YYYY-MM-DD&to=YYYY-MM-DD (включительно).
+// День считаем по дате закрытия счёта (closedAt), иначе по дате создания,
+// в часовом поясе бара — иначе смена после полуночи уезжает на следующие сутки.
 app.get('/api/staff/:id/stats', auth, requireRole('owner', 'admin'), (req, res) => {
   const u = db.users.find((x) => x.id === Number(req.params.id));
   if (!u || u.role === 'client') return res.status(404).json({ error: 'Не найден' });
-  const orders = handledBy(u);
+
+  const tz = db.settings?.tz || 'Asia/Bangkok';
+  const dayOf = (o) => new Date(o.closedAt || o.createdAt)
+    .toLocaleDateString('en-CA', { timeZone: tz }); // en-CA даёт YYYY-MM-DD
+
+  const isDate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  const from = isDate(req.query.from) ? req.query.from : null;
+  const to = isDate(req.query.to) ? req.query.to : null;
+
+  const all = handledBy(u);
+  const orders = all.filter((o) => {
+    const d = dayOf(o);
+    return (!from || d >= from) && (!to || d <= to);
+  });
+
+  // Разбивка по дням: заказы, обслуженные столы, позиции, выручка, нал/карта, скидки.
+  const byDayMap = new Map();
+  for (const o of orders) {
+    const d = dayOf(o);
+    if (!byDayMap.has(d)) byDayMap.set(d, { date: d, orders: 0, tables: new Set(), items: 0, revenue: 0, cash: 0, card: 0, discount: 0 });
+    const r = byDayMap.get(d);
+    r.orders += 1;
+    if (o.tableNumber) r.tables.add(`${o.zone || 'table'}-${o.tableNumber}`);
+    r.items += (o.items || []).reduce((s, i) => s + i.qty, 0);
+    r.revenue += o.total || 0;
+    r.discount += o.discount || 0;
+    // Оплата: массив долей при разделении счёта, иначе один способ на всю сумму.
+    const pays = (o.payments && o.payments.length) ? o.payments : (o.payment ? [{ method: o.payment, amount: o.total || 0 }] : []);
+    for (const p of pays) {
+      if (p.method === 'cash') r.cash += p.amount || 0;
+      else if (p.method === 'card') r.card += p.amount || 0;
+    }
+  }
+  // unpaid — открытые (ещё не закрытые) счета: попадают в выручку, но не в нал/карту.
+  // Без этой колонки не сходится «выручка = нал + карта».
+  const byDay = [...byDayMap.values()]
+    .map((r) => ({
+      ...r, tables: r.tables.size,
+      unpaid: Math.max(0, r.revenue - r.cash - r.card),
+      avgCheck: r.orders ? Math.round(r.revenue / r.orders) : 0,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const sum = (k) => byDay.reduce((s, d) => s + d[k], 0);
   const delivered = orders.filter((o) => ['delivered', 'handed'].includes(o.status));
   const revenue = orders.reduce((s, o) => s + o.total, 0);
+
   res.json({
     id: u.id, name: u.name, role: u.role, roleLabel: ROLE_LABEL[u.role] || u.role,
+    period: { from, to, days: byDay.length },
     ordersHandled: orders.length,
     completed: delivered.length,
     revenue,
+    byDay,
+    totals: {
+      orders: sum('orders'), tables: sum('tables'), items: sum('items'),
+      revenue: sum('revenue'), cash: sum('cash'), card: sum('card'),
+      unpaid: sum('unpaid'), discount: sum('discount'),
+      avgCheck: sum('orders') ? Math.round(sum('revenue') / sum('orders')) : 0,
+    },
     orders: orders.slice().reverse().slice(0, 40).map((o) => ({
       id: o.id, status: o.status, total: o.total, type: o.type, createdAt: o.createdAt,
       items: o.items.map((i) => `${i.name} ×${i.qty}`).join(', '),

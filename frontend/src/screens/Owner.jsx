@@ -66,11 +66,42 @@ function Staff() {
   const [myPass, setMyPass] = useState('');
   const [myPhone, setMyPhone] = useState('');
   const [stat, setStat] = useState(null);
+  const [period, setPeriod] = useState({ from: '', to: '' });   // пусто = за всё время
+  const [staffId, setStaffId] = useState(null);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
   if (loading || !data) return <Loader />;
 
-  const openStats = async (s) => {
-    try { setStat(await api.get(`/staff/${s.id}/stats`)); } catch (e) { toast(e.message); }
+  // Отчёт по сотруднику. Период необязателен: без дат — за всё время работы.
+  const loadStats = async (id, p = period) => {
+    const q = [p.from && `from=${p.from}`, p.to && `to=${p.to}`].filter(Boolean).join('&');
+    try { setStat(await api.get(`/staff/${id}/stats${q ? `?${q}` : ''}`)); }
+    catch (e) { toast(e.message); }
+  };
+  const openStats = async (s) => { setStaffId(s.id); setPeriod({ from: '', to: '' }); await loadStats(s.id, { from: '', to: '' }); };
+  const applyPeriod = (p) => { setPeriod(p); if (staffId) loadStats(staffId, p); };
+
+  // Быстрые периоды: последние N дней по местной дате.
+  const lastDays = (n) => {
+    const d = new Date(); const to = d.toLocaleDateString('en-CA');
+    d.setDate(d.getDate() - (n - 1));
+    applyPeriod({ from: d.toLocaleDateString('en-CA'), to });
+  };
+
+  // Выгрузка таблицы в CSV (открывается в Excel / Google Sheets).
+  const exportCsv = () => {
+    if (!stat?.byDay?.length) return toast('Нет данных за период');
+    const head = ['Дата', 'Заказы', 'Столы', 'Позиций', 'Выручка', 'Наличные', 'Карта', 'Не оплачено', 'Скидки', 'Средний чек'];
+    const rows = stat.byDay.map((d) => [d.date, d.orders, d.tables, d.items, d.revenue, d.cash, d.card, d.unpaid, d.discount, d.avgCheck]);
+    const t = stat.totals;
+    rows.push(['ИТОГО', t.orders, t.tables, t.items, t.revenue, t.cash, t.card, t.unpaid, t.discount, t.avgCheck]);
+    // BOM — чтобы Excel не ломал кириллицу; разделитель ';' для локали RU/TH.
+    const csv = '﻿' + [head, ...rows].map((r) => r.join(';')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `GROT_${stat.name.replace(/\s+/g, '_')}_${stat.period.from || 'все'}_${stat.period.to || 'дни'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const add = async () => {
@@ -145,13 +176,74 @@ function Staff() {
         {stat && (<>
           <h2>{stat.name}</h2>
           <div className="muted">{stat.roleLabel}</div>
-          <div className="kpi-grid" style={{ marginTop: 14 }}>
-            <div className="kpi"><div className="v">{stat.ordersHandled}</div><div className="l">{stat.role === 'courier' ? 'Доставок взято' : 'Заказов принято'}</div></div>
-            <div className="kpi"><div className="v">{stat.completed}</div><div className="l">Завершено</div></div>
-            <div className="kpi"><div className="v">{money(stat.revenue)}</div><div className="l">Сумма заказов</div></div>
-            <div className="kpi"><div className="v">{stat.orders.length}</div><div className="l">Показано</div></div>
+          <div className="row wrap" style={{ gap: 8, marginTop: 12 }}>
+            <button className="chip" onClick={() => applyPeriod({ from: '', to: '' })}>Всё время</button>
+            <button className="chip" onClick={() => lastDays(7)}>7 дней</button>
+            <button className="chip" onClick={() => lastDays(30)}>30 дней</button>
           </div>
-          <div className="section-title"><h2>Заказы сотрудника</h2></div>
+          <div className="row" style={{ gap: 8, marginTop: 8, alignItems: 'center' }}>
+            <input type="date" value={period.from} onChange={(e) => applyPeriod({ ...period, from: e.target.value })} style={{ flex: 1 }} />
+            <span className="muted">—</span>
+            <input type="date" value={period.to} onChange={(e) => applyPeriod({ ...period, to: e.target.value })} style={{ flex: 1 }} />
+          </div>
+
+          <div className="kpi-grid" style={{ marginTop: 14 }}>
+            <div className="kpi"><div className="v">{stat.totals.orders}</div><div className="l">{stat.role === 'courier' ? 'Доставок' : 'Заказов'}</div></div>
+            <div className="kpi"><div className="v">{stat.role === 'courier' ? stat.completed : stat.totals.tables}</div><div className="l">{stat.role === 'courier' ? 'Завершено' : 'Столов обслужено'}</div></div>
+            <div className="kpi"><div className="v">{money(stat.totals.revenue)}</div><div className="l">Выручка</div></div>
+            <div className="kpi"><div className="v">{money(stat.totals.avgCheck)}</div><div className="l">Средний чек</div></div>
+          </div>
+
+          <div className="section-title">
+            <h2>По дням</h2>
+            {stat.byDay.length > 0 && <button className="chip" onClick={exportCsv}>Скачать CSV</button>}
+          </div>
+          {stat.byDay.length === 0 ? <Empty icon="📅" text="За этот период смен не было" /> : (
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table className="report">
+                <thead>
+                  <tr>
+                    <th>Дата</th><th>Зак.</th>
+                    {stat.role !== 'courier' && <th>Столы</th>}
+                    <th>Поз.</th><th>Выручка</th><th>Нал</th><th>Карта</th>
+                    {stat.totals.unpaid > 0 && <th>Не опл.</th>}
+                    <th>Скидки</th><th>Ср. чек</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stat.byDay.map((d) => (
+                    <tr key={d.date}>
+                      <td>{new Date(d.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</td>
+                      <td>{d.orders}</td>
+                      {stat.role !== 'courier' && <td>{d.tables}</td>}
+                      <td>{d.items}</td>
+                      <td><b>{money(d.revenue)}</b></td>
+                      <td>{d.cash ? money(d.cash) : '—'}</td>
+                      <td>{d.card ? money(d.card) : '—'}</td>
+                      {stat.totals.unpaid > 0 && <td>{d.unpaid ? money(d.unpaid) : '—'}</td>}
+                      <td>{d.discount ? money(d.discount) : '—'}</td>
+                      <td>{money(d.avgCheck)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>ИТОГО</td><td>{stat.totals.orders}</td>
+                    {stat.role !== 'courier' && <td>{stat.totals.tables}</td>}
+                    <td>{stat.totals.items}</td>
+                    <td><b>{money(stat.totals.revenue)}</b></td>
+                    <td>{money(stat.totals.cash)}</td>
+                    <td>{money(stat.totals.card)}</td>
+                    {stat.totals.unpaid > 0 && <td>{money(stat.totals.unpaid)}</td>}
+                    <td>{money(stat.totals.discount)}</td>
+                    <td>{money(stat.totals.avgCheck)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+
+          <div className="section-title"><h2>Последние заказы</h2></div>
           <div className="list">
             {stat.orders.map((o) => (
               <div key={o.id} className="card tight">

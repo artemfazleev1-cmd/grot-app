@@ -138,6 +138,9 @@ h2 { font-size: 19px; font-weight: 700; }
   padding: 11px 17px; border-radius: 999px; border: 1px solid var(--line);
   background: var(--graphite); color: var(--muted); font-size: 14px; font-weight: 600;
   white-space: nowrap; cursor: pointer; transition: .2s;
+  /* Без этого флекс сжимает чипы под ширину экрана и nowrap обрезает текст
+     («Заказы» → «За»). Строка скроллится по горизонтали, ужимать нельзя. */
+  flex: 0 0 auto;
 }
 .chip.active { background: var(--grad-gold); color: #1a1206; border-color: transparent; }
 .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
@@ -317,6 +320,24 @@ button:not(:disabled):active { transform: scale(.94); filter: brightness(.96); }
 .tabbar a:active { transform: scale(.88); }
 
 /* Уважение к настройке «уменьшить движение» */
+/* Отчёт по сотруднику: таблица по дням. Крупные цифры — экран смотрят
+   с телефона в полутёмном зале, поэтому шрифт не мельче 13px. */
+.report { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.report th, .report td { padding: 9px 10px; text-align: right; }
+.report th:first-child, .report td:first-child { text-align: left; position: sticky; left: 0; background: var(--graphite); }
+.report thead th {
+  color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase;
+  letter-spacing: .04em; border-bottom: 1px solid var(--line);
+}
+.report tbody tr { border-bottom: 1px solid rgba(42,42,49,.6); }
+.report tbody tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+.report tbody tr:nth-child(even) td:first-child { background: var(--graphite-2); }
+.report tfoot td {
+  border-top: 1px solid var(--gold); color: var(--gold);
+  font-weight: 700; background: rgba(212,175,55,.06);
+}
+.report tfoot td:first-child { background: rgba(212,175,55,.06); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
