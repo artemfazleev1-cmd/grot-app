@@ -5,3 +5,14 @@ backend/.env
 backend/data/
 *.log
 .DS_Store
+
+# Editor / tooling
+.impeccable/
+.claude/
+.codex/
+.agents/
+.vscode/
+.idea/
+
+# Internal notes — not for the public repo
+SESSION-HANDOFF.md
