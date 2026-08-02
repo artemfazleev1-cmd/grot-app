@@ -13,7 +13,7 @@ import { load, persist, installShutdownHooks } from './persistence.js';
 import * as sms from './integrations/sms.js';
 import * as push from './integrations/push.js';
 import * as maps from './integrations/maps.js';
-import { makeToken, userIdFromToken, hashPassword, isHashed, verifyPassword, rateLimit, requireRole, pick } from './security.js';
+import { makeToken, userIdFromToken, hashPassword, isHashed, verifyPassword, randomPassword, rateLimit, requireRole, pick } from './security.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -44,20 +44,35 @@ const PORT = process.env.PORT || 4000;
 
 // Загружаем сохранённое состояние с диска (если есть)
 load();
-// Гарантируем демо-аккаунты (владелец/официант/повар/курьер) даже если на диске
-// их нет — иначе после первого деплоя в приложение не войти.
-const _added = db.ensureDemoUsers();
-if (_added) { console.log(`👤 Добавлено демо-аккаунтов: ${_added}`); persist(); }
-installShutdownHooks();
 
 // Миграция: хешируем все пароли, оставшиеся в открытом виде (демо-сид, старые данные)
-for (const u of db.users) { if (u.password && !isHashed(u.password)) u.password = hashPassword(u.password); }
+const hashPlaintext = () => { for (const u of db.users) { if (u.password && !isHashed(u.password)) u.password = hashPassword(u.password); } };
+hashPlaintext();
 
-// Предупреждение о живых аккаунтах с публично известными демо-паролями.
+// Порядок важен. Сначала отбираем доступ у аккаунтов с публично известными
+// паролями — они могли приехать с диска, записанного ещё в dev-режиме, и пустой
+// стартовый список пользователей в проде от этого не спасает. Только потом
+// заводим владельца, иначе отключённая демо-учётка сойдёт за существующего.
+const _locked = db.lockDownPublicDemoAccounts(verifyPassword, randomPassword);
+if (_locked.length) {
+  console.warn('🔒 Отключены аккаунты с паролями из публичного репозитория:', _locked.join(', '));
+  console.warn('   Заведите свои учётки заново с нормальными паролями (Кабинет → Персонал).');
+}
+
+// Гарантируем аккаунты для входа: владельца из окружения, а на публичном стенде
+// с DEMO_LOGIN=true ещё и персонал смены для просмотра ролевых интерфейсов.
+const _added = db.ensureDemoUsers();
+if (_added) console.log(`👤 Добавлено аккаунтов: ${_added}`);
+hashPlaintext(); // пароли, пришедшие из окружения и демо-списка, тоже хешируем
+
+if (_added || _locked.length) persist();
+installShutdownHooks();
+
+// Предупреждение о живых аккаунтах с публично известными паролями.
 const _weak = db.weakDemoAccounts(verifyPassword);
 if (_weak.length) {
-  console.warn('🚨 ВНИМАНИЕ: аккаунты с демо-паролями из публичного репозитория:', _weak.join(', '));
-  console.warn('   Смените пароли в приложении (Кабинет → Персонал), иначе доступ открыт любому.');
+  console.warn('🚨 ВНИМАНИЕ: аккаунты с паролями из публичного репозитория:', _weak.join(', '));
+  console.warn('   Вне продакшена это нормально. В проде смените пароли в приложении.');
 }
 
 // После любого изменяющего запроса — сохраняем состояние на диск

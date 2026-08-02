@@ -157,6 +157,20 @@ ingredients, 16 tables, sample orders — and these accounts:
 | Courier | `+66844444444` | `courier` |
 | Guest | `+66855555555` | `client` |
 
+These are development seeds. Because their passwords are published here, the
+server refuses to let them stay usable in production: on startup with
+`NODE_ENV=production` any account whose password matches one in this repository is
+deactivated and its password rotated to a random value. See
+`backend/db.js` → `lockDownPublicDemoAccounts`.
+
+### On the live demo
+
+The guest side — menu, news, promotions, table QR — is open without signing in.
+To let a reviewer see the staff interfaces, the deployment sets `DEMO_LOGIN=true`,
+which permits the waiter, kitchen and courier accounts above and nothing more.
+Owner and admin are never reachable with a published password; the real owner is
+created from `OWNER_PHONE` and `OWNER_PASSWORD`.
+
 ---
 
 ## Deployment

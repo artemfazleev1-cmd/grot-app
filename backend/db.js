@@ -37,23 +37,47 @@ export const DEMO_USERS = [
   { phone: '+66833333333', password: 'cook',    name: 'Повар (демо)',    role: 'cook'    },
   { phone: '+66844444444', password: 'courier', name: 'Курьер (демо)',   role: 'courier' },
 ];
+
+// Роли, доступ к которым НИКОГДА не открывается публично известным паролем:
+// они меняют меню, цены, персонал и настройки заведения.
+const PRIVILEGED_ROLES = ['owner', 'admin'];
+
+// Публичный стенд может пускать ревьюера, но только на уровне персонала смены.
+// Включается переменной DEMO_LOGIN=true; по умолчанию выключено.
+const DEMO_LOGIN = process.env.DEMO_LOGIN === 'true';
+const REVIEWER_DEMO_USERS = DEMO_USERS.filter((d) => !PRIVILEGED_ROLES.includes(d.role));
+
+// Все пароли, опубликованные в этом репозитории. Любой аккаунт с таким паролем
+// считается публично доступным, кем бы он ни был заведён.
+const PUBLIC_PASSWORDS = [...new Set([...DEV_SEED_USERS, ...DEMO_USERS].map((u) => u.password))];
+
 // ВАЖНО (безопасность): пароли демо-аккаунтов лежат в открытом коде публичного
-// репозитория, поэтому в продакшене они НЕ создаются — иначе любой желающий
-// зайдёт владельцем. В проде первый владелец заводится из переменных окружения
-// OWNER_PHONE / OWNER_PASSWORD (задать в дашборде хостинга) и только если
-// владельца в базе ещё нет. Уже существующие аккаунты никогда не трогаются.
+// репозитория, поэтому в продакшене привилегированные демо-аккаунты не создаются.
+// Владелец заводится из OWNER_PHONE / OWNER_PASSWORD (задать в дашборде хостинга)
+// и только если активного владельца ещё нет.
 export function ensureDemoUsers() {
   let added = 0;
   const isProd = process.env.NODE_ENV === 'production';
 
   if (isProd) {
     const phone = process.env.OWNER_PHONE, password = process.env.OWNER_PASSWORD;
-    const hasOwner = users.some((u) => u.role === 'owner');
+    // Отключённый владелец не считается: иначе после блокировки демо-аккаунта
+    // система осталась бы совсем без владельца.
+    const hasOwner = users.some((u) => u.role === 'owner' && u.active !== false);
     if (!hasOwner && phone && password) {
       users.push({ id: id(), phone: String(phone), password: String(password), name: 'Владелец', role: 'owner', active: true, createdAt: now() });
       added++;
     } else if (!hasOwner) {
-      console.warn('⚠️ Владельца нет в базе. Задайте OWNER_PHONE и OWNER_PASSWORD в переменных окружения.');
+      console.warn('⚠️ Активного владельца нет. Задайте OWNER_PHONE и OWNER_PASSWORD в переменных окружения.');
+    }
+
+    if (DEMO_LOGIN) {
+      for (const d of REVIEWER_DEMO_USERS) {
+        if (!users.find((u) => u.phone === d.phone)) {
+          users.push({ id: id(), phone: d.phone, password: d.password, name: d.name, role: d.role, active: true, createdAt: now() });
+          added++;
+        }
+      }
     }
     return added;
   }
@@ -67,11 +91,40 @@ export function ensureDemoUsers() {
   return added;
 }
 
-// Предупреждение при старте: аккаунты, у которых пароль совпадает с демо-паролем
-// из публичного репозитория. Такие учётки нужно перевести на свой пароль.
+// Аккаунты, чей пароль опубликован в этом репозитории.
 export function weakDemoAccounts(verify) {
-  return users.filter((u) => DEMO_USERS.some((d) => verify(d.password, u.password)))
+  return users.filter((u) => PUBLIC_PASSWORDS.some((p) => verify(p, u.password)))
     .map((u) => `${u.role}:${u.phone}`);
+}
+
+// Закрывает доступ, открытый публично известным паролем.
+//
+// Одной проверки на старте мало: массив `users` в проде стартует пустым, но
+// persistence поднимает с диска состояние, записанное когда-то в dev-режиме,
+// вместе с демо-владельцем. Поэтому чистим не сид, а фактическое состояние.
+//
+// Аккаунты не удаляются — только отключаются (active: false) и им сбрасывается
+// пароль на случайный, чтобы копия диска тоже была бесполезна. Владелец может
+// включить учётку обратно, задав нормальный пароль.
+export function lockDownPublicDemoAccounts(verify, randomSecret) {
+  if (process.env.NODE_ENV !== 'production') return [];
+  const locked = [];
+
+  for (const u of users) {
+    if (u.active === false) continue;
+    if (!PUBLIC_PASSWORDS.some((p) => verify(p, u.password))) continue;
+
+    // Персонал смены можно оставить как витрину, если стенд её явно разрешает.
+    const isReviewerDemo = DEMO_LOGIN
+      && !PRIVILEGED_ROLES.includes(u.role)
+      && REVIEWER_DEMO_USERS.some((d) => d.phone === u.phone);
+    if (isReviewerDemo) continue;
+
+    u.active = false;
+    u.password = randomSecret();
+    locked.push(`${u.role}:${u.phone}`);
+  }
+  return locked;
 }
 
 // ---------- Категории и меню ----------
@@ -132,6 +185,7 @@ export const menu = [
   m('Куриные крылышки', 'Горячие блюда', 300, 'Сочные куриные крылышки, приготовленные на гриле до идеальной корочки.', {
     nameEn: 'Chicken Wings', weight: '6 шт.', composition: 'куриные крылышки, специи, соус', calories: 620, popular: true, image: '/menu/chicken-wings.jpg',
     recipe: { [ING.chicken_wings]: 360 } }),
+  m('Шашлык из куриного филе', 'Горячие блюда', 200, '', { nameEn: 'Chicken Fillet Shashlik', image: null }),
 
   // ----- ЕДА · Купаты -----
   m('Купаты', 'Горячие блюда', 300, 'Домашние купаты из свинины и курицы. Сочные и ароматные.', {

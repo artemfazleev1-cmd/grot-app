@@ -52,6 +52,10 @@ export function hashPassword(plain) {
   return `scrypt$${salt}$${hash}`;
 }
 export function isHashed(v) { return typeof v === 'string' && v.startsWith('scrypt$'); }
+// Заведомо неугадываемый пароль в уже захешированном виде. Нужен, чтобы отобрать
+// доступ у аккаунта, пароль которого стал публичным: подобрать нечего, и копия
+// диска с этой записью тоже бесполезна.
+export function randomPassword() { return hashPassword(crypto.randomBytes(24).toString('hex')); }
 export function verifyPassword(plain, stored) {
   if (!stored || plain == null) return false;
   if (!isHashed(stored)) return String(plain) === String(stored); // на случай немигрированных
