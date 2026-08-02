@@ -165,11 +165,18 @@ deactivated and its password rotated to a random value. See
 
 ### On the live demo
 
-The guest side — menu, news, promotions, table QR — is open without signing in.
-To let a reviewer see the staff interfaces, the deployment sets `DEMO_LOGIN=true`,
-which permits the waiter, kitchen and courier accounts above and nothing more.
-Owner and admin are never reachable with a published password; the real owner is
-created from `OWNER_PHONE` and `OWNER_PASSWORD`.
+The guest side — menu, news, promotions, table QR — is open without signing in,
+and registration is open if you want to place an order as a guest.
+
+Staff interfaces are not reachable there. None of the accounts above works in
+production, by design: their passwords are printed in this file. The screenshots
+further up show every one of those screens, and a temporary staff account can be
+issued on request.
+
+The owner account is created from `OWNER_PHONE` and `OWNER_PASSWORD`, set on the
+host and never committed. A `DEMO_LOGIN=true` flag exists to re-enable the
+non-privileged staff accounts on a throwaway deployment; it is off, and it can
+never expose owner or admin.
 
 ---
 
