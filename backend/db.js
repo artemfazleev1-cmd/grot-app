@@ -129,10 +129,10 @@ export function lockDownPublicDemoAccounts(verify, randomSecret) {
 
 // ---------- Категории и меню ----------
 // Категории по группам: еда / напитки
-export const categories = ['Горячие блюда', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Вино', 'Безалкогольные'];
+export const categories = ['Горячие блюда', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'];
 export const categoryGroups = {
   food: ['Горячие блюда', 'Закуски к пиву'],
-  drinks: ['Разливное пиво', 'Бутылочное пиво', 'Вино', 'Безалкогольные'],
+  drinks: ['Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'],
 };
 
 // ---------- Склад / ингредиенты (ДО меню — рецепты ссылаются по id) ----------
@@ -239,6 +239,9 @@ export const menu = [
   m('4 Diablos Carménère Central Valley', 'Вино', 650, 'Красное чилийское карменер — пряное и плотное.', { group: 'drinks', nameEn: '4 Diablos Carménère Central Valley', style: 'Red', image: null }),
   m('Puntí Ferrer Limited Edition Sauvignon Blanc', 'Вино', 750, 'Белое сухое — яркое, с травяными нотами.', { group: 'drinks', nameEn: 'Puntí Ferrer Limited Edition Sauvignon Blanc', style: 'White', image: null }),
   m('Grande Alberone Moscato Spumante Dolce', 'Вино', 1600, 'Игристое сладкое москато — десертное.', { group: 'drinks', nameEn: 'Grande Alberone Moscato Spumante Dolce', style: 'Sparkling Sweet', image: null }),
+  // ----- НАПИТКИ · Крепкий алкоголь -----
+  m('Sang Som Rum (бутылка)', 'Крепкий алкоголь', 300, '', { group: 'drinks', nameEn: 'Sang Som Rum (bottle)', image: null }),
+
   // ----- НАПИТКИ · Морс -----
   m('Домашний клюквенный морс 0.33 л', 'Безалкогольные', 60, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.33 L', style: 'Клюквенный морс', weight: '0.33 л', composition: 'клюква, вода, сахар', image: '/menu/mors-033.jpg' }),
   m('Домашний клюквенный морс 0.2 л', 'Безалкогольные', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.2 L', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-022.jpg' }),
@@ -250,6 +253,40 @@ for (const d of menu.filter((x) => x.group === 'drinks')) {
     supplier: d.category === 'Сидр' ? 'Cider Import' : 'Bavaria Import', alcohol: true };
   ingredients.push(item);
   d.recipe = { [item.id]: 1 };
+}
+
+// Снимок сида меню — делается ДО того, как persistence заменит массив данными
+// с диска. Нужен, чтобы новые позиции из кода доезжали на сервер обычным деплоем.
+const MENU_SEED = menu.slice();
+
+// Досев меню при старте: добавляет позиции, которых нет в базе (сверка по названию).
+// Существующие НЕ трогает — цены и правки, сделанные владельцем в приложении,
+// остаются как есть. Удаления позиций в системе нет, поэтому «воскрешения»
+// удалённого блюда произойти не может.
+// Позиции, переименованные на боевом сервере скриптом синхронизации:
+// «имя в сиде» → «имя в базе». Без этой карты досев создал бы дубли
+// (например «Свиной шашлык» рядом с «Шашлык из свинины (200 г)»).
+const MENU_RENAMES = {
+  'Свиной шашлык': 'Шашлык из свинины (200 г)',
+  'Утиный шашлык': 'Шашлык из утки (200 г)',
+  'Куриные крылышки': 'Куриные крылышки (6 шт.)',
+  'Купаты': 'Купаты из курицы',
+  'Smash Burger (говядина)': 'Smash Burger',
+  'Домашний клюквенный морс 0.33 л': 'Домашний клюквенный морс 0.33 L',
+  'Домашний клюквенный морс 0.2 л': 'Домашний клюквенный морс 0.22 L',
+};
+
+export function ensureMenuItems() {
+  const have = new Set(menu.map((m) => String(m.name).trim()));
+  let added = 0;
+  for (const s of MENU_SEED) {
+    const name = String(s.name).trim();
+    if (have.has(name) || have.has(MENU_RENAMES[name])) continue;
+    menu.push({ ...s, id: id() });
+    have.add(name);
+    added++;
+  }
+  return added;
 }
 
 // ---------- Столы (с QR) ----------

@@ -65,7 +65,13 @@ const _added = db.ensureDemoUsers();
 if (_added) console.log(`👤 Добавлено аккаунтов: ${_added}`);
 hashPlaintext(); // пароли, пришедшие из окружения и демо-списка, тоже хешируем
 
-if (_added || _locked.length) persist();
+// Досев меню: позиции, добавленные в код, появляются на сервере обычным деплоем —
+// без ручной синхронизации и без входа под владельцем. Существующие позиции
+// и их цены не трогаются (правки из приложения сохраняются).
+const _menuAdded = db.ensureMenuItems();
+if (_menuAdded) console.log(`🍽 Добавлено позиций меню из кода: ${_menuAdded}`);
+
+if (_added || _menuAdded || _locked.length) persist();
 installShutdownHooks();
 
 // Предупреждение о живых аккаунтах с публично известными паролями.

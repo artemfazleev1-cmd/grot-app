@@ -13,7 +13,7 @@ const PHONE = process.argv[3] || '+66800000000';
 const PASS = process.argv[4] || 'owner';
 const DRY = process.argv.includes('--dry');
 
-const FOOD = 'Горячие блюда', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', WINE = 'Вино', SOFT = 'Безалкогольные';
+const FOOD = 'Горячие блюда', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', WINE = 'Вино', SPIRITS = 'Крепкий алкоголь', SOFT = 'Безалкогольные';
 
 // match — как позиция называется сейчас в базе (если отличается от нового названия)
 const TARGET = [
@@ -24,6 +24,7 @@ const TARGET = [
   { name: 'Шашлык из свинины (200 г)', nameEn: 'Pork Shashlik (200 g)', price: 250, category: FOOD, group: 'food', match: 'Свиной шашлык' },
   { name: 'Шашлык из утки (200 г)', nameEn: 'Duck Shashlik (200 g)', price: 300, category: FOOD, group: 'food', match: 'Утиный шашлык' },
   { name: 'Куриные крылышки (6 шт.)', nameEn: 'Chicken Wings (6 pcs)', price: 250, category: FOOD, group: 'food', match: 'Куриные крылышки' },
+  { name: 'Шашлык из куриного филе', nameEn: 'Chicken Fillet Shashlik', price: 200, category: FOOD, group: 'food' },
   { name: 'Купаты из курицы', nameEn: 'Chicken Sausages', price: 250, category: FOOD, group: 'food', match: 'Купаты' },
   { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
@@ -79,11 +80,14 @@ const TARGET = [
   { name: 'Puntí Ferrer Limited Edition Sauvignon Blanc', nameEn: 'Puntí Ferrer Limited Edition Sauvignon Blanc', price: 750, category: WINE, group: 'drinks' },
   { name: 'Grande Alberone Moscato Spumante Dolce', nameEn: 'Grande Alberone Moscato Spumante Dolce', price: 1600, category: WINE, group: 'drinks' },
 
+  // 🥃 КРЕПКИЙ АЛКОГОЛЬ
+  { name: 'Sang Som Rum (бутылка)', nameEn: 'Sang Som Rum (bottle)', price: 300, category: SPIRITS, group: 'drinks' },
+
   // 🥤 БЕЗАЛКОГОЛЬНЫЕ
   { name: 'Сода', nameEn: 'Sparkling Water', price: 20, category: SOFT, group: 'drinks' },
   { name: 'Вода', nameEn: 'Drinking Water', price: 15, category: SOFT, group: 'drinks' },
   { name: 'Coca-Cola', nameEn: 'Coca-Cola', price: 50, category: SOFT, group: 'drinks' },
-  { name: 'Cream Soda', nameEn: 'Cream Soda', price: 60, category: SOFT, group: 'drinks' },
+  { name: 'Cream Soda', nameEn: 'Cream Soda', price: 90, category: SOFT, group: 'drinks' },
   { name: 'Домашний клюквенный морс 0.33 L', nameEn: 'Homemade Cranberry Morse (0.33 L)', price: 60, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.33 л' },
   { name: 'Домашний клюквенный морс 0.22 L', nameEn: 'Homemade Cranberry Morse (0.22 L)', price: 40, category: SOFT, group: 'drinks', match: 'Домашний клюквенный морс 0.2 л' },
 ];
