@@ -62,6 +62,7 @@ const TARGET = [
   { name: 'Arcobrau Urfass Lager', nameEn: 'Arcobrau Urfass Lager', price: 210, category: BOTTLE, group: 'drinks' },
   { name: 'Moose Craft Cider', nameEn: 'Moose Craft Cider', price: 100, category: BOTTLE, group: 'drinks' },
   { name: 'Bitburger Beer 0.0%', nameEn: 'Bitburger Beer 0.0%', price: 180, category: BOTTLE, group: 'drinks' },
+  { name: 'Guinness Draught Stout (банка)', nameEn: 'Guinness Draught Stout (can)', price: 280, category: BOTTLE, group: 'drinks' },
 
   // 🍷 ВИННАЯ КАРТА (названия — марки, name = nameEn)
   { name: 'Prosecco', nameEn: 'Prosecco', price: 1500, category: WINE, group: 'drinks' },

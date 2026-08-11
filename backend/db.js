@@ -220,6 +220,7 @@ export const menu = [
   m('Franziskaner Weissbier', 'Бутылочное пиво', 190, 'Классическое немецкое пшеничное — мягкое и фруктовое.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/franziskaner-weissbier.jpg' }),
   m('Paulaner Hefe Weissbier', 'Бутылочное пиво', 230, 'Лёгкое, фруктовое и натурально мутное.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/paulaner-hefe-bottle.jpg' }),
   m('Franziskaner Dunkel', 'Бутылочное пиво', 190, 'Солодовое, мягкое и насыщенное.', { group: 'drinks', style: 'Dark Lager', composition: 'тёмный солод, хмель', image: '/menu/franziskaner-dunkel.jpg' }),
+  m('Guinness Draught Stout (банка)', 'Бутылочное пиво', 280, '', { group: 'drinks', nameEn: 'Guinness Draught Stout (can)', image: null }),
   // ----- НАПИТКИ · Сидр -----
   m('Moose Craft Cider', 'Бутылочное пиво', 100, 'Хрустящий, освежающий и натурально вкусный.', { group: 'drinks', style: 'Apple Cider', composition: 'яблочный сидр', popular: true, image: '/menu/moose-craft-cider.jpg' }),
   // ----- НАПИТКИ · Винная карта -----
