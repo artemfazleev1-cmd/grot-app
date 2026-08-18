@@ -240,6 +240,10 @@ export const menu = [
   m('4 Diablos Carménère Central Valley', 'Вино', 650, 'Красное чилийское карменер — пряное и плотное.', { group: 'drinks', nameEn: '4 Diablos Carménère Central Valley', style: 'Red', image: null }),
   m('Puntí Ferrer Limited Edition Sauvignon Blanc', 'Вино', 750, 'Белое сухое — яркое, с травяными нотами.', { group: 'drinks', nameEn: 'Puntí Ferrer Limited Edition Sauvignon Blanc', style: 'White', image: null }),
   m('Grande Alberone Moscato Spumante Dolce', 'Вино', 1600, 'Игристое сладкое москато — десертное.', { group: 'drinks', nameEn: 'Grande Alberone Moscato Spumante Dolce', style: 'Sparkling Sweet', image: null }),
+
+  // Вино на розлив (wine on tap) — та же категория «Вино», формат вынесен в название.
+  m('Mont Clair White Celebration (розлив)', 'Вино', 150, '', { group: 'drinks', nameEn: 'Mont Clair White Celebration (on tap)', image: null }),
+  m('Mont Clair Red Celebration (розлив)', 'Вино', 150, '', { group: 'drinks', nameEn: 'Mont Clair Red Celebration (on tap)', image: null }),
   // ----- НАПИТКИ · Крепкий алкоголь -----
   m('Sang Som Rum (бутылка)', 'Крепкий алкоголь', 300, '', { group: 'drinks', nameEn: 'Sang Som Rum (bottle)', image: null }),
 

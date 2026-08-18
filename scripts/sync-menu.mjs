@@ -80,6 +80,8 @@ const TARGET = [
   { name: '4 Diablos Carménère Central Valley', nameEn: '4 Diablos Carménère Central Valley', price: 650, category: WINE, group: 'drinks' },
   { name: 'Puntí Ferrer Limited Edition Sauvignon Blanc', nameEn: 'Puntí Ferrer Limited Edition Sauvignon Blanc', price: 750, category: WINE, group: 'drinks' },
   { name: 'Grande Alberone Moscato Spumante Dolce', nameEn: 'Grande Alberone Moscato Spumante Dolce', price: 1600, category: WINE, group: 'drinks' },
+  { name: 'Mont Clair White Celebration (розлив)', nameEn: 'Mont Clair White Celebration (on tap)', price: 150, category: WINE, group: 'drinks' },
+  { name: 'Mont Clair Red Celebration (розлив)', nameEn: 'Mont Clair Red Celebration (on tap)', price: 150, category: WINE, group: 'drinks' },
 
   // 🥃 КРЕПКИЙ АЛКОГОЛЬ
   { name: 'Sang Som Rum (бутылка)', nameEn: 'Sang Som Rum (bottle)', price: 300, category: SPIRITS, group: 'drinks' },
