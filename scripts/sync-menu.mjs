@@ -25,6 +25,7 @@ const TARGET = [
   { name: 'Шашлык из утки (200 г)', nameEn: 'Duck Shashlik (200 g)', price: 300, category: FOOD, group: 'food', match: 'Утиный шашлык' },
   { name: 'Куриные крылышки (6 шт.)', nameEn: 'Chicken Wings (6 pcs)', price: 250, category: FOOD, group: 'food', match: 'Куриные крылышки' },
   { name: 'Шашлык из куриного филе', nameEn: 'Chicken Fillet Shashlik', price: 200, category: FOOD, group: 'food' },
+  { name: 'Свиные рёбрышки в пивном маринаде', nameEn: 'Pork Ribs in Beer Marinade', price: 250, category: FOOD, group: 'food' },
   { name: 'Купаты из курицы', nameEn: 'Chicken Sausages', price: 250, category: FOOD, group: 'food', match: 'Купаты' },
   { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },

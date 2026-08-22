@@ -186,6 +186,7 @@ export const menu = [
     nameEn: 'Chicken Wings', weight: '6 шт.', composition: 'куриные крылышки, специи, соус', calories: 620, popular: true, image: '/menu/chicken-wings.jpg',
     recipe: { [ING.chicken_wings]: 360 } }),
   m('Шашлык из куриного филе', 'Горячие блюда', 200, '', { nameEn: 'Chicken Fillet Shashlik', image: null }),
+  m('Свиные рёбрышки в пивном маринаде', 'Горячие блюда', 250, '', { nameEn: 'Pork Ribs in Beer Marinade', image: null }),
 
   // ----- ЕДА · Купаты -----
   m('Купаты', 'Горячие блюда', 300, 'Домашние купаты из свинины и курицы. Сочные и ароматные.', {
