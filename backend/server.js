@@ -71,7 +71,12 @@ hashPlaintext(); // пароли, пришедшие из окружения и 
 const _menuAdded = db.ensureMenuItems();
 if (_menuAdded) console.log(`🍽 Добавлено позиций меню из кода: ${_menuAdded}`);
 
-if (_added || _menuAdded || _locked.length) persist();
+// Снятие с меню: решение кухни живёт в коде и применяется при каждом старте.
+// Позиция не удаляется — становится недоступной, история заказов цела.
+const _retired = db.retireMenuItems();
+if (_retired) console.log(`🚫 Снято с меню: ${_retired}`);
+
+if (_added || _menuAdded || _retired || _locked.length) persist();
 installShutdownHooks();
 
 // Предупреждение о живых аккаунтах с публично известными паролями.

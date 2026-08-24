@@ -26,7 +26,11 @@ const TARGET = [
   { name: 'Куриные крылышки (6 шт.)', nameEn: 'Chicken Wings (6 pcs)', price: 250, category: FOOD, group: 'food', match: 'Куриные крылышки' },
   { name: 'Шашлык из куриного филе', nameEn: 'Chicken Fillet Shashlik', price: 200, category: FOOD, group: 'food' },
   { name: 'Свиные рёбрышки в пивном маринаде', nameEn: 'Pork Ribs in Beer Marinade', price: 250, category: FOOD, group: 'food' },
-  { name: 'Купаты из курицы', nameEn: 'Chicken Sausages', price: 250, category: FOOD, group: 'food', match: 'Купаты' },
+  { name: 'Шашлык из свинины на кости', nameEn: 'Bone-in Pork Shashlik', price: 250, category: FOOD, group: 'food' },
+  { name: 'Шашлык из баранины (мякоть)', nameEn: 'Lamb Shashlik (boneless)', price: 450, category: FOOD, group: 'food' },
+  { name: 'Шашлык из скумбрии', nameEn: 'Mackerel Shashlik', price: 300, category: FOOD, group: 'food' },
+  { name: 'Бургер со свининой', nameEn: 'Pork Burger', price: 300, category: FOOD, group: 'food' },
+  { name: 'Купаты свиные', nameEn: 'Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
 
