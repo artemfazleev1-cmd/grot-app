@@ -42,7 +42,6 @@ const TARGET = [
   { name: 'Лепёшка', nameEn: 'Flatbread', price: 60, category: SNACKS, group: 'food' },
 
   // 🍺 РАЗЛИВНОЕ ПИВО
-  { name: 'Erdinger Weissbier (0.4 L)', nameEn: 'Erdinger Weissbier (0.4 L)', price: 230, category: DRAFT, group: 'drinks' },
   { name: 'Erdinger Dunkel (0.4 L)', nameEn: 'Erdinger Dunkel (0.4 L)', price: 230, category: DRAFT, group: 'drinks' },
   { name: 'Arcobrau Weissbier (0.5 L)', nameEn: 'Arcobrau Weissbier (0.5 L)', price: 230, category: DRAFT, group: 'drinks' },
   { name: 'Paulaner Hefe Weissbier (0.5 L)', nameEn: 'Paulaner Hefe Weissbier (0.5 L)', price: 240, category: DRAFT, group: 'drinks' },

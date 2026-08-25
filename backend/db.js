@@ -302,6 +302,7 @@ const MENU_RENAMES = {
  */
 const MENU_RETIRED = [
   'Купаты из курицы', // сняты: остаются свиные и свинина+курица
+  'Erdinger Weissbier (0.4 L)', // разливной снят; бутылочный Erdinger Weissbier остаётся
 ];
 
 export function retireMenuItems() {
