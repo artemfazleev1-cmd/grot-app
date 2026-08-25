@@ -227,6 +227,11 @@ export const menu = [
   m('Guinness Draught Stout (банка)', 'Бутылочное пиво', 280, '', { group: 'drinks', nameEn: 'Guinness Draught Stout (can)', image: null }),
   // ----- НАПИТКИ · Сидр -----
   m('Moose Craft Cider', 'Бутылочное пиво', 100, 'Хрустящий, освежающий и натурально вкусный.', { group: 'drinks', style: 'Apple Cider', composition: 'яблочный сидр', popular: true, image: '/menu/moose-craft-cider.jpg' }),
+  // ----- НАПИТКИ · Разливное пиво -----
+  m('Weihenstephaner Original Helles (разливное)', 'Разливное пиво', 230, '', { group: 'drinks', nameEn: 'Weihenstephaner Original Helles (draft)', image: null }),
+  m('Arcobrau Urfass (разливное)', 'Разливное пиво', 230, '', { group: 'drinks', nameEn: 'Arcobrau Urfass (draft)', image: null }),
+  m('Hofbräu Original Münchner Hell (разливное)', 'Разливное пиво', 230, '', { group: 'drinks', nameEn: 'Hofbräu Original Münchner Hell (draft)', image: null }),
+
   // ----- НАПИТКИ · Винная карта -----
   // Названия — марки, поэтому name и nameEn совпадают (как у пива).
   m('Prosecco', 'Вино', 1500, 'Игристое сухое — лёгкое, с тонкими пузырьками.', { group: 'drinks', nameEn: 'Prosecco', style: 'Sparkling', image: null }),

@@ -50,6 +50,9 @@ const TARGET = [
   { name: 'Бельгийское нефильтрованное (0.4 L)', nameEn: 'Belgian Unfiltered Wheat Ale (0.4 L)', price: 190, category: DRAFT, group: 'drinks' },
   { name: 'Жигулёвское (0.4 L)', nameEn: 'Zhigulevskoe Lager (0.4 L)', price: 160, category: DRAFT, group: 'drinks' },
   { name: 'Ирландский эль (0.4 L)', nameEn: 'Irish Ale (0.4 L)', price: 180, category: DRAFT, group: 'drinks' },
+  { name: 'Weihenstephaner Original Helles (разливное)', nameEn: 'Weihenstephaner Original Helles (draft)', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Arcobrau Urfass (разливное)', nameEn: 'Arcobrau Urfass (draft)', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Hofbräu Original Münchner Hell (разливное)', nameEn: 'Hofbräu Original Münchner Hell (draft)', price: 230, category: DRAFT, group: 'drinks' },
 
   // 🍾 БУТЫЛОЧНОЕ ПИВО
   { name: 'Weihenstephaner Original Helles', nameEn: 'Weihenstephaner Original Helles', price: 190, category: BOTTLE, group: 'drinks' },
