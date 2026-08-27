@@ -129,9 +129,9 @@ export function lockDownPublicDemoAccounts(verify, randomSecret) {
 
 // ---------- Категории и меню ----------
 // Категории по группам: еда / напитки
-export const categories = ['Горячие блюда', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'];
+export const categories = ['Горячие блюда', 'Салаты', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'];
 export const categoryGroups = {
-  food: ['Горячие блюда', 'Закуски к пиву'],
+  food: ['Горячие блюда', 'Салаты', 'Закуски к пиву'],
   drinks: ['Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'],
 };
 
@@ -200,6 +200,18 @@ export const menu = [
   m('Smash Burger (говядина)', 'Горячие блюда', 300, 'Фирменный рецепт нашего шеф-повара: две говяжьи котлеты Smash, расплавленный сыр, фирменный соус, мягкая булочка бриошь.', {
     nameEn: 'Smash Burger (Beef)', weight: '380–420 г', composition: 'говядина 80/20, булочка бриошь, чеддер, фирменный соус, лук, огурцы', calories: 920, popular: true, image: '/menu/smash-burger.jpg',
     recipe: { [ING.beef]: 180, [ING.bun]: 1, [ING.cheddar]: 40, [ING.red_onion]: 15 } }),
+
+  // ----- ЕДА · Салаты -----
+  m('Салат из свежей тыквы', 'Салаты', 120, '', { nameEn: 'Fresh Pumpkin Salad', image: null }),
+  m('Битые огурцы', 'Салаты', 100, '', { nameEn: 'Smashed Cucumber Salad', image: null }),
+  m('Салат огурец, помидор, болгарский перец', 'Салаты', 120, '', { nameEn: 'Cucumber, Tomato & Bell Pepper Salad', image: null }),
+  m('Витаминный', 'Салаты', 100, '', { nameEn: 'Vitamin Salad', image: null }),
+  m('Плейбой', 'Салаты', 140, '', { nameEn: 'Playboy Salad', image: null }),
+  m('Цезарь', 'Салаты', 220, '', { nameEn: 'Caesar Salad', image: null }),
+  m('Нисуаз с тунцом и анчоусами', 'Салаты', 220, '', { nameEn: 'Niçoise Salad with Tuna & Anchovies', image: null }),
+  m('Вальдорф', 'Салаты', 170, '', { nameEn: 'Waldorf Salad', image: null }),
+  m('Краб Луи', 'Салаты', 260, '', { nameEn: 'Shrimp Louie — GROT Chef’s Special', image: null }),
+  m('Аджапсандал', 'Салаты', 130, '', { nameEn: 'Ajapsandali', image: null }),
 
   // ----- ЕДА · Закуски к пиву -----
   m('Свиные уши', 'Закуски к пиву', 300, 'Хрустящие свиные уши со специями — классическая закуска к пиву.', {

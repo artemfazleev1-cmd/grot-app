@@ -13,7 +13,7 @@ const PHONE = process.argv[3] || '+66800000000';
 const PASS = process.argv[4] || 'owner';
 const DRY = process.argv.includes('--dry');
 
-const FOOD = 'Горячие блюда', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', WINE = 'Вино', SPIRITS = 'Крепкий алкоголь', SOFT = 'Безалкогольные';
+const FOOD = 'Горячие блюда', SALADS = 'Салаты', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', WINE = 'Вино', SPIRITS = 'Крепкий алкоголь', SOFT = 'Безалкогольные';
 
 // match — как позиция называется сейчас в базе (если отличается от нового названия)
 const TARGET = [
@@ -33,6 +33,18 @@ const TARGET = [
   { name: 'Купаты свиные', nameEn: 'Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
+
+  // 🥗 САЛАТЫ
+  { name: 'Салат из свежей тыквы', nameEn: 'Fresh Pumpkin Salad', price: 120, category: SALADS, group: 'food' },
+  { name: 'Битые огурцы', nameEn: 'Smashed Cucumber Salad', price: 100, category: SALADS, group: 'food' },
+  { name: 'Салат огурец, помидор, болгарский перец', nameEn: 'Cucumber, Tomato & Bell Pepper Salad', price: 120, category: SALADS, group: 'food' },
+  { name: 'Витаминный', nameEn: 'Vitamin Salad', price: 100, category: SALADS, group: 'food' },
+  { name: 'Плейбой', nameEn: 'Playboy Salad', price: 140, category: SALADS, group: 'food' },
+  { name: 'Цезарь', nameEn: 'Caesar Salad', price: 220, category: SALADS, group: 'food' },
+  { name: 'Нисуаз с тунцом и анчоусами', nameEn: 'Niçoise Salad with Tuna & Anchovies', price: 220, category: SALADS, group: 'food' },
+  { name: 'Вальдорф', nameEn: 'Waldorf Salad', price: 170, category: SALADS, group: 'food' },
+  { name: 'Краб Луи', nameEn: 'Shrimp Louie — GROT Chef’s Special', price: 260, category: SALADS, group: 'food' },
+  { name: 'Аджапсандал', nameEn: 'Ajapsandali', price: 130, category: SALADS, group: 'food' },
 
   // 🥩 ЗАКУСКИ К ПИВУ
   { name: 'Свиные уши', nameEn: 'Pork Ears', price: 300, category: SNACKS, group: 'food' },

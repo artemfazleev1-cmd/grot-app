@@ -104,7 +104,7 @@ export const STR = {
     k_total_orders: 'Всего заказов', k_dish_types: 'Видов блюд',
     k_cooked_by_item: 'Приготовлено сегодня по позициям', k_nothing_cooked: 'Сегодня ещё ничего не приготовлено',
     // категории меню
-    'cat_Горячие блюда': 'Горячие блюда', 'cat_Закуски к пиву': 'Закуски к пиву',
+    'cat_Горячие блюда': 'Горячие блюда', 'cat_Салаты': 'Салаты', 'cat_Закуски к пиву': 'Закуски к пиву',
     'cat_Разливное пиво': 'Разливное пиво',
     'cat_Бутылочное пиво': 'Бутылочное пиво', 'cat_Вино': 'Вино',
     'cat_Крепкий алкоголь': 'Крепкий алкоголь', 'cat_Безалкогольные': 'Безалкогольные',
@@ -242,7 +242,7 @@ export const STR = {
     k_orders_today: 'Orders today', k_items_cooked: 'Items cooked',
     k_total_orders: 'Total orders', k_dish_types: 'Dish types',
     k_cooked_by_item: 'Cooked today by item', k_nothing_cooked: 'Nothing cooked yet today',
-    'cat_Горячие блюда': 'Hot Dishes', 'cat_Закуски к пиву': 'Beer Snacks',
+    'cat_Горячие блюда': 'Hot Dishes', 'cat_Салаты': 'Salads', 'cat_Закуски к пиву': 'Beer Snacks',
     'cat_Разливное пиво': 'Draft Beer',
     'cat_Бутылочное пиво': 'Bottled Beer', 'cat_Вино': 'Wine',
     'cat_Крепкий алкоголь': 'Spirits', 'cat_Безалкогольные': 'Soft Drinks',
