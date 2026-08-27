@@ -187,6 +187,7 @@ export const menu = [
     recipe: { [ING.chicken_wings]: 360 } }),
   m('Шашлык из куриного филе', 'Горячие блюда', 200, '', { nameEn: 'Chicken Fillet Shashlik', image: null }),
   m('Свиные рёбрышки в пивном маринаде', 'Горячие блюда', 250, '', { nameEn: 'Pork Ribs in Beer Marinade', image: null }),
+  m('Утка конфи', 'Горячие блюда', 320, '', { nameEn: 'Duck Confit', image: null }),
   m('Шашлык из свинины на кости', 'Горячие блюда', 250, '', { nameEn: 'Bone-in Pork Shashlik', image: null }),
   m('Шашлык из баранины (мякоть)', 'Горячие блюда', 450, '', { nameEn: 'Lamb Shashlik (boneless)', image: null }),
   m('Шашлык из скумбрии', 'Горячие блюда', 300, '', { nameEn: 'Mackerel Shashlik', image: null }),
@@ -202,16 +203,16 @@ export const menu = [
     recipe: { [ING.beef]: 180, [ING.bun]: 1, [ING.cheddar]: 40, [ING.red_onion]: 15 } }),
 
   // ----- ЕДА · Салаты -----
-  m('Салат из свежей тыквы', 'Салаты', 120, '', { nameEn: 'Fresh Pumpkin Salad', image: null }),
+  m('Салат из свежей тыквы', 'Салаты', 140, '', { nameEn: 'Fresh Pumpkin Salad', image: null }),
   m('Битые огурцы', 'Салаты', 100, '', { nameEn: 'Smashed Cucumber Salad', image: null }),
   m('Салат огурец, помидор, болгарский перец', 'Салаты', 120, '', { nameEn: 'Cucumber, Tomato & Bell Pepper Salad', image: null }),
   m('Витаминный', 'Салаты', 100, '', { nameEn: 'Vitamin Salad', image: null }),
   m('Плейбой', 'Салаты', 140, '', { nameEn: 'Playboy Salad', image: null }),
-  m('Цезарь', 'Салаты', 220, '', { nameEn: 'Caesar Salad', image: null }),
+  m('Цезарь', 'Салаты', 180, '', { nameEn: 'Caesar Salad', image: null }),
   m('Нисуаз с тунцом и анчоусами', 'Салаты', 220, '', { nameEn: 'Niçoise Salad with Tuna & Anchovies', image: null }),
-  m('Вальдорф', 'Салаты', 170, '', { nameEn: 'Waldorf Salad', image: null }),
+  m('Вальдорф', 'Салаты', 190, '', { nameEn: 'Waldorf Salad', image: null }),
   m('Краб Луи', 'Салаты', 260, '', { nameEn: 'Shrimp Louie — GROT Chef’s Special', image: null }),
-  m('Аджапсандал', 'Салаты', 130, '', { nameEn: 'Ajapsandali', image: null }),
+  m('Аджапсандал', 'Салаты', 220, '', { nameEn: 'Ajapsandali', image: null }),
 
   // ----- ЕДА · Закуски к пиву -----
   m('Свиные уши', 'Закуски к пиву', 300, 'Хрустящие свиные уши со специями — классическая закуска к пиву.', {
@@ -222,6 +223,7 @@ export const menu = [
     nameEn: 'Homemade Beef Jerky (50 g)', weight: '50 г', composition: 'говядина, соль, специи', image: null }),
   m('Картошка фри', 'Закуски к пиву', 100, 'Хрустящая золотистая картошка фри с солью.', {
     nameEn: 'French Fries', composition: 'картофель, масло, соль', image: null }),
+  m('Креветки варёные в пиве (250 г)', 'Закуски к пиву', 350, '', { nameEn: 'Beer-Boiled Shrimp (250 g)', image: null }),
   m('Лепёшка', 'Закуски к пиву', 60, 'Свежая лепёшка, выпеченная до румяной корочки.', {
     nameEn: 'Flatbread', composition: 'мука, вода, дрожжи, соль', image: null }),
 
@@ -316,6 +318,45 @@ const MENU_RETIRED = [
   'Купаты из курицы', // сняты: остаются свиные и свинина+курица
   'Erdinger Weissbier (0.4 L)', // разливной снят; бутылочный Erdinger Weissbier остаётся
 ];
+
+/**
+ * Цены, которые задаёт КОД, а не приложение.
+ *
+ * Обычный досев цены не трогает — и это правильно: владелец правит их прямо
+ * в кабинете, и деплой не должен затирать его работу. Но у части позиций цена
+ * согласована отдельно и должна доезжать до боевой базы вместе с кодом, иначе
+ * утверждённый прайс живёт в переписке, а не в приложении.
+ *
+ * ⚠️ ПЛАТА ЗА ЭТО: цену позиции из этого списка нельзя поменять в приложении
+ * «навсегда» — следующий деплой вернёт значение отсюда. Меняя цену такой
+ * позиции, меняйте её ЗДЕСЬ. Держите список коротким по этой же причине.
+ */
+const MENU_PRICES = {
+  // Салаты — прайс утверждён владельцем 2026-08-27
+  'Салат из свежей тыквы': 140,
+  'Битые огурцы': 100,
+  'Салат огурец, помидор, болгарский перец': 120,
+  'Витаминный': 100,
+  'Плейбой': 140,
+  'Цезарь': 180,
+  'Нисуаз с тунцом и анчоусами': 220,
+  'Вальдорф': 190,
+  'Краб Луи': 260,
+  'Аджапсандал': 220,
+};
+
+/** Приводит цены из списка к значениям из кода. Возвращает список изменений. */
+export function enforceMenuPrices() {
+  const changes = [];
+  for (const item of menu) {
+    const want = MENU_PRICES[String(item.name).trim()];
+    if (want != null && item.price !== want) {
+      changes.push(`${item.name}: ${item.price} → ${want}`);
+      item.price = want;
+    }
+  }
+  return changes;
+}
 
 export function retireMenuItems() {
   let retiredCount = 0;

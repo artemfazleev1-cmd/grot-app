@@ -76,7 +76,12 @@ if (_menuAdded) console.log(`🍽 Добавлено позиций меню и�
 const _retired = db.retireMenuItems();
 if (_retired) console.log(`🚫 Снято с меню: ${_retired}`);
 
-if (_added || _menuAdded || _retired || _locked.length) persist();
+// Цены, заданные кодом (см. MENU_PRICES). Применяются после досева: сначала
+// позиция должна существовать, потом ей выставляется согласованная цена.
+const _priced = db.enforceMenuPrices();
+if (_priced.length) console.log(`💵 Цены приведены к коду (${_priced.length}): ${_priced.join(', ')}`);
+
+if (_added || _menuAdded || _retired || _priced.length || _locked.length) persist();
 installShutdownHooks();
 
 // Предупреждение о живых аккаунтах с публично известными паролями.

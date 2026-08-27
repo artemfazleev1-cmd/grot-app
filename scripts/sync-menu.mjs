@@ -26,6 +26,7 @@ const TARGET = [
   { name: 'Куриные крылышки (6 шт.)', nameEn: 'Chicken Wings (6 pcs)', price: 250, category: FOOD, group: 'food', match: 'Куриные крылышки' },
   { name: 'Шашлык из куриного филе', nameEn: 'Chicken Fillet Shashlik', price: 200, category: FOOD, group: 'food' },
   { name: 'Свиные рёбрышки в пивном маринаде', nameEn: 'Pork Ribs in Beer Marinade', price: 250, category: FOOD, group: 'food' },
+  { name: 'Утка конфи', nameEn: 'Duck Confit', price: 320, category: FOOD, group: 'food' },
   { name: 'Шашлык из свинины на кости', nameEn: 'Bone-in Pork Shashlik', price: 250, category: FOOD, group: 'food' },
   { name: 'Шашлык из баранины (мякоть)', nameEn: 'Lamb Shashlik (boneless)', price: 450, category: FOOD, group: 'food' },
   { name: 'Шашлык из скумбрии', nameEn: 'Mackerel Shashlik', price: 300, category: FOOD, group: 'food' },
@@ -35,22 +36,23 @@ const TARGET = [
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
 
   // 🥗 САЛАТЫ
-  { name: 'Салат из свежей тыквы', nameEn: 'Fresh Pumpkin Salad', price: 120, category: SALADS, group: 'food' },
+  { name: 'Салат из свежей тыквы', nameEn: 'Fresh Pumpkin Salad', price: 140, category: SALADS, group: 'food' },
   { name: 'Битые огурцы', nameEn: 'Smashed Cucumber Salad', price: 100, category: SALADS, group: 'food' },
   { name: 'Салат огурец, помидор, болгарский перец', nameEn: 'Cucumber, Tomato & Bell Pepper Salad', price: 120, category: SALADS, group: 'food' },
   { name: 'Витаминный', nameEn: 'Vitamin Salad', price: 100, category: SALADS, group: 'food' },
   { name: 'Плейбой', nameEn: 'Playboy Salad', price: 140, category: SALADS, group: 'food' },
-  { name: 'Цезарь', nameEn: 'Caesar Salad', price: 220, category: SALADS, group: 'food' },
+  { name: 'Цезарь', nameEn: 'Caesar Salad', price: 180, category: SALADS, group: 'food' },
   { name: 'Нисуаз с тунцом и анчоусами', nameEn: 'Niçoise Salad with Tuna & Anchovies', price: 220, category: SALADS, group: 'food' },
-  { name: 'Вальдорф', nameEn: 'Waldorf Salad', price: 170, category: SALADS, group: 'food' },
+  { name: 'Вальдорф', nameEn: 'Waldorf Salad', price: 190, category: SALADS, group: 'food' },
   { name: 'Краб Луи', nameEn: 'Shrimp Louie — GROT Chef’s Special', price: 260, category: SALADS, group: 'food' },
-  { name: 'Аджапсандал', nameEn: 'Ajapsandali', price: 130, category: SALADS, group: 'food' },
+  { name: 'Аджапсандал', nameEn: 'Ajapsandali', price: 220, category: SALADS, group: 'food' },
 
   // 🥩 ЗАКУСКИ К ПИВУ
   { name: 'Свиные уши', nameEn: 'Pork Ears', price: 300, category: SNACKS, group: 'food' },
   { name: 'Домашние ржаные гренки', nameEn: 'Homemade Rye Croutons', price: 60, category: SNACKS, group: 'food' },
   { name: 'Домашняя вяленая говядина (50 г)', nameEn: 'Homemade Beef Jerky (50 g)', price: 200, category: SNACKS, group: 'food' },
   { name: 'Картошка фри', nameEn: 'French Fries', price: 100, category: SNACKS, group: 'food' },
+  { name: 'Креветки варёные в пиве (250 г)', nameEn: 'Beer-Boiled Shrimp (250 g)', price: 350, category: SNACKS, group: 'food' },
   { name: 'Лепёшка', nameEn: 'Flatbread', price: 60, category: SNACKS, group: 'food' },
 
   // 🍺 РАЗЛИВНОЕ ПИВО
