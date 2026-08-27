@@ -45,8 +45,11 @@ jobs:
           distribution: temurin
           java-version: '21'   # Capacitor 8 компилирует Android под Java 21
 
+      # v3 тянет устаревшие cmdline-tools, а Google периодически убирает старые
+      # пакеты из репозитория — сборка падала на скачивании SDK. v4 использует
+      # cmdline-tools 20 и Node 24; входные параметры те же, менять больше нечего.
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Build debug APK
         run: |
