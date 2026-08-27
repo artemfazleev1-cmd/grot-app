@@ -188,6 +188,7 @@ export const menu = [
   m('Шашлык из куриного филе', 'Горячие блюда', 200, '', { nameEn: 'Chicken Fillet Shashlik', image: null }),
   m('Свиные рёбрышки в пивном маринаде', 'Горячие блюда', 250, '', { nameEn: 'Pork Ribs in Beer Marinade', image: null }),
   m('Утка конфи', 'Горячие блюда', 320, '', { nameEn: 'Duck Confit', image: null }),
+  m('Стейк сёмги (300 г)', 'Горячие блюда', 320, '', { nameEn: 'Salmon Steak (300 g)', image: null }),
   m('Шашлык из свинины на кости', 'Горячие блюда', 250, '', { nameEn: 'Bone-in Pork Shashlik', image: null }),
   m('Шашлык из баранины (мякоть)', 'Горячие блюда', 450, '', { nameEn: 'Lamb Shashlik (boneless)', image: null }),
   m('Шашлык из скумбрии', 'Горячие блюда', 300, '', { nameEn: 'Mackerel Shashlik', image: null }),

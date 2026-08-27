@@ -27,6 +27,7 @@ const TARGET = [
   { name: 'Шашлык из куриного филе', nameEn: 'Chicken Fillet Shashlik', price: 200, category: FOOD, group: 'food' },
   { name: 'Свиные рёбрышки в пивном маринаде', nameEn: 'Pork Ribs in Beer Marinade', price: 250, category: FOOD, group: 'food' },
   { name: 'Утка конфи', nameEn: 'Duck Confit', price: 320, category: FOOD, group: 'food' },
+  { name: 'Стейк сёмги (300 г)', nameEn: 'Salmon Steak (300 g)', price: 320, category: FOOD, group: 'food' },
   { name: 'Шашлык из свинины на кости', nameEn: 'Bone-in Pork Shashlik', price: 250, category: FOOD, group: 'food' },
   { name: 'Шашлык из баранины (мякоть)', nameEn: 'Lamb Shashlik (boneless)', price: 450, category: FOOD, group: 'food' },
   { name: 'Шашлык из скумбрии', nameEn: 'Mackerel Shashlik', price: 300, category: FOOD, group: 'food' },
