@@ -129,9 +129,9 @@ export function lockDownPublicDemoAccounts(verify, randomSecret) {
 
 // ---------- Категории и меню ----------
 // Категории по группам: еда / напитки
-export const categories = ['Горячие блюда', 'Салаты', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'];
+export const categories = ['Горячие блюда', 'Тайская кухня', 'Салаты', 'Закуски к пиву', 'Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'];
 export const categoryGroups = {
-  food: ['Горячие блюда', 'Салаты', 'Закуски к пиву'],
+  food: ['Горячие блюда', 'Тайская кухня', 'Салаты', 'Закуски к пиву'],
   drinks: ['Разливное пиво', 'Бутылочное пиво', 'Вино', 'Крепкий алкоголь', 'Безалкогольные'],
 };
 
@@ -202,6 +202,18 @@ export const menu = [
   m('Smash Burger (говядина)', 'Горячие блюда', 300, 'Фирменный рецепт нашего шеф-повара: две говяжьи котлеты Smash, расплавленный сыр, фирменный соус, мягкая булочка бриошь.', {
     nameEn: 'Smash Burger (Beef)', weight: '380–420 г', composition: 'говядина 80/20, булочка бриошь, чеддер, фирменный соус, лук, огурцы', calories: 920, popular: true, image: '/menu/smash-burger.jpg',
     recipe: { [ING.beef]: 180, [ING.bun]: 1, [ING.cheddar]: 40, [ING.red_onion]: 15 } }),
+
+  // ----- ЕДА · Тайская кухня -----
+  m('Гребешки на гриле с чесночно-сливочным соусом (150 г)', 'Тайская кухня', 350, '', { nameEn: 'Grilled Scallops with Garlic Cream Sauce (150 g)', image: null }),
+  m('Креветки и морепродукты на горячей сковороде (400 г)', 'Тайская кухня', 340, '', { nameEn: 'Grilled Prawns Seafood Hot Plate (400 g)', image: null }),
+  m('Хор Мок Талай — карри с морепродуктами в кокосе (220 г)', 'Тайская кухня', 280, '', { nameEn: 'Hor Mok Talay — Seafood Curry in Young Coconut (220 g)', image: null }),
+  m('Том Ям Кунг (120 г)', 'Тайская кухня', 280, '', { nameEn: 'Tom Yum Goong (120 g)', image: null }),
+  m('Пла Кунг — острый тайский салат с креветками (350 г)', 'Тайская кухня', 210, '', { nameEn: 'Pla Goong — Spicy Thai Shrimp Salad (350 g)', image: null }),
+  m('Жареный рис с ананасом (350 г)', 'Тайская кухня', 180, '', { nameEn: 'Pineapple Fried Rice (350 g)', image: null }),
+  m('Сом Там Тай (180 г)', 'Тайская кухня', 180, '', { nameEn: 'Som Tum Thai (180 g)', image: null }),
+  m('Мидии в белом вине с чесноком и травами (560 г)', 'Тайская кухня', 170, '', { nameEn: 'Mussels in White Wine, Garlic & Herbs (560 g)', image: null }),
+  m('Пад Тай с креветками (120 г)', 'Тайская кухня', 160, '', { nameEn: 'Pad Thai with Fresh Shrimp (120 g)', image: null }),
+  m('Намток Кор Му — острый салат из свиной шеи (160 г)', 'Тайская кухня', 130, '', { nameEn: 'Namtok Kor Moo — Grilled Pork Neck Spicy Salad (160 g)', image: null }),
 
   // ----- ЕДА · Салаты -----
   m('Салат из свежей тыквы', 'Салаты', 140, '', { nameEn: 'Fresh Pumpkin Salad', image: null }),

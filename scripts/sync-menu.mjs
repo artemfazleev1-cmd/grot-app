@@ -13,7 +13,7 @@ const PHONE = process.argv[3] || '+66800000000';
 const PASS = process.argv[4] || 'owner';
 const DRY = process.argv.includes('--dry');
 
-const FOOD = 'Горячие блюда', SALADS = 'Салаты', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', WINE = 'Вино', SPIRITS = 'Крепкий алкоголь', SOFT = 'Безалкогольные';
+const FOOD = 'Горячие блюда', THAI = 'Тайская кухня', SALADS = 'Салаты', SNACKS = 'Закуски к пиву', DRAFT = 'Разливное пиво', BOTTLE = 'Бутылочное пиво', WINE = 'Вино', SPIRITS = 'Крепкий алкоголь', SOFT = 'Безалкогольные';
 
 // match — как позиция называется сейчас в базе (если отличается от нового названия)
 const TARGET = [
@@ -35,6 +35,18 @@ const TARGET = [
   { name: 'Купаты свиные', nameEn: 'Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Купаты из курицы и свинины', nameEn: 'Chicken & Pork Sausages', price: 250, category: FOOD, group: 'food' },
   { name: 'Куриное бедро в сливочном соусе', nameEn: 'Chicken Thigh in Cream Sauce', price: 300, category: FOOD, group: 'food' },
+
+  // 🇹🇭 ТАЙСКАЯ КУХНЯ
+  { name: 'Гребешки на гриле с чесночно-сливочным соусом (150 г)', nameEn: 'Grilled Scallops with Garlic Cream Sauce (150 g)', price: 350, category: THAI, group: 'food' },
+  { name: 'Креветки и морепродукты на горячей сковороде (400 г)', nameEn: 'Grilled Prawns Seafood Hot Plate (400 g)', price: 340, category: THAI, group: 'food' },
+  { name: 'Хор Мок Талай — карри с морепродуктами в кокосе (220 г)', nameEn: 'Hor Mok Talay — Seafood Curry in Young Coconut (220 g)', price: 280, category: THAI, group: 'food' },
+  { name: 'Том Ям Кунг (120 г)', nameEn: 'Tom Yum Goong (120 g)', price: 280, category: THAI, group: 'food' },
+  { name: 'Пла Кунг — острый тайский салат с креветками (350 г)', nameEn: 'Pla Goong — Spicy Thai Shrimp Salad (350 g)', price: 210, category: THAI, group: 'food' },
+  { name: 'Жареный рис с ананасом (350 г)', nameEn: 'Pineapple Fried Rice (350 g)', price: 180, category: THAI, group: 'food' },
+  { name: 'Сом Там Тай (180 г)', nameEn: 'Som Tum Thai (180 g)', price: 180, category: THAI, group: 'food' },
+  { name: 'Мидии в белом вине с чесноком и травами (560 г)', nameEn: 'Mussels in White Wine, Garlic & Herbs (560 g)', price: 170, category: THAI, group: 'food' },
+  { name: 'Пад Тай с креветками (120 г)', nameEn: 'Pad Thai with Fresh Shrimp (120 g)', price: 160, category: THAI, group: 'food' },
+  { name: 'Намток Кор Му — острый салат из свиной шеи (160 г)', nameEn: 'Namtok Kor Moo — Grilled Pork Neck Spicy Salad (160 g)', price: 130, category: THAI, group: 'food' },
 
   // 🥗 САЛАТЫ
   { name: 'Салат из свежей тыквы', nameEn: 'Fresh Pumpkin Salad', price: 140, category: SALADS, group: 'food' },
