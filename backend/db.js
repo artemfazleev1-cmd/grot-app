@@ -281,6 +281,7 @@ export const menu = [
   m('Mont Clair White Celebration (розлив)', 'Вино', 150, '', { group: 'drinks', nameEn: 'Mont Clair White Celebration (on tap)', image: null }),
   m('Mont Clair Red Celebration (розлив)', 'Вино', 150, '', { group: 'drinks', nameEn: 'Mont Clair Red Celebration (on tap)', image: null }),
   // ----- НАПИТКИ · Крепкий алкоголь -----
+  m('Vodka ABSOLUT (1 шот)', 'Крепкий алкоголь', 120, '', { group: 'drinks', nameEn: 'Vodka ABSOLUT (1 shot)', weight: '1 шот', image: '' }),
   m('Sang Som Rum (бутылка)', 'Крепкий алкоголь', 300, '', { group: 'drinks', nameEn: 'Sang Som Rum (bottle)', image: null }),
 
   // ----- НАПИТКИ · Морс -----
@@ -288,9 +289,9 @@ export const menu = [
   m('Домашний клюквенный морс 0.2 л', 'Безалкогольные', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.2 L', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-022.jpg' }),
 ];
 
-// Каждый напиток — складская позиция в бутылках; 1 заказанная единица = -1 бутылка
+// Каждый напиток — складская позиция; 1 заказанная единица = -1 бутылка или шот.
 for (const d of menu.filter((x) => x.group === 'drinks')) {
-  const item = { id: id(), slug: 'drink_' + d.id, name: d.name, unit: 'бут', qty: 48, min: 24,
+  const item = { id: id(), slug: 'drink_' + d.id, name: d.name, unit: d.weight === '1 шот' ? 'шот' : 'бут', qty: 48, min: 24,
     supplier: d.category === 'Сидр' ? 'Cider Import' : 'Bavaria Import', alcohol: true };
   ingredients.push(item);
   d.recipe = { [item.id]: 1 };

@@ -118,6 +118,7 @@ const TARGET = [
   { name: 'Mont Clair Red Celebration (розлив)', nameEn: 'Mont Clair Red Celebration (on tap)', price: 150, category: WINE, group: 'drinks' },
 
   // 🥃 КРЕПКИЙ АЛКОГОЛЬ
+  { name: 'Vodka ABSOLUT (1 шот)', nameEn: 'Vodka ABSOLUT (1 shot)', weight: '1 шот', price: 120, category: SPIRITS, group: 'drinks' },
   { name: 'Sang Som Rum (бутылка)', nameEn: 'Sang Som Rum (bottle)', price: 300, category: SPIRITS, group: 'drinks' },
 
   // 🥤 БЕЗАЛКОГОЛЬНЫЕ
@@ -190,7 +191,8 @@ const run = async () => {
     // Сначала ищем по новому имени (повторный запуск), затем по старому (первый запуск).
     // Иначе после переименования скрипт создаёт дубли.
     const cur = byName.get(t.name.trim()) || (t.match ? byName.get(t.match.trim()) : null);
-    const body = { name: t.name, nameEn: t.nameEn, category: t.category, group: t.group, price: t.price, ...(t.image ? { image: t.image } : {}) };
+    const body = { name: t.name, nameEn: t.nameEn, category: t.category, group: t.group, price: t.price,
+      ...(t.weight ? { weight: t.weight } : {}), ...(t.image ? { image: t.image } : {}) };
     if (!cur) {
       added.push(`${t.category} | ${t.name} — ${t.price}฿`);
       if (!DRY) await j(`${API}/api/menu`, { method: 'POST', headers: auth, body: JSON.stringify({ ...body, available: true, description: '' }) });
@@ -200,6 +202,7 @@ const run = async () => {
       if (cur.category !== t.category) diffs.push(`категория ${cur.category}→${t.category}`);
       if ((cur.name || '') !== t.name) diffs.push(`имя «${cur.name}»→«${t.name}»`);
       if ((cur.nameEn || '') !== t.nameEn) diffs.push('англ. название');
+      if (t.weight && cur.weight !== t.weight) diffs.push(`порция ${cur.weight || '—'}→${t.weight}`);
       if (t.image && cur.image !== t.image) diffs.push('фото');
       if (!diffs.length) { same.push(t.name); continue; }
       updated.push(`${t.name}: ${diffs.join(', ')}`);
