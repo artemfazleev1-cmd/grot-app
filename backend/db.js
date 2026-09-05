@@ -200,8 +200,8 @@ export const menu = [
     nameEn: 'Mackerel Shashlik', weight: '250 г', composition: 'рыба скумбрия, маринованный лук, картофельные дольки, белый соус, лимон', image: null }),
   m('Куриное бедро в сливочном соусе', 'Горячие блюда', 300, '', {
     nameEn: 'Chicken Thigh in Cream Sauce', weight: '350 г', composition: 'бедро молодого цыплёнка, сливочно-сырный соус, зелёное масло, кинза', image: null }),
-  // Позиций ниже нет ни в печатной карте, ни в списке кухни от 2026-08-28 —
-  // оставлены как есть до решения владельца.
+  // Этих двух нет ни в печатной карте, ни в списке кухни, но владелец подтвердил
+  // 2026-08-28, что они продаются. Вес и состав по ним не присылали.
   m('Утка конфи', 'Горячие блюда', 320, '', { nameEn: 'Duck Confit', image: null }),
   m('Стейк сёмги (300 г)', 'Горячие блюда', 320, '', { nameEn: 'Salmon Steak (300 g)', image: null }),
 
@@ -321,7 +321,8 @@ export const menu = [
   m('Arcobrau Urfass Lager', 'Бутылочное пиво', 210, 'Светлый немецкий лагер.', { group: 'drinks', weight: '0.5 л', style: 'Pale Lager', composition: 'светлый солод, хмель', image: null }),
   m('Franziskaner Dunkel', 'Бутылочное пиво', 190, 'Солодовое, мягкое и насыщенное.', { group: 'drinks', weight: '0.5 л', style: 'Dark Wheat Beer', composition: 'тёмный солод, хмель', image: '/menu/franziskaner-dunkel.jpg' }),
   m('Bitburger Beer 0.0%', 'Бутылочное пиво', 180, 'Немецкий безалкогольный пилснер.', { group: 'drinks', weight: '0.33 л', style: 'Alcohol-Free Pilsner', composition: 'светлый солод, хмель', image: null }),
-  // Позиций ниже нет в печатной карте — оставлены как есть до решения по ним.
+  // Сняты с меню 2026-08-28 (см. MENU_RETIRED): в карте и списке кухни их нет.
+  // Позиции не удаляются — история заказов и отчёты на них ссылаются.
   m('Franziskaner Weissbier', 'Бутылочное пиво', 190, 'Классическое немецкое пшеничное — мягкое и фруктовое.', { group: 'drinks', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/franziskaner-weissbier.jpg' }),
   m('Guinness Draught Stout (банка)', 'Бутылочное пиво', 280, '', { group: 'drinks', nameEn: 'Guinness Draught Stout (can)', image: null }),
   // ----- НАПИТКИ · Сидр -----
@@ -496,6 +497,14 @@ export function renameMenuItems() {
 const MENU_RETIRED = [
   'Купаты из курицы', // сняты: остаются свиные и свинина+курица
   'Erdinger Weissbier (0.4 L)', // разливной снят; бутылочный Erdinger Weissbier остаётся
+  // Пиво, которого нет ни в печатной карте, ни в списке кухни от 2026-08-28.
+  // Снято решением владельца 2026-08-28. Еда из того же списка (стейк сёмги,
+  // утка конфи) остаётся в продаже — она просто не попала в карту.
+  'Arcobrau Weissbier (0.5 L)',            // разливное
+  'Paulaner Dunkel (0.5 L)',               // разливное
+  'Weihenstephaner Original Helles',       // бутылочное; разливное с тем же именем остаётся
+  'Franziskaner Weissbier',                // бутылочное; Franziskaner Dunkel остаётся
+  'Guinness Draught Stout (банка)',
 ];
 
 /**
