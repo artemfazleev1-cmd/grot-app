@@ -65,6 +65,11 @@ const _added = db.ensureDemoUsers();
 if (_added) console.log(`👤 Добавлено аккаунтов: ${_added}`);
 hashPlaintext(); // пароли, пришедшие из окружения и демо-списка, тоже хешируем
 
+// Переименования — ПЕРВЫМИ: название служит ключом для досева, поэтому позиция
+// должна получить новое имя раньше, чем сид начнёт искать, чего не хватает.
+const _renamed = db.renameMenuItems();
+if (_renamed.length) console.log(`✏️ Переименовано позиций (${_renamed.length}): ${_renamed.join('; ')}`);
+
 // Досев меню: позиции, добавленные в код, появляются на сервере обычным деплоем —
 // без ручной синхронизации и без входа под владельцем. Существующие позиции
 // и их цены не трогаются (правки из приложения сохраняются).
@@ -81,7 +86,11 @@ if (_retired) console.log(`🚫 Снято с меню: ${_retired}`);
 const _priced = db.enforceMenuPrices();
 if (_priced.length) console.log(`💵 Цены приведены к коду (${_priced.length}): ${_priced.join(', ')}`);
 
-if (_added || _menuAdded || _retired || _priced.length || _locked.length) persist();
+// Категория, вес, состав, описание — из сида. Цену и наличие не трогает.
+const _synced = db.syncMenuFields();
+if (_synced.length) console.log(`📝 Поля позиций приведены к коду: ${_synced.length}`);
+
+if (_added || _menuAdded || _retired || _priced.length || _synced.length || _renamed.length || _locked.length) persist();
 installShutdownHooks();
 
 // Предупреждение о живых аккаунтах с публично известными паролями.
