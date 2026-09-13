@@ -380,6 +380,10 @@ export const menu = [
   m('GILBEY’S Gin (шот 30 мл)', 'Крепкий алкоголь', 80, 'Джин в стиле London Dry.', { group: 'drinks', nameEn: 'GILBEY’S Gin (shot 30 ml)', weight: '30 мл', image: null }),
   m('GILBEY’S Gin (бутылка 0.7 л)', 'Крепкий алкоголь', 900, 'Джин в стиле London Dry.', { group: 'drinks', nameEn: 'GILBEY’S Gin (bottle 0.7 L)', weight: '0.7 л', image: null }),
 
+  // ----- НАПИТКИ · Соки -----
+  m('Orange Juice', 'Безалкогольные', 50, '', {
+    group: 'drinks', nameEn: 'Orange Juice', weight: '0.25 л', image: null }),
+
   // ----- НАПИТКИ · Морс -----
   m('Домашний клюквенный морс 0.33 л', 'Безалкогольные', 60, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.33 L', style: 'Клюквенный морс', weight: '0.33 л', composition: 'клюква, вода, сахар', image: '/menu/mors-033.jpg' }),
   m('Домашний клюквенный морс 0.2 л', 'Безалкогольные', 40, 'Натуральный, освежающий и полезный напиток.', { group: 'drinks', nameEn: 'Homemade Cranberry Juice 0.2 L', style: 'Клюквенный морс', weight: '0.2 л', composition: 'клюква, вода, сахар', image: '/menu/mors-022.jpg' }),
