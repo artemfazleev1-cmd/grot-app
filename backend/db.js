@@ -306,6 +306,8 @@ export const menu = [
     nameEn: 'Homemade Beef Jerky (50 g)', weight: '50 г', composition: 'говядина, соль, специи', image: null }),
   m('Onion Rings', 'Закуски к пиву', 140, '', {
     nameEn: 'Onion Rings', weight: '100 г', image: null }),
+  m('Сырные палочки', 'Закуски к пиву', 140, '', {
+    nameEn: 'Cheese Sticks', image: null }),
   m('Картошка фри', 'Закуски к пиву', 100, 'Хрустящая золотистая картошка фри с солью.', {
     nameEn: 'French Fries', composition: 'картофель, масло, соль', image: null }),
   m('Креветки варёные в пиве (250 г)', 'Закуски к пиву', 350, '', { nameEn: 'Beer-Boiled Shrimp (250 g)', image: null }),
