@@ -308,6 +308,12 @@ export const menu = [
     nameEn: 'Onion Rings', weight: '100 г', image: null }),
   m('Сырные палочки', 'Закуски к пиву', 140, '', {
     nameEn: 'Cheese Sticks', image: null }),
+  m('Соломка копчёная чечил «паутинка»', 'Закуски к пиву', 120, '', {
+    nameEn: 'Smoked Chechil Cheese Strings', weight: '30 г', image: null }),
+  m('Соломка белая чечил «паутинка»', 'Закуски к пиву', 120, '', {
+    nameEn: 'White Chechil Cheese Strings', weight: '30 г', image: null }),
+  m('Соломка рыбная вяленая', 'Закуски к пиву', 130, '', {
+    nameEn: 'Dried Fish Strings', weight: '50 г', image: null }),
   m('Картошка фри', 'Закуски к пиву', 100, 'Хрустящая золотистая картошка фри с солью.', {
     nameEn: 'French Fries', composition: 'картофель, масло, соль', image: null }),
   m('Креветки варёные в пиве (250 г)', 'Закуски к пиву', 350, '', { nameEn: 'Beer-Boiled Shrimp (250 g)', image: null }),
