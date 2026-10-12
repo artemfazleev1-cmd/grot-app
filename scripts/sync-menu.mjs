@@ -84,6 +84,7 @@ const TARGET = [
   { name: 'Weihenstephaner Original Helles (разливное)', nameEn: 'Weihenstephaner Original Helles (draft)', price: 230, category: DRAFT, group: 'drinks' },
   { name: 'Arcobrau Urfass (разливное)', nameEn: 'Arcobrau Urfass (draft)', price: 230, category: DRAFT, group: 'drinks' },
   { name: 'Hofbräu Original Münchner Hell (разливное)', nameEn: 'Hofbräu Original Münchner Hell (draft)', price: 230, category: DRAFT, group: 'drinks' },
+  { name: 'Krombacher Pils (разливное)', nameEn: 'Krombacher Pils (draft)', weight: '0.5 л', price: 210, category: DRAFT, group: 'drinks' },
 
   // 🍾 БУТЫЛОЧНОЕ ПИВО
   { name: 'Weihenstephaner Original Helles', nameEn: 'Weihenstephaner Original Helles', price: 190, category: BOTTLE, group: 'drinks' },
@@ -154,6 +155,7 @@ const SLUGS = {
   'Бельгийское нефильтрованное (0.4 L)': 'belgian-unfiltered',
   'Жигулёвское (0.4 L)': 'zhigulevskoe',
   'Ирландский эль (0.4 L)': 'irish-ale',
+  'Krombacher Pils (разливное)': 'krombacher-pils-draft',
   'Weihenstephaner Original Helles': 'weihenstephaner-helles',
   'Weihenstephaner Hefe Weissbier': 'weihenstephaner-hefe',
   'Weihenstephaner Hefeweissbier Dunkel': 'weihenstephaner-hefe-dunkel',

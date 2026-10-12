@@ -350,6 +350,8 @@ export const menu = [
   m('Бельгийское нефильтрованное (разливное)', 'Разливное пиво', 190, 'Светлое нефильтрованное.', { group: 'drinks', nameEn: 'Belgian Unfiltered Beer (draft)', weight: '0.4 л', style: 'Pale Unfiltered', image: null }),
   m('Ирландский эль (разливное)', 'Разливное пиво', 180, 'Традиционный ирландский эль.', { group: 'drinks', nameEn: 'Irish Ale (draft)', weight: '0.4 л', style: 'Ale', image: null }),
   m('Жигулёвское (разливное)', 'Разливное пиво', 160, 'Светлый лагер.', { group: 'drinks', nameEn: 'Zhigulevskoye (draft)', weight: '0.4 л', style: 'Pale Lager', image: null }),
+  m('Krombacher Pils (разливное)', 'Разливное пиво', 210, 'Классический немецкий пилснер с чистым освежающим вкусом.', {
+    group: 'drinks', nameEn: 'Krombacher Pils (draft)', weight: '0.5 л', style: 'Pilsner', image: '/menu/krombacher-pils-draft.png', isNew: true }),
 
   // ----- НАПИТКИ · Винная карта -----
   // Раздела нет в присланной печатной карте — прайс как был.
