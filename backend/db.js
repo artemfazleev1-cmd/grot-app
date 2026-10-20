@@ -348,7 +348,7 @@ export const menu = [
   m('Paulaner Hefe Weissbier (разливное)', 'Разливное пиво', 240, 'Немецкое светлое нефильтрованное пшеничное.', { group: 'drinks', nameEn: 'Paulaner Hefe Weissbier (draft)', weight: '0.5 л', style: 'Wheat Beer', image: null }),
   m('Erdinger Dunkel (разливное)', 'Разливное пиво', 230, 'Немецкое тёмное пшеничное.', { group: 'drinks', nameEn: 'Erdinger Dunkel (draft)', weight: '0.4 л', style: 'Dark Wheat Beer', image: null }),
   m('Бельгийское нефильтрованное (разливное)', 'Разливное пиво', 190, 'Светлое нефильтрованное.', { group: 'drinks', nameEn: 'Belgian Unfiltered Beer (draft)', weight: '0.4 л', style: 'Pale Unfiltered', image: null }),
-  m('Ирландский эль (разливное)', 'Разливное пиво', 180, 'Традиционный ирландский эль.', { group: 'drinks', nameEn: 'Irish Ale (draft)', weight: '0.4 л', style: 'Ale', image: null }),
+  m('Ирландский эль (разливное)', 'Разливное пиво', 120, 'Традиционный ирландский эль.', { group: 'drinks', nameEn: 'Irish Ale (draft)', weight: '0.4 л', style: 'Ale', image: null }),
   m('Жигулёвское (разливное)', 'Разливное пиво', 160, 'Светлый лагер.', { group: 'drinks', nameEn: 'Zhigulevskoye (draft)', weight: '0.4 л', style: 'Pale Lager', image: null }),
   m('Krombacher Pils (разливное)', 'Разливное пиво', 210, 'Классический немецкий пилснер с чистым освежающим вкусом.', {
     group: 'drinks', nameEn: 'Krombacher Pils (draft)', weight: '0.5 л', style: 'Pilsner', image: '/menu/krombacher-pils-draft.png', isNew: true }),
@@ -539,6 +539,8 @@ const MENU_RETIRED = [
  * позиции, меняйте её ЗДЕСЬ. Держите список коротким по этой же причине.
  */
 const MENU_PRICES = {
+  // Цена утверждена владельцем 2026-10-20.
+  'Ирландский эль (разливное)': 120,
   // Салаты — прайс утверждён владельцем 2026-08-27
   'Салат из свежей тыквы': 140,
   'Битые огурцы': 100,
