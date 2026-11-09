@@ -95,6 +95,7 @@ const TARGET = [
   { name: 'Paulaner Weissbier Dunkel', nameEn: 'Paulaner Weissbier Dunkel', price: 230, category: BOTTLE, group: 'drinks' },
   { name: 'Erdinger Weissbier', nameEn: 'Erdinger Weissbier', price: 220, category: BOTTLE, group: 'drinks' },
   { name: 'Erdinger Dunkel', nameEn: 'Erdinger Dunkel', price: 220, category: BOTTLE, group: 'drinks' },
+  { name: 'Krombacher Weizen', nameEn: 'Krombacher Weizen', weight: '0.5 л', price: 210, category: BOTTLE, group: 'drinks' },
   { name: 'Hofbräu Münchner Weisse', nameEn: 'Hofbräu Münchner Weisse', price: 210, category: BOTTLE, group: 'drinks' },
   { name: 'Hofbräu Schwarze Weisse', nameEn: 'Hofbräu Schwarze Weisse', price: 210, category: BOTTLE, group: 'drinks' },
   { name: 'Franziskaner Weissbier', nameEn: 'Franziskaner Weissbier', price: 190, category: BOTTLE, group: 'drinks' },
