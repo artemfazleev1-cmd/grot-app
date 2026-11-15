@@ -178,16 +178,16 @@ export const menu = [
   // ----- ЕДА · Шашлык и гриль -----
   // Вес, цены и составы — по карточкам кухни (2026-08-28). Составы дословно.
   m('Шашлык из свинины', 'Горячие блюда', 250, 'Сочный и нежный свиной шашлык, идеально приготовленный на гриле.', {
-    nameEn: 'Pork Shashlik', weight: '250 г', composition: 'мясо свинины, маринованный лук, фирменный соус пряно-томатный GROT', calories: 540, popular: true, image: '/menu/pork-skewer.jpg',
+    nameEn: 'Pork Shashlik', weight: '250 г', composition: 'свиная шея, маринованный лук, фирменный соус пряно-томатный GROT', calories: 540, popular: true, image: '/menu/pork-skewer.jpg',
     recipe: { [ING.pork]: 250, [ING.onion]: 60 } }),
-  m('Шашлык из утки', 'Горячие блюда', 300, 'Премиальная утка с хрустящей корочкой и насыщенным вкусом.', {
-    nameEn: 'Duck Shashlik', weight: '200 г', composition: 'грудка утки, маринованный лук, горчичный соус', calories: 560, popular: true, image: '/menu/duck-skewer.jpg',
+  m('Шашлык из филе утки', 'Горячие блюда', 300, 'Премиальная утка с хрустящей корочкой и насыщенным вкусом.', {
+    nameEn: 'Duck Fillet Shashlik', weight: '200 г', composition: 'филе утки, маринованный лук, фирменный соус пряно-томатный GROT', calories: 560, popular: true, image: '/menu/duck-skewer.jpg',
     recipe: { [ING.duck]: 250, [ING.onion]: 30 } }),
   m('Куриные крылышки на углях', 'Горячие блюда', 250, 'Сочные куриные крылышки, приготовленные на углях до идеальной корочки.', {
-    nameEn: 'Charcoal-Grilled Chicken Wings', weight: '6 шт.', composition: 'крылья курицы, маринованный лук, фирменный соус пряно-томатный GROT', calories: 620, popular: true, image: '/menu/chicken-wings.jpg',
+    nameEn: 'Charcoal-Grilled Chicken Wings', weight: '6 шт.', composition: 'куриные крылья, маринованный лук, фирменный соус пряно-томатный GROT', calories: 620, popular: true, image: '/menu/chicken-wings.jpg',
     recipe: { [ING.chicken_wings]: 360 } }),
-  m('Шашлык из куриного филе', 'Горячие блюда', 250, '', {
-    nameEn: 'Chicken Fillet Shashlik', weight: '250 г', composition: 'куриное филе, маринованный лук, фирменный соус пряно-томатный GROT', image: null }),
+  m('Шашлык из бедра молодого цыплёнка', 'Горячие блюда', 250, '', {
+    nameEn: 'Young Chicken Thigh Shashlik', weight: '250 г', composition: 'бедро молодого цыплёнка, маринованный лук, фирменный соус пряно-томатный GROT', image: null }),
   m('Шашлык из куриных крыльев', 'Горячие блюда', 300, '', {
     nameEn: 'Chicken Wing Shashlik', weight: '300 г', composition: 'цельное куриное крыло, маринованный лук, фирменный соус пряно-томатный GROT', image: null }),
   m('Свиные рёбрышки в пивном маринаде', 'Горячие блюда', 250, '', {
@@ -195,11 +195,17 @@ export const menu = [
   m('Шашлык из свинины на кости', 'Горячие блюда', 250, '', {
     nameEn: 'Bone-In Pork Shashlik', weight: '250 г', composition: 'мясо свинины на ребре, маринованный лук, горчичный соус', image: null }),
   m('Шашлык из баранины', 'Горячие блюда', 450, '', {
-    nameEn: 'Lamb Shashlik', weight: '200 г', composition: 'мясо баранины, маринованный лук, фирменный соус пряно-томатный GROT', image: null }),
+    nameEn: 'Lamb Shashlik', weight: '200 г', composition: 'мякоть бедра баранины, маринованный лук, фирменный соус пряно-томатный GROT', image: null }),
   m('Шашлык из скумбрии', 'Горячие блюда', 300, '', {
     nameEn: 'Mackerel Shashlik', weight: '250 г', composition: 'рыба скумбрия, маринованный лук, картофельные дольки, белый соус, лимон', image: null }),
   m('Куриное бедро в сливочном соусе', 'Горячие блюда', 300, '', {
     nameEn: 'Chicken Thigh in Cream Sauce', weight: '350 г', composition: 'бедро молодого цыплёнка, сливочно-сырный соус, зелёное масло, кинза', image: null }),
+  m('Копчёная скумбрия с отварным картофелем', 'Горячие блюда', 250, '', {
+    nameEn: 'Smoked Mackerel Fillet with Boiled Potatoes', weight: '300 г', composition: 'картофель отварной, филе копчёной скумбрии, соль, перец, цедра лайма', image: null }),
+  m('Копчёная сельдь с отварным картофелем', 'Горячие блюда', 250, '', {
+    nameEn: 'Smoked Herring Fillet with Boiled Potatoes', weight: '300 г', composition: 'картофель отварной, филе копчёной сельди, соль, перец, цедра лайма, паприка', image: null }),
+  m('Креветки в пиве', 'Горячие блюда', 350, '', {
+    nameEn: 'Beer-Boiled Unpeeled Shrimp', weight: '250 г', composition: 'неочищенные креветки, пиво, соль, специи', image: null }),
   // Этих двух нет ни в печатной карте, ни в списке кухни, но владелец подтвердил
   // 2026-08-28, что они продаются. Вес и состав по ним не присылали.
   m('Утка конфи', 'Горячие блюда', 320, '', { nameEn: 'Duck Confit', image: null }),
@@ -208,9 +214,9 @@ export const menu = [
   // ----- ЕДА · Купаты -----
   // Куриные купаты сняты с меню решением кухни (см. MENU_RETIRED ниже).
   m('Купаты свиные', 'Горячие блюда', 250, '', {
-    nameEn: 'Pork Kupaty Sausages', weight: '200 г', composition: 'мясо свинины, свиной шпик, черева, салат из овощей, mini waffle hashbrown, маринованный лук, горчичный соус', image: null }),
-  m('Купаты из курицы и свинины', 'Горячие блюда', 250, '', {
-    nameEn: 'Chicken and Pork Kupaty Sausages', weight: '200 г', composition: 'мясо свинины, мясо курицы, черева, салат из овощей, mini waffle hashbrown, маринованный лук, горчичный соус', image: null }),
+    nameEn: 'Pork Kupaty Sausages', weight: '200 г', composition: 'мясо свинины, свиной шпик, свиная черева, салат из овощей, mini waffle hashbrown, маринованный лук, горчичный соус', image: null }),
+  m('Купаты домашние из курицы и свинины', 'Горячие блюда', 250, '', {
+    nameEn: 'Chicken and Pork Kupaty Sausages', weight: '200 г', composition: 'мясо свинины, мясо курицы, свиная черева, салат из овощей, mini waffle hashbrown, маринованный лук, горчичный соус', image: null }),
 
   // ----- ЕДА · Плов -----
   // Свой раздел: в списке кухни плов вынесен отдельно от горячих блюд.
@@ -300,14 +306,14 @@ export const menu = [
   // Раздела нет в присланной печатной карте — вес и состав как были.
   m('Свиные уши', 'Закуски к пиву', 300, 'Хрустящие свиные уши со специями — классическая закуска к пиву.', {
     nameEn: 'Pork Ears', composition: 'свиные уши, специи', image: null }),
-  m('Домашние ржаные гренки', 'Закуски к пиву', 60, 'Ароматные ржаные гренки с чесноком, приготовленные по домашнему рецепту.', {
-    nameEn: 'Homemade Rye Croutons', composition: 'ржаной хлеб, чеснок, масло, специи', image: null }),
+  m('Ржаные сухарики', 'Закуски к пиву', 60, 'Ржаной хлеб, чеснок, специи. В ассортименте.', {
+    nameEn: 'Assorted Rye Croutons', weight: '60 г', composition: 'ржаной хлеб, чеснок, специи; в ассортименте', image: null }),
   m('Домашняя вяленая говядина (50 г)', 'Закуски к пиву', 200, 'Домашняя вяленая говядина — насыщенный вкус, идеально к пиву.', {
     nameEn: 'Homemade Beef Jerky (50 g)', weight: '50 г', composition: 'говядина, соль, специи', image: null }),
   m('Onion Rings', 'Закуски к пиву', 140, '', {
     nameEn: 'Onion Rings', weight: '100 г', image: null }),
-  m('Сырные палочки', 'Закуски к пиву', 140, '', {
-    nameEn: 'Cheese Sticks', image: null }),
+  m('Сырные палочки', 'Закуски к пиву', 60, 'Пармезановые сырные снеки Regale в ассортименте: классические, с розмарином, с трюфелем, с орегано.', {
+    nameEn: 'Regale Parmesan Cheese Snacks', weight: '2 шт.', composition: 'пармезан; вкусы: классический, розмарин, трюфель, орегано', image: null }),
   m('Соломка копчёная чечил «паутинка»', 'Закуски к пиву', 120, '', {
     nameEn: 'Smoked Chechil Cheese Strings', weight: '30 г', image: null }),
   m('Соломка белая чечил «паутинка»', 'Закуски к пиву', 120, '', {
@@ -326,7 +332,7 @@ export const menu = [
   m('Weihenstephaner Hefeweissbier Dunkel', 'Бутылочное пиво', 190, 'Тёмное нефильтрованное пшеничное.', { group: 'drinks', weight: '0.5 л', style: 'Dark Wheat Beer', composition: 'тёмный пшеничный солод, хмель', image: null }),
   m('Erdinger Weissbier', 'Бутылочное пиво', 220, 'Освежающее, фруктовое и насыщенное.', { group: 'drinks', weight: '0.5 л', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', popular: true, image: '/menu/erdinger-weissbier-bottle.jpg' }),
   m('Erdinger Dunkel', 'Бутылочное пиво', 220, 'Солодовое и мягкое, с богатым вкусом.', { group: 'drinks', weight: '0.5 л', style: 'Dark Wheat Beer', composition: 'тёмный солод, хмель', image: '/menu/erdinger-dunkel-bottle.jpg' }),
-  m('Krombacher Weizen', 'Бутылочное пиво', 210, 'Немецкое светлое пшеничное нефильтрованное пиво.', { group: 'drinks', nameEn: 'Krombacher Weizen', weight: '0.5 л', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: null, isNew: true }),
+  m('Krombacher Weizen', 'Бутылочное пиво', 200, 'Немецкое светлое пшеничное нефильтрованное пиво.', { group: 'drinks', nameEn: 'Krombacher Weizen', weight: '0.5 л', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: null, isNew: true }),
   m('Paulaner Weissbier Dunkel', 'Бутылочное пиво', 230, 'Солодовое, мягкое, с нотами карамели.', { group: 'drinks', weight: '0.5 л', style: 'Dark Wheat Beer', composition: 'тёмный пшеничный солод, хмель', image: '/menu/paulaner-weissbier-dunkel.jpg' }),
   m('Paulaner Hefe Weissbier', 'Бутылочное пиво', 230, 'Лёгкое, фруктовое и натурально мутное.', { group: 'drinks', weight: '0.5 л', style: 'Wheat Beer', composition: 'пшеничный солод, хмель', image: '/menu/paulaner-hefe-bottle.jpg' }),
   m('Paulaner Münchner Hell Lager', 'Бутылочное пиво', 230, 'Светлый мюнхенский лагер.', { group: 'drinks', weight: '0.5 л', style: 'Pale Lager', composition: 'светлый солод, хмель', image: null }),
@@ -441,8 +447,12 @@ const MENU_RENAMES = {
  * там отдельной колонкой, поэтому из названий они убраны в поле weight.
  */
 const MENU_RENAME_TO = {
+  'Домашние ржаные гренки': 'Ржаные сухарики',
+  'Шашлык из куриного филе': 'Шашлык из бедра молодого цыплёнка',
+  'Шашлык из утки': 'Шашлык из филе утки',
+  'Купаты из курицы и свинины': 'Купаты домашние из курицы и свинины',
   'Шашлык из свинины (200 г)': 'Шашлык из свинины',
-  'Шашлык из утки (200 г)': 'Шашлык из утки',
+  'Шашлык из утки (200 г)': 'Шашлык из филе утки',
   'Куриные крылышки (6 шт.)': 'Куриные крылышки на углях',
   'Куриные крылышки': 'Куриные крылышки на углях',
   'Гребешки на гриле с чесночно-сливочным соусом (150 г)': 'Гребешки на гриле с чесночно-сливочным соусом',
@@ -554,7 +564,7 @@ const MENU_PRICES = {
   // Расхождения с печатной картой бара (EN, версия 2026-08) — карта старше базы.
   'Плейбой': 240,                                          // было 140
   'Салат Луи с креветками': 260,
-  'Шашлык из куриного филе': 250,                          // было 200
+  'Шашлык из бедра молодого цыплёнка': 250,                // было 200
   'Намток Кор Му — острый салат из свиной шеи': 240,       // было 130
   'Пад Тай с креветками': 200,                             // было 160
   'Сом Там Тай': 250,                                      // было 180
@@ -563,6 +573,8 @@ const MENU_PRICES = {
   'Sang Som Rum (бутылка 0.3 л)': 350,                     // было 300
   // Список кухни от 2026-08-28
   'Плов из австралийской говядины': 350,                   // было 300
+  'Сырные палочки': 60,
+  'Krombacher Weizen': 200,
 };
 
 /**
