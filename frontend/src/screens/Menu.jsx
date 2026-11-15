@@ -15,7 +15,7 @@ export function Menu() {
 
   const groupCats = data.categoryGroups?.[group] || [];
   const cats = ['Все', ...groupCats];
-  const items = data.items.filter((i) => i.group === group && (cat === 'Все' || i.category === cat));
+  const items = data.items.filter((i) => !i.retired && i.group === group && (cat === 'Все' || i.category === cat));
   const catLabel = (c) => catLabelI18n(t, c);
   const dishName = (d) => (lang === 'en' && d.nameEn) ? d.nameEn : d.name;
 

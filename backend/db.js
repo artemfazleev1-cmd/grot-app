@@ -526,6 +526,8 @@ export function renameMenuItems() {
  */
 const MENU_RETIRED = [
   'Купаты из курицы', // сняты: остаются свиные и свинина+курица
+  'Икра копчёная',
+  'Соломка рыбная вяленая',
   'Erdinger Weissbier (0.4 L)', // разливной снят; бутылочный Erdinger Weissbier остаётся
   // Пиво, которого нет ни в печатной карте, ни в списке кухни от 2026-08-28.
   // Снято решением владельца 2026-08-28. Еда из того же списка (стейк сёмги,
@@ -623,10 +625,10 @@ export function enforceMenuPrices() {
 export function retireMenuItems() {
   let retiredCount = 0;
   for (const item of menu) {
-    if (MENU_RETIRED.includes(String(item.name).trim()) && item.available !== false) {
-      item.available = false;
-      retiredCount++;
-    }
+    if (!MENU_RETIRED.includes(String(item.name).trim())) continue;
+    if (item.available !== false || item.retired !== true) retiredCount++;
+    item.available = false;
+    item.retired = true;
   }
   return retiredCount;
 }

@@ -563,7 +563,7 @@ function Content() {
     </div>
     <div className="section-title"><h2>Цены меню</h2></div>
     <div className="list">
-      {menu.data.items.map((m) => (
+      {menu.data.items.filter((m) => !m.retired).map((m) => (
         <div key={m.id} className="card tight between">
           <span>{m.name}</span>
           <input style={{ width: 100 }} type="number" defaultValue={m.price} onBlur={(e) => setPrice(m, e.target.value)} />

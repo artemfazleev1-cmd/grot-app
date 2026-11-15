@@ -264,7 +264,7 @@ function ItemPicker({ tableNumber, zone, orderId, onClose, onSaved }) {
   const [cart, setCart] = useState({});
   const [cat, setCat] = useState('all');
   const [busy, setBusy] = useState(false);
-  const items = (menu.data?.items || []).filter((m) => m.available);
+  const items = (menu.data?.items || []).filter((m) => m.available && !m.retired);
   const cats = ['all', ...(menu.data?.categories || [])];
   const shown = cat === 'all' ? items : items.filter((m) => m.category === cat);
   const add = (m) => setCart((c) => ({ ...c, [m.id]: (c[m.id] || 0) + 1 }));
@@ -693,7 +693,7 @@ export function KitchenPanel() {
       {view === 'stop' && (<>
         <div className="muted" style={{ margin: '14px 0 10px' }}>{t('k_stop_hint')}</div>
         <div className="list">
-          {menu.data.items.map((m) => (
+          {menu.data.items.filter((m) => !m.retired).map((m) => (
             <div key={m.id} className="card tight between">
               <span className={m.available ? '' : 'unavailable'}>{L(m, 'name')}</span>
               <button className={`chip ${m.available ? 'active' : ''}`} onClick={() => toggle(m)}>{m.available ? t('in_stock') : t('not_avail')}</button>
