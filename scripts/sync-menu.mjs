@@ -80,7 +80,7 @@ const TARGET = [
   // 🍺 РАЗЛИВНОЕ ПИВО
   { name: 'Erdinger Dunkel (0.4 L)', nameEn: 'Erdinger Dunkel (0.4 L)', price: 230, category: DRAFT, group: 'drinks' },
   { name: 'Arcobrau Weissbier (0.5 L)', nameEn: 'Arcobrau Weissbier (0.5 L)', price: 230, category: DRAFT, group: 'drinks' },
-  { name: 'Paulaner Hefe Weissbier (0.5 L)', nameEn: 'Paulaner Hefe Weissbier (0.5 L)', price: 240, category: DRAFT, group: 'drinks' },
+  { name: 'Paulaner Hefe Weissbier (0.5 L)', nameEn: 'Paulaner Hefe Weissbier (0.5 L)', price: 260, category: DRAFT, group: 'drinks' },
   { name: 'Paulaner Dunkel (0.5 L)', nameEn: 'Paulaner Dunkel (0.5 L)', price: 240, category: DRAFT, group: 'drinks' },
   { name: 'Бельгийское нефильтрованное (0.4 L)', nameEn: 'Belgian Unfiltered Wheat Ale (0.4 L)', price: 190, category: DRAFT, group: 'drinks' },
   { name: 'Жигулёвское (0.4 L)', nameEn: 'Zhigulevskoe Lager (0.4 L)', price: 160, category: DRAFT, group: 'drinks' },

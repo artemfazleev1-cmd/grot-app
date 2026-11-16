@@ -352,7 +352,7 @@ export const menu = [
   m('Weihenstephaner Original Helles (разливное)', 'Разливное пиво', 230, 'Светлый немецкий лагер.', { group: 'drinks', nameEn: 'Weihenstephaner Original Helles (draft)', weight: '0.5 л', style: 'Pale Lager', image: null }),
   m('Arcobrau Urfass (разливное)', 'Разливное пиво', 230, 'Светлое немецкое пиво.', { group: 'drinks', nameEn: 'Arcobrau Urfass (draft)', weight: '0.5 л', style: 'Pale Beer', image: null }),
   m('Hofbräu Original Münchner Hell (разливное)', 'Разливное пиво', 230, 'Светлый немецкий лагер.', { group: 'drinks', nameEn: 'Hofbräu Original Münchner Hell (draft)', weight: '0.5 л', style: 'Pale Lager', image: null }),
-  m('Paulaner Hefe Weissbier (разливное)', 'Разливное пиво', 240, 'Немецкое светлое нефильтрованное пшеничное.', { group: 'drinks', nameEn: 'Paulaner Hefe Weissbier (draft)', weight: '0.5 л', style: 'Wheat Beer', image: null }),
+  m('Paulaner Hefe Weissbier (разливное)', 'Разливное пиво', 260, 'Немецкое светлое нефильтрованное пшеничное.', { group: 'drinks', nameEn: 'Paulaner Hefe Weissbier (draft)', weight: '0.5 л', style: 'Wheat Beer', image: null }),
   m('Erdinger Dunkel (разливное)', 'Разливное пиво', 230, 'Немецкое тёмное пшеничное.', { group: 'drinks', nameEn: 'Erdinger Dunkel (draft)', weight: '0.4 л', style: 'Dark Wheat Beer', image: null }),
   m('Бельгийское нефильтрованное (разливное)', 'Разливное пиво', 190, 'Светлое нефильтрованное.', { group: 'drinks', nameEn: 'Belgian Unfiltered Beer (draft)', weight: '0.4 л', style: 'Pale Unfiltered', image: null }),
   m('Ирландский эль (разливное)', 'Разливное пиво', 120, 'Традиционный ирландский эль.', { group: 'drinks', nameEn: 'Irish Ale (draft)', weight: '0.4 л', style: 'Ale', image: null }),
@@ -577,6 +577,7 @@ const MENU_PRICES = {
   'Плов из австралийской говядины': 350,                   // было 300
   'Сырные палочки': 60,
   'Krombacher Weizen': 200,
+  'Paulaner Hefe Weissbier (разливное)': 260,
 };
 
 /**
